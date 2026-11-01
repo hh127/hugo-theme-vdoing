@@ -1,0 +1,40 @@
+{{- $page := . -}}
+{{- $author := "" -}}
+{{- $authorLink := "" -}}
+{{- with $page.Params.author -}}
+  {{- if reflect.IsMap . -}}
+    {{- $author = .name | default "" -}}
+    {{- $authorLink = .link | default "" -}}
+  {{- else -}}
+    {{- $author = . -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $author -}}
+  {{- $author = site.Params.author -}}
+  {{- $authorLink = site.Params.authorLink -}}
+{{- end -}}
+<div class="article-info">
+  {{- with $author }}
+  <span class="info-item info-author" title="作者">
+    {{ partial "icon.html" "user" }}
+    {{- if $authorLink }}<a href="{{ $authorLink }}" target="_blank" rel="noopener">{{ . }}</a>{{ else }}{{ . }}{{ end -}}
+  </span>
+  {{- end }}
+  {{- if not $page.Date.IsZero }}
+  <span class="info-item" title="创建时间">
+    {{ partial "icon.html" "date" }}<time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "2006-01-02" }}</time>
+  </span>
+  {{- end }}
+  {{- with $page.GetTerms "categories" }}
+  <span class="info-item info-categories" title="分类">
+    {{ partial "icon.html" "folder" }}
+    {{- range $i, $t := . }}{{ if $i }}<span class="info-sep">/</span>{{ end }}<a href="{{ $t.RelPermalink }}">{{ $t.LinkTitle }}</a>{{ end -}}
+  </span>
+  {{- end }}
+  {{- with $page.GetTerms "tags" }}
+  <span class="info-item info-tags" title="标签">
+    {{ partial "icon.html" "tag" }}
+    {{- range $i, $t := . }}{{ if $i }}<span class="info-sep">/</span>{{ end }}<a href="{{ $t.RelPermalink }}">{{ $t.LinkTitle }}</a>{{ end -}}
+  </span>
+  {{- end }}
+</div>

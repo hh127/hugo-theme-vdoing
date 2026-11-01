@@ -1,0 +1,7 @@
+{{- /* 用于 sidebar: auto 的页面(如碎片化文章), 侧边栏显示本页标题大纲 */ -}}
+<p class="sidebar-section-title">{{ .Title }}</p>
+{{- if in .TableOfContents "<li>" }}
+<div class="sidebar-toc">
+  {{ .TableOfContents }}
+</div>
+{{- end }}

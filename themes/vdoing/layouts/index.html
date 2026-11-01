@@ -1,0 +1,59 @@
+{{ define "main" }}
+{{- $sticky := slice -}}
+{{- $normal := slice -}}
+{{- range site.RegularPages -}}
+  {{- if ne .Params.article false -}}
+    {{- if .Params.sticky -}}
+      {{- $sticky = $sticky | append . -}}
+    {{- else -}}
+      {{- $normal = $normal | append . -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $posts := slice -}}
+{{- range sort $sticky "Params.sticky" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
+{{- range sort $normal "Date" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
+{{- $perPage := site.Params.postPageSize | default 10 -}}
+{{- $paginator := .Paginate $posts $perPage -}}
+{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
+
+<div class="home-wrapper">
+  <div class="banner">
+    <div class="banner-content">
+      <header class="hero">
+        <h1>{{ .Params.heroText | default site.Title }}</h1>
+        <p class="description">{{ .Params.tagline | default site.Params.description }}</p>
+      </header>
+      {{- with .Params.features }}
+      <div class="features">
+        {{- range . }}
+        {{- $f := . }}
+        <div class="feature">
+          <a href="{{ $f.link | default "#" | relURL }}">
+            {{- with $f.imgUrl }}<img class="feature-img" src="{{ . | relURL }}" alt="{{ $f.title }}">{{ end }}
+            <h2>{{ $f.title }}</h2>
+            <p>{{ $f.details }}</p>
+          </a>
+        </div>
+        {{- end }}
+      </div>
+      {{- end }}
+    </div>
+  </div>
+
+  <div class="main-wrapper">
+    <div class="main-left">
+      {{ partial "post-list.html" (dict "pages" $paginator.Pages) }}
+      {{ partial "pagination.html" . }}
+      {{- with .Content }}
+      <div class="theme-vdoing-content card-box home-content">{{ . }}</div>
+      {{- end }}
+    </div>
+    <aside class="main-right">
+      {{ partial "blogger-bar.html" . }}
+      {{ partial "categories-bar.html" . }}
+      {{ partial "tags-bar.html" . }}
+    </aside>
+  </div>
+</div>
+{{ end }}

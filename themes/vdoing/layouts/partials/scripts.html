@@ -1,0 +1,7 @@
+{{- $js := resources.Get "js/main.js" -}}
+{{- if $js -}}
+  {{- $built := $js | minify | fingerprint -}}
+  <script src="{{ $built.RelPermalink }}" defer></script>
+{{- else -}}
+  <script src="{{ "js/main.js" | relURL }}" defer></script>
+{{- end -}}

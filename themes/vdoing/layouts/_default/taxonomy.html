@@ -1,0 +1,10 @@
+{{ define "main" }}
+{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
+<div class="taxonomy-wrapper">
+  <header class="taxonomy-header">
+    <h1 class="taxonomy-title">{{ .Title }}</h1>
+    <p class="taxonomy-desc">共 {{ len .Pages }} 篇文章</p>
+  </header>
+  {{ partial "post-list.html" (dict "pages" .Pages.ByDate.Reverse) }}
+</div>
+{{ end }}

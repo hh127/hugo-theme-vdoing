@@ -1,0 +1,26 @@
+{{- /* VuePress 容器语法迁移后的渲染: ::: tip 标题 -> {{% block type="tip" title="标题" %}} */ -}}
+{{- $type := .Get "type" | default "tip" -}}
+{{- $title := .Get "title" | default "" -}}
+{{- $body := .Inner | markdownify -}}
+{{- if eq $type "details" -}}
+<details class="custom-block details">
+  <summary class="custom-block-title">{{ $title | default "详细信息" }}</summary>
+  <div class="custom-block-content">{{ $body }}</div>
+</details>
+{{- else if eq $type "center" -}}
+<div class="custom-block center">{{ $body }}</div>
+{{- else if eq $type "right" -}}
+<div class="custom-block right">{{ $body }}</div>
+{{- else if eq $type "cardList" -}}
+<div class="custom-block card-list">{{ $body }}</div>
+{{- else if eq $type "demo" -}}
+<div class="custom-block demo-block">
+  <p class="custom-block-title">示例{{ with $title }} · {{ . }}{{ end }}</p>
+  <div class="custom-block-content">{{ $body }}</div>
+</div>
+{{- else -}}
+<div class="custom-block {{ $type }}">
+  {{- with $title }}<p class="custom-block-title">{{ . }}</p>{{ end }}
+  <div class="custom-block-content">{{ $body }}</div>
+</div>
+{{- end -}}

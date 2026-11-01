@@ -1,0 +1,14 @@
+{{- $pages := slice -}}
+{{- range site.RegularPages -}}
+  {{- if ne .Params.article false -}}
+    {{- $pages = $pages | append (dict
+      "title" .Title
+      "permalink" .RelPermalink
+      "date" (.Date.Format "2006-01-02")
+      "categories" (.Params.categories | default slice)
+      "tags" (.Params.tags | default slice)
+      "content" (.Plain | truncate 1500)
+    ) -}}
+  {{- end -}}
+{{- end -}}
+{{- $pages | jsonify -}}

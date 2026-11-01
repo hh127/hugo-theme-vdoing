@@ -1,0 +1,30 @@
+{{- $nav := hugo.Data.nav -}}
+<header class="navbar" id="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-left">
+      <button class="sidebar-button" id="sidebar-toggle" aria-label="打开侧边栏">
+        <span></span><span></span><span></span>
+      </button>
+      <a class="site-name" href="{{ "/" | relURL }}">
+        {{- with site.Params.logo }}
+        <img class="logo" src="{{ . | relURL }}" alt="{{ site.Title }}">
+        {{- end }}
+        <span class="site-title">{{ site.Title }}</span>
+      </a>
+    </div>
+    <div class="navbar-right">
+      {{- with $nav }}
+      {{ partial "nav.html" (dict "items" . "depth" 1) }}
+      {{- end }}
+      {{ partial "search.html" . }}
+      {{- with site.Params.repo }}
+      <a class="icon-button repo-link" href="https://github.com/{{ . }}" target="_blank" rel="noopener" title="GitHub">
+        {{ partial "icon.html" "github" }}
+      </a>
+      {{- end }}
+      <button class="icon-button mode-button" id="mode-toggle" title="切换主题模式" aria-label="切换主题模式">
+        {{ partial "icon.html" "mode" }}
+      </button>
+    </div>
+  </div>
+</header>

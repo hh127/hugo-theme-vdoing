@@ -1,0 +1,22 @@
+{{- /* 结构化侧边栏: 按 weight(序号) 递归渲染当前章节树 */ -}}
+{{- $page := .page -}}
+{{- $section := .section -}}
+<ul class="sidebar-links">
+  {{- range $section.Pages.ByWeight }}
+  {{- $item := . }}
+  {{- if eq $item.Kind "section" }}
+  {{- $open := or ($page.IsDescendant $item) (eq $page $item) }}
+  <li class="sidebar-group{{ if $open }} open{{ end }}">
+    <p class="sidebar-group-title">
+      <span class="sidebar-group-name">{{ $item.Title }}</span>
+      <span class="sidebar-arrow"></span>
+    </p>
+    {{- partial "sidebar-tree.html" (dict "section" $item "page" $page) }}
+  </li>
+  {{- else }}
+  <li class="sidebar-link-item{{ if eq $page $item }} active{{ end }}">
+    <a href="{{ $item.RelPermalink }}">{{ $item.Title }}</a>
+  </li>
+  {{- end }}
+  {{- end }}
+</ul>

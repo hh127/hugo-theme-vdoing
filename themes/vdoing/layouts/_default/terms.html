@@ -1,0 +1,30 @@
+{{ define "main" }}
+{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
+{{- $plural := .Data.Plural -}}
+<div class="taxonomy-wrapper">
+  <header class="taxonomy-header">
+    <h1 class="taxonomy-title">
+      {{- if eq $plural "tags" }}标签{{ else if eq $plural "categories" }}分类{{ else }}{{ .Title }}{{ end -}}
+    </h1>
+    <p class="taxonomy-desc">共 {{ len .Data.Terms }} 个{{ if eq $plural "tags" }}标签{{ else }}分类{{ end }}</p>
+  </header>
+
+  {{- if eq $plural "tags" }}
+  <div class="tag-cloud card-box">
+    {{- range .Data.Terms.ByCount }}
+    {{- $size := cond (ge .Count 20) "1.3rem" (cond (ge .Count 8) "1.1rem" (cond (ge .Count 3) "1rem" ".92rem")) }}
+    <a class="cloud-tag" href="{{ .Page.RelPermalink }}" style="font-size:{{ $size }}">{{ .Page.LinkTitle }}<span class="tag-count">{{ .Count }}</span></a>
+    {{- end }}
+  </div>
+  {{- else }}
+  <div class="category-grid">
+    {{- range .Data.Terms.ByCount }}
+    <a class="category-card card-box" href="{{ .Page.RelPermalink }}">
+      <span class="category-name">{{ .Page.LinkTitle }}</span>
+      <span class="category-count">{{ .Count }} 篇</span>
+    </a>
+    {{- end }}
+  </div>
+  {{- end }}
+</div>
+{{ end }}

@@ -1,0 +1,22 @@
+{{- $page := .page -}}
+{{- $hasTree := .hasTree -}}
+<aside class="sidebar{{ if not $hasTree }} sidebar-simple{{ end }}" id="sidebar">
+  <div class="sidebar-inner">
+    <div class="sidebar-nav-mobile">
+      {{ partial "nav.html" (dict "items" hugo.Data.nav "depth" 1) }}
+    </div>
+    {{- if $hasTree }}
+    {{- if eq $page.Params.sidebar "auto" }}
+    {{ partial "sidebar-toc.html" $page }}
+    {{- else }}
+    {{- $section := $page.FirstSection }}
+    {{- if and $section (ne $section.Kind "home") }}
+    <p class="sidebar-section-title">{{ $section.Title }}</p>
+    {{ partial "sidebar-tree.html" (dict "section" $section "page" $page) }}
+    {{- else }}
+    {{ partial "sidebar-toc.html" $page }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+  </div>
+</aside>

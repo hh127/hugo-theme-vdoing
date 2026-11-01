@@ -1,0 +1,15 @@
+name = "vdoing"
+license = "MIT"
+licenselink = "https://github.com/xugaoyi/vuepress-theme-vdoing/blob/master/LICENSE"
+description = "Hugo port of the vdoing theme: a knowledge-base + blog theme with structured sidebar, categories, tags, archives, search and dark mode."
+homepage = "https://github.com/xugaoyi/vuepress-theme-vdoing"
+tags = ["blog", "documentation", "knowledge base", "dark mode", "search", "chinese"]
+features = ["structured sidebar", "categories", "tags", "archives", "client side search", "dark mode", "reading mode", "responsive"]
+min_version = "0.120.0"
+
+[author]
+  name = "xugaoyi"
+
+[original]
+  name = "vuepress-theme-vdoing"
+  homepage = "https://github.com/xugaoyi/vuepress-theme-vdoing"

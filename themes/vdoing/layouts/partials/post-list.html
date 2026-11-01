@@ -1,0 +1,21 @@
+{{- $pages := .pages -}}
+<div class="post-list">
+  {{- range $pages }}
+  {{- $p := . }}
+  <article class="post card-box{{ with .Params.sticky }} sticky{{ end }}">
+    <div class="post-title-wrapper">
+      <h2 class="post-title">
+        <a href="{{ $p.RelPermalink }}">{{ $p.Title }}</a>
+        {{- with $p.Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}
+      </h2>
+      {{ partial "post-meta.html" $p }}
+    </div>
+    {{- with $p.Summary }}
+    <div class="post-excerpt">
+      <p>{{ . | plainify | htmlUnescape | strings.TrimSpace | truncate 150 }}</p>
+      <a class="read-more" href="{{ $p.RelPermalink }}">阅读全文</a>
+    </div>
+    {{- end }}
+  </article>
+  {{- end }}
+</div>

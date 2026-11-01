@@ -1,0 +1,12 @@
+{{- $tags := site.Taxonomies.tags -}}
+{{- with $tags }}
+<div class="tags-bar card-box">
+  <p class="bar-title">标签</p>
+  <div class="bar-items bar-tags">
+    {{- range first 30 $tags.ByCount }}
+    <a class="tag-item" href="{{ .Page.RelPermalink }}">{{ .Page.LinkTitle }}<span class="tag-count">{{ .Count }}</span></a>
+    {{- end }}
+  </div>
+  <a class="bar-more" href="{{ "tags/" | relURL }}">更多标签 →</a>
+</div>
+{{- end }}

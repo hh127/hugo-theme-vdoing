@@ -1,0 +1,16 @@
+{{- $logo := site.Params.logo -}}
+<footer class="footer">
+  <div class="footer-inner">
+    {{- with site.Params.footer }}
+    <div class="footer-copyright">
+      <span>Copyright © {{ .createYear }}-{{ now.Format "2006" }}</span>
+      <span class="footer-sep">|</span>
+      <span class="footer-info">{{ .copyrightInfo | safeHTML }}</span>
+    </div>
+    {{- else }}
+    <div class="footer-copyright">
+      <span>Copyright © {{ now.Format "2006" }} {{ site.Title }}</span>
+    </div>
+    {{- end }}
+  </div>
+</footer>

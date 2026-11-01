@@ -1,0 +1,15 @@
+{{- $cats := site.Taxonomies.categories -}}
+{{- with $cats }}
+<div class="categories-bar card-box">
+  <p class="bar-title">分类</p>
+  <div class="bar-items">
+    {{- range first 10 $cats.ByCount }}
+    <a class="bar-item" href="{{ .Page.RelPermalink }}">
+      <span class="bar-item-name">{{ .Page.LinkTitle }}</span>
+      <span class="bar-item-count">{{ .Count }}</span>
+    </a>
+    {{- end }}
+  </div>
+  <a class="bar-more" href="{{ "categories/" | relURL }}">更多分类 →</a>
+</div>
+{{- end }}

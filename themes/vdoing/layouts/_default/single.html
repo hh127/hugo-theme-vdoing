@@ -1,0 +1,48 @@
+{{ define "main" }}
+{{- $hasSidebar := partial "func/has-sidebar.html" . -}}
+<div class="page-wrapper{{ if $hasSidebar }} has-sidebar{{ else }} no-sidebar{{ end }}">
+  {{ partial "sidebar.html" (dict "page" . "hasTree" $hasSidebar) }}
+  <div class="page-content">
+    <main class="article-wrapper">
+      <nav class="breadcrumb">
+        {{ partial "icon.html" "home" }}<a href="{{ "/" | relURL }}">首页</a>
+        {{- with .GetTerms "categories" }}{{ with index . 0 }}<span class="sep">/</span><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}{{ end }}
+        <span class="sep">/</span><span class="current">{{ .Title }}</span>
+      </nav>
+
+      <article class="theme-vdoing-content article card-box">
+        <header class="article-header">
+          <h1 class="article-title">{{ .Title }}{{ with .Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}</h1>
+          {{ partial "post-meta.html" . }}
+        </header>
+
+        <div class="article-body">
+          {{ .Content }}
+        </div>
+
+        <footer class="article-footer">
+          {{- with .GetTerms "tags" }}
+          <div class="article-tags">
+            <span class="article-tags-label">标签:</span>
+            {{- range . }}<a class="tag-item" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
+          </div>
+          {{- end }}
+          {{- if and site.Params.editLinkRepo (ne .Params.editLink false) }}
+          {{- with .File }}
+          <a class="edit-link" href="{{ site.Params.editLinkRepo }}content/{{ .Path }}" target="_blank" rel="noopener">{{ site.Params.editLinkText | default "编辑" }}本页</a>
+          {{- end }}
+          {{- end }}
+        </footer>
+      </article>
+
+      {{ partial "page-nav.html" . }}
+    </main>
+
+    {{- if and site.Params.rightMenuBar (ne .Params.rightMenuBar false) }}
+    <aside class="right-menu">
+      {{ partial "toc.html" . }}
+    </aside>
+    {{- end }}
+  </div>
+</div>
+{{ end }}

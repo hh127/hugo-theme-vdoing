@@ -1,0 +1,30 @@
+{{ define "main" }}
+{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
+{{- $posts := slice -}}
+{{- range site.RegularPages.ByDate.Reverse -}}
+  {{- if ne .Params.article false -}}
+    {{- $posts = $posts | append . -}}
+  {{- end -}}
+{{- end }}
+<div class="archives-wrapper">
+  <header class="taxonomy-header">
+    <h1 class="taxonomy-title">{{ .Title | default "归档" }}</h1>
+    <p class="taxonomy-desc">共 {{ len $posts }} 篇文章</p>
+  </header>
+
+  {{- range $posts.GroupByDate "2006" }}
+  <section class="archive-group card-box">
+    <h2 class="archive-year">{{ .Key }}<span class="archive-count">{{ len .Pages }} 篇</span></h2>
+    <ul class="archive-list">
+      {{- range .Pages }}
+      <li class="archive-item">
+        <span class="archive-date">{{ .Date.Format "01-02" }}</span>
+        <a class="archive-title" href="{{ .RelPermalink }}">{{ .Title }}</a>
+        {{- with .Params.categories }}<span class="archive-cate">{{ index . 0 }}</span>{{ end }}
+      </li>
+      {{- end }}
+    </ul>
+  </section>
+  {{- end }}
+</div>
+{{ end }}

@@ -1,0 +1,24 @@
+{{- $toc := trim .TableOfContents " \n\r\t" -}}
+{{- if in $toc "<li>" }}
+<div class="toc-box card-box">
+  <p class="toc-title">本文目录</p>
+  <div class="toc-content">{{ $toc | safeHTML }}</div>
+</div>
+{{- end }}
+{{- $recent := slice }}
+{{- range site.RegularPages.ByDate.Reverse }}
+  {{- if and (ne .Params.article false) (lt (len $recent) 5) }}
+    {{- $recent = $recent | append . }}
+  {{- end }}
+{{- end }}
+{{- with $recent }}
+<div class="recent-box card-box">
+  <p class="toc-title">最近更新</p>
+  <ul class="recent-list">
+    {{- range . }}
+    <li><a href="{{ .RelPermalink }}">{{ .Title }}</a><span class="recent-date">{{ .Date.Format "01-02" }}</span></li>
+    {{- end }}
+  </ul>
+  <a class="bar-more" href="{{ "archives/" | relURL }}">更多文章 →</a>
+</div>
+{{- end }}

@@ -1,0 +1,19 @@
+{{- /* 递归渲染导航菜单: 传入 dict "items" <菜单数组> "depth" <层级> */ -}}
+{{- $depth := .depth -}}
+<ul class="nav-links nav-depth-{{ $depth }}">
+  {{- range .items }}
+  {{- $children := .items }}
+  <li class="nav-item{{ if $children }} has-dropdown{{ end }}">
+    {{- if .link }}
+    <a class="nav-link" href="{{ .link | relURL }}">{{ .text }}{{ if $children }}<span class="nav-arrow"></span>{{ end }}</a>
+    {{- else }}
+    <span class="nav-link nav-group-title">{{ .text }}{{ if $children }}<span class="nav-arrow"></span>{{ end }}</span>
+    {{- end }}
+    {{- with $children }}
+    <div class="nav-dropdown">
+      {{ partial "nav.html" (dict "items" . "depth" (add $depth 1)) }}
+    </div>
+    {{- end }}
+  </li>
+  {{- end }}
+</ul>

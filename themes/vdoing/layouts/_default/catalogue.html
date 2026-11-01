@@ -1,0 +1,43 @@
+{{ define "main" }}
+{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
+{{- $sec := site.GetPage (printf "/%s" .Params.catalogue) -}}
+<div class="catalogue-wrapper">
+  <header class="catalogue-header">
+    {{- with .Params.imgUrl }}<img class="catalogue-img" src="{{ . | relURL }}" alt="{{ $.Title }}">{{ end }}
+    <h1 class="catalogue-title">{{ .Title }}</h1>
+    {{- with .Params.description }}<p class="catalogue-desc">{{ . | safeHTML }}</p>{{ end }}
+  </header>
+
+  {{- with $sec }}
+  <div class="catalogue-grid">
+    {{- range .Pages.ByWeight }}
+    {{- if eq .Kind "section" }}
+    <div class="catalogue-card card-box">
+      <h2 class="catalogue-card-title">{{ .Title }}</h2>
+      <ul class="catalogue-links">
+        {{ partial "catalogue-links.html" . }}
+      </ul>
+    </div>
+    {{- end }}
+    {{- end }}
+  </div>
+
+  {{- $loose := slice }}
+  {{- range .Pages.ByWeight }}
+    {{- if ne .Kind "section" }}{{ $loose = $loose | append . }}{{ end }}
+  {{- end }}
+  {{- with $loose }}
+  <div class="catalogue-card card-box">
+    <h2 class="catalogue-card-title">{{ $sec.Title }}</h2>
+    <ul class="catalogue-links">
+      {{- range . }}<li class="catalogue-link"><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}
+    </ul>
+  </div>
+  {{- end }}
+  {{- end }}
+
+  {{- with .Content }}
+  <div class="theme-vdoing-content card-box catalogue-content">{{ . }}</div>
+  {{- end }}
+</div>
+{{ end }}

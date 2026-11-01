@@ -1,0 +1,10 @@
+{{- /* 判断当前页面是否显示左侧边栏 */ -}}
+{{- $show := true -}}
+{{- if .IsHome }}{{ $show = false }}{{ end -}}
+{{- if eq .Params.sidebar false }}{{ $show = false }}{{ end -}}
+{{- if eq .Kind "home" }}{{ $show = false }}{{ end -}}
+{{- if eq .Kind "section" }}{{ $show = false }}{{ end -}}
+{{- if eq .Kind "taxonomy" }}{{ $show = false }}{{ end -}}
+{{- if eq .Kind "term" }}{{ $show = false }}{{ end -}}
+{{- if eq .Kind "404" }}{{ $show = false }}{{ end -}}
+{{- return $show -}}

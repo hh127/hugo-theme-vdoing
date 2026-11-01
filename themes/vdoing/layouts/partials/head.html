@@ -1,0 +1,38 @@
+{{- $title := cond .IsHome site.Title (printf "%s | %s" .Title site.Title) -}}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ $title }}</title>
+<meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ site.Params.description }}{{ end }}">
+<meta name="keywords" content="{{ with .Params.keywords }}{{ . }}{{ else }}{{ site.Params.keywords }}{{ end }}">
+<meta name="theme-color" content="{{ site.Params.themeColor | default "#11a8cd" }}">
+<meta name="author" content="{{ site.Params.author }}">
+<link rel="icon" href="{{ "img/favicon.ico" | relURL }}">
+<meta name="renderer" content="webkit">
+
+{{- with .OutputFormats.Get "rss" }}
+<link rel="alternate" type="application/rss+xml" href="{{ .RelPermalink }}" title="{{ site.Title }}">
+{{- end }}
+
+{{- /* 提前设置主题模式, 避免刷新时闪烁 */}}
+<script>
+(function () {
+  try {
+    var mode = localStorage.getItem('vdoing-mode') || '{{ site.Params.defaultMode | default "auto" }}';
+    if (mode === 'auto') {
+      mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.className = 'theme-mode-' + mode + ' theme-style-{{ site.Params.pageStyle | default "card" }}';
+  } catch (e) {}
+})();
+</script>
+
+{{- $scss := resources.Get "scss/main.scss" }}
+{{- with $scss }}
+  {{- $css := . | css.Sass (dict "outputStyle" "compressed") | fingerprint }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}">
+{{- else }}
+  <link rel="stylesheet" href="{{ "css/style.css" | relURL }}">
+{{- end }}
+
+{{- template "_internal/opengraph.html" . }}
+{{- template "_internal/twitter_cards.html" . }}

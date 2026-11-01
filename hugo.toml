@@ -1,0 +1,100 @@
+# =========================================================
+#  hugo-theme-vdoing 示例站点配置 (由 VuePress 版迁移而来)
+#  站点级配置放这里; 主题相关参数统一放在 [params] 下
+# =========================================================
+
+baseURL = "https://xugaoyi.com/"
+defaultContentLanguage = "zh"
+title = "Evan's blog"
+theme = "vdoing"
+
+enableRobotsTXT = true
+enableEmoji = true
+hasCJKLanguage = true   # 中文摘要按字符数截断
+summaryLength = 80      # 列表摘要长度
+
+# 文章内容里有大量原生 html / img / iframe / 自定义容器, 需要放开
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = true
+    lineNos = false
+    noClasses = false
+    style = "monokai"
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 4
+    ordered = false
+
+# 首页额外输出 index.json 供前端搜索使用
+[outputs]
+  home = ["HTML", "JSON", "RSS"]
+  section = ["HTML"]
+  taxonomy = ["HTML"]
+  term = ["HTML"]
+
+[outputFormats.JSON]
+  mediaType = "application/json"
+  baseName = "index"
+  isPlainText = true
+  notAlternative = true
+
+[params]
+  description = "web前端技术博客,专注web前端学习与总结。JavaScript,js,ES6,TypeScript,vue,React,python,css3,html5,Node,git,github等技术文章。"
+  keywords = "前端博客,个人技术博客,前端,前端开发,前端框架,web前端,前端面试题,技术文档,学习,面试,JavaScript,js,ES6,TypeScript,vue,python,css3,html5,Node,git,github,markdown"
+
+  logo = "/img/logo.png"
+  themeColor = "#11a8cd"
+  repo = "xugaoyi/vuepress-theme-vdoing"
+
+  # 布局
+  pageStyle = "card"        # card 卡片式 | line 线条式
+  sidebarDepth = 2          # 侧边栏/右侧大纲层级
+  sidebarOpen = true        # 桌面端默认展开侧边栏
+  defaultMode = "auto"      # auto | light | dark | read
+  rightMenuBar = true       # 右侧文章大纲
+
+  # 列表与搜索
+  postPageSize = 10
+  searchMaxSuggestions = 10
+
+  # 编辑链接
+  editLinkText = "编辑"
+  editLinkRepo = "https://github.com/xugaoyi/vuepress-theme-vdoing/blob/master/"
+  lastUpdatedText = "上次更新"
+
+  # 作者
+  author = "xugaoyi"
+  authorLink = "https://github.com/xugaoyi"
+
+  # 博主信息 (首页右侧)
+  [params.blogger]
+    avatar = "https://jsd.cdn.zzko.cn/gh/xugaoyi/image_store/blog/20200103123203.jpg"
+    name = "Evan Xu"
+    slogan = "前端界的小学生"
+
+  # 社交图标: iconClass 支持 icon-github / icon-youjian / icon-erji / icon-bilibili / icon-rss
+  [[params.social]]
+    iconClass = "icon-youjian"
+    title = "发邮件"
+    link = "mailto:894072666@qq.com"
+
+  [[params.social]]
+    iconClass = "icon-github"
+    title = "GitHub"
+    link = "https://github.com/xugaoyi"
+
+  [[params.social]]
+    iconClass = "icon-erji"
+    title = "听音乐"
+    link = "https://music.163.com/#/playlist?id=755597173"
+
+  # 页脚
+  [params.footer]
+    createYear = 2019
+    copyrightInfo = 'Evan Xu | <a href="https://github.com/xugaoyi/vuepress-theme-vdoing/blob/master/LICENSE" target="_blank">MIT License</a> | <a href="http://beian.miit.gov.cn/" target="_blank">桂ICP备2024034950号</a> | <img src="/img/beian.png" style="width: 15px; margin-bottom: -3px;" /> <a href="https://beian.mps.gov.cn/#/query/webSearch?code=45142202000030" rel="noreferrer" target="_blank">桂公网安备45142202000030</a>'
+
+# 站内搜索基于 home 输出的 index.json, 无需额外配置

@@ -1,0 +1,16 @@
+{{ define "main" }}
+{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
+<div class="page-wrapper no-sidebar">
+  <div class="page-content">
+    <main class="article-wrapper">
+      <article class="theme-vdoing-content article card-box">
+        <header class="article-header">
+          <h1 class="article-title">{{ .Title }}</h1>
+          <p class="article-desc">共 {{ len .Pages }} 篇</p>
+        </header>
+        {{ partial "post-list.html" (dict "pages" .Pages.ByWeight) }}
+      </article>
+    </main>
+  </div>
+</div>
+{{ end }}

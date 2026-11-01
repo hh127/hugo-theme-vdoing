@@ -1,112 +1,213 @@
-<p align="center"><a href="https://xugaoyi.com/" target="_blank" rel="noopener noreferrer"><img width="180" src="https://jsd.cdn.zzko.cn/gh/xugaoyi/image_store/blog/20200409124835.png" alt="logo"></a></p>
+<p align="center"><img width="120" src="static/img/logo.png" alt="vdoing for hugo"></p>
+
+<h2 align="center">hugo-theme-vdoing</h2>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/vuepress-theme-vdoing"><img alt="npm" src="https://img.shields.io/npm/v/vuepress-theme-vdoing"></a>
-   <a href="https://www.npmjs.com/package/vuepress-theme-vdoing" target="_blank"><img src="https://img.shields.io/npm/dt/vuepress-theme-vdoing" alt="npm" ></a>
-  <a href="https://github.com/xugaoyi/vuepress-theme-vdoing/stargazers"><img src="https://img.shields.io/github/stars/xugaoyi/vuepress-theme-vdoing?logo=ReverbNation&logoColor=rgba(255,255,255,.6)" alt="GitHub stars"></a>
-  <a href="https://github.com/xugaoyi/vuepress-theme-vdoing/actions?query=workflow%3ACI"><img src="https://github.com/xugaoyi/vuepress-theme-vdoing/workflows/CI/badge.svg" alt="CI"></a>
-  <a href="https://github.com/xugaoyi/vuepress-theme-vdoing/actions?query=workflow%3AbaiduPush"><img src="https://github.com/xugaoyi/vuepress-theme-vdoing/workflows/baiduPush/badge.svg" alt="baiduPush"></a>
+  由 <a href="https://github.com/xugaoyi/vuepress-theme-vdoing">vuepress-theme-vdoing</a> 迁移而来的 Hugo 主题：知识库 + 博客。
 </p>
 
-<h2 align="center">vuepress-theme-vdoing</h2>
+![首页](docs/screenshots/home.png)
 
+---
 
+## 这是什么
 
- [文档](https://doc.xugaoyi.com/)  |
- [效果](https://xugaoyi.com/)  |
- [本仓库的gitee镜像](https://gitee.com/xugaoyi/vuepress-theme-vdoing)
+这个仓库原本是 xugaoyi 的 VuePress 版「vdoing」主题 + 博客工程（已完整保留在 `legacy/`）。
+现在它被改造成一个 **Hugo 站点 + `themes/vdoing` 主题**，并完成了内容迁移：
 
-<br/>
-<p align="center" style="color: #999;">
-  赞助商
-</p>
-<p align="center">
-<!-- <a href="http://apifox.cn/a103xugaoyi" target="_blank"><img src="https://jsd.cdn.zzko.cn/gh/xugaoyi/blog-gitalk-comment@master/img/Apifox-860x320.ic7tz1417sw.png" alt="赞助商" style="width: 400px;border-radius: 2px;"></a> -->
-<a href="http://apifox.cn/a103xugaoyi" target="_blank"><img src="https://jsd.cdn.zzko.cn/gh/xugaoyi/blog-gitalk-comment@master/img/441669861566_.2bedplbm21hc.jpg" alt="赞助商" style="width: 400px;border-radius: 2px;"></a>
-</p>
+- 230 个内容页（其中 214 篇正式文章）全部迁移，**保留了原来的 `/pages/xxx/` 永久链接**，老站外链不失效；
+- 首页卡片式文章列表 + 分页、结构化可折叠侧边栏、目录页、分类 / 标签 / 归档、右侧文章大纲、上一篇 / 下一篇、面包屑；
+- 浅色 / 深色 / 阅读三种外观（跟随系统）、站内搜索、代码块复制、返回顶部、移动端抽屉式侧边栏；
+- 原 VuePress 的 `::: tip` 容器语法已转换为 Hugo shortcode，渲染效果保持一致。
 
-<p align="center" style="color: #999; font-size:13px;">（进入赞助商扫码注册可为本项目作者充电~）</p>
+| 文章页 | 目录页 |
+| --- | --- |
+| ![文章页](docs/screenshots/article.png) | ![目录页](docs/screenshots/catalogue.png) |
 
-## 介绍
-1. 这个主题的初衷是打造一个好用的、面向程序员的`知识管理工具`
-2. 轻松构建一个`结构化`的知识库，让你的知识海洋像一本本书一样清晰易读。
-3. 博客功能提供一种知识的`碎片化`形态，并支持个性化博客配置。
-4. `简洁高效`，以 Markdown 为中心的项目结构。内置自动化工具，以更少的配置完成更多的事。配合多维索引快速定位每个知识点。
+| 归档 | 深色模式 |
+| --- | --- |
+| ![归档](docs/screenshots/archives.png) | ![深色](docs/screenshots/dark.png) |
 
-[**更新日志**](https://github.com/xugaoyi/vuepress-theme-vdoing/releases)
+---
 
-## 这个主题可以做什么？
-* 案例1：[知识库兼博客站](https://xugaoyi.com/)
-* 案例2：[仅博客站](https://xugaoyi.github.io/vdoing-demo-blog/)
-* 案例3：[仅知识库](https://xugaoyi.github.io/vdoing-demo-repository/)
-* 案例4：[文档站](https://doc.xugaoyi.com/)
-
-
-## 快速上手
+## 快速开始
 
 ```bash
-# clone the project
-git clone https://github.com/xugaoyi/vuepress-theme-vdoing.git
+# 本地预览（热更新）
+hugo server --disableFastRender
 
-# enter the project directory
-cd vuepress-theme-vdoing
-
-# install dependency
-npm install # or yarn install
-
-# develop
-npm run dev # or yarn dev
+# 构建静态站点到 public/
+hugo --minify
 ```
 
-<!-- ## ⚡️未来...
+依赖：**Hugo extended 0.120+**（需要 SCSS 编译能力）。
 
+---
 
-期待 [VuePress v2.0](https://github.com/vuepress/vuepress-next) 以及 [VitePress](https://github.com/vuejs/vitepress) 的正式发布...
+## 目录结构
 
-届时，VuePress 1.x 编译慢的缺点将得到极大的改善。我将会视情况把主题升级至 VuePress v2.0 或 VitePress，也可能两个都升级。目前(2020.10.29)来看还需要一段时间才能让大家使用上基于它们的新版本，还希望大家多多 [:sparkling_heart:支持](https://doc.xugaoyi.com/pages/1b12ed/) 哟，持续关注吧~ -->
+```
+.
+├── hugo.toml              # 站点配置（站名、主题参数、taxonomy、markup）
+├── data/nav.yaml          # 顶部导航菜单（支持三层嵌套）
+├── content/               # 文章内容（由 VuePress docs/ 迁移而来）
+│   ├── _index.md          # 首页（heroText / tagline / features）
+│   ├── archives.md        # 归档页  -> /archives/
+│   ├── catalogue/         # 目录页  -> /web/ /ui/ /technology/ /more/
+│   ├── posts/             # 碎片化文章（原 _posts/）
+│   ├── 前端/ 页面/ 技术/ 更多/ 关于/ 收藏夹/
+│   └── 《ES6 教程》笔记/ 《Vue》笔记/ …… （学习笔记专辑）
+├── static/                # 图片、favicon、CNAME 等静态资源
+├── themes/vdoing/         # 主题源码
+│   ├── layouts/           # 模板、partials、shortcodes
+│   ├── assets/scss/       # 样式（SCSS -> 带指纹的 CSS）
+│   ├── assets/js/         # 交互脚本（主题模式 / 侧边栏 / 搜索 / 复制）
+│   └── static/            # 主题自带静态文件
+├── tools/                 # 迁移与校验脚本
+│   ├── migrate_content.py # legacy/docs -> content 的一次性迁移脚本
+│   └── check_links.py     # 构建后站内链接检查
+├── archetypes/default.md  # hugo new 的文章骨架
+└── legacy/                # 原 VuePress 工程（含 vdoing 主题源码），仅作参考
+```
 
-## :sparkling_heart:支持这个项目
+---
 
-如果你正在使用这个项目并感觉良好，或只是想要支持我继续开发，你可以通过如下*任意* 方式支持我：
+## 写文章
 
-1. *Star* 并 分享这个项目 :rocket:
-2. 保留主题 footer(页脚) 的主题链接 :D
-3. 关注公众号`yqyjs666`，回复`前端资源`，可获取 [前端学习资源](https://github.com/xugaoyi/blog-gitalk-comment/wiki/Front-end-Study)
-<!-- 4. 轻轻点击一次页面广告 ✨ -->
-4. 通过以下二维码 一次性捐款。 我多半会买一杯 ~~咖啡~~ 茶。:tea:
+在 `content/` 下任意目录新建 `.md` 文件即可（或 `hugo new content/前端/xxx/新文章.md`）：
 
-谢谢！ :heart:
+```yaml
+---
+title: 文章标题
+date: 2024-05-01T10:00:00+08:00   # 使用带时区的 RFC3339
+url: "/pages/abc123/"             # 永久链接，等价于 VuePress 的 permalink
+categories: [前端, JavaScript文章]
+tags: [JavaScript]
+author:
+  name: xugaoyi
+  link: https://github.com/xugaoyi
+weight: 1                         # 同级排序，等价于原文件名 "01." 序号
+titleTag: 原创                     # 可选：标题旁小徽标
+sticky: 1                         # 可选：首页置顶，数字越大越靠前
+---
 
-| 微信赞赏 | 微信 | 支付宝 |
-| :---: | :---: | :---: |
-| <img src="https://jsd.cdn.zzko.cn/gh/xugaoyi/image_store/blog/20200523131533.jpg" alt="赞赏码" width=150> | <img src="https://jsd.cdn.zzko.cn/gh/xugaoyi/image_store/blog/20200410113708.jpg" alt="Wechat QRcode" width=150>| <img src="https://jsd.cdn.zzko.cn/gh/xugaoyi/image_store/blog/20200410113707.jpg" alt="Alipay QRcode" width=150> |
+正文……
+```
 
-二维码没有正常显示？点 [这里😎](https://doc.xugaoyi.com/pages/1b12ed/)
+### 侧边栏与排序
 
-## 致谢
-:heart:感谢支持这个项目的朋友
+- 左侧边栏 = 当前文章所在**顶级目录**的整棵目录树，顺序由 `weight` 决定（从小到大）。
+- 子目录自动变成**可折叠分组**，分组的先后由该目录 `_index.md` 的 `weight` 决定。
+- 目录本身不生成页面（`_index.md` 中 `build.render: never`），分组标题只负责展开 / 收起。
+- 文章写 `sidebar: auto` 时，左侧边栏改为显示**本页标题大纲**（原主题碎片化文章的用法）。
+- 想关闭侧边栏：`sidebar: false`。
 
-:heart:感谢为这个项目贡献代码的朋友 → [Contributors](https://github.com/xugaoyi/vuepress-theme-vdoing/graphs/contributors)
+### 目录页（catalogue）
 
-## 交流群
+`content/catalogue/*.md` 用于「前端 / 页面 / 技术 / 更多」这类汇总页：
 
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-        <img src="https://mmbiz.qpic.cn/sz_mmbiz_jpg/SaV6d0YfaAS0naAeQWibGVkSt6DxSaqGxdkJaeEqoJJ6M1NV1kq9aUqE3lGo7BuroTAoMg4rgibIIay1ibfvqXEiaA/0?wx_fmt=jpeg" class="no-zoom" style="width:120px;margin: 10px;">
-        <p>vdoing微信群(添加我微信备注"加群")</p>
-      </td>
-      <td align="center" valign="middle">
-        <img src="https://jsd.cdn.zzko.cn/gh/xugaoyi/image_store@master/qq.3ugglfuuwz00.webp" alt="群号: 694387113" class="no-zoom" style="width:120px;margin: 10px;">
-        <p>vdoing QQ群: 694387113</p>
-      </td>
-    </tr>
-  </tbody>
-</table>
+```yaml
+---
+layout: catalogue
+catalogue: "前端"          # 对应 content/前端 这一顶级目录
+imgUrl: /img/web.png
+description: JavaScript、ES6、Vue框架等前端技术
+url: "/web/"
+sidebar: false
+article: false            # 不进入首页列表 / 归档 / 搜索
+---
+```
 
+页面会把该目录下所有子目录渲染成卡片，卡片内是该子目录下全部文章链接。
+
+### VuePress 容器的替代写法
+
+原来的 `::: tip 标题 … :::` 已由迁移脚本转换成 Hugo shortcode：
+
+```markdown
+{{% block type="tip" title="鸡汤1" %}}
+支持 **markdown** 的内容
+{{% /block %}}
+```
+
+`type` 支持：`tip` / `warning` / `danger` / `note` / `theorem` / `details` / `center` / `right` / `cardList` / `demo`。
+
+---
+
+## 主题配置
+
+全部在 `hugo.toml` 的 `[params]` 下：
+
+| 参数 | 说明 |
+| --- | --- |
+| `logo` / `repo` / `themeColor` | 导航栏 logo、GitHub 仓库、浏览器 theme-color |
+| `pageStyle` | `card` 卡片式 / `line` 线条式 |
+| `postPageSize` | 首页每页文章数 |
+| `searchMaxSuggestions` | 搜索下拉最多显示条数 |
+| `defaultMode` | `auto` / `light` / `dark` / `read` |
+| `rightMenuBar` / `sidebarOpen` / `sidebarDepth` | 右侧大纲开关、侧边栏初始状态、层级 |
+| `blogger.{avatar,name,slogan}` | 首页右侧博主信息卡 |
+| `[[params.social]]` | 社交图标（`icon-github` / `icon-youjian` / `icon-erji`，其他走 rss） |
+| `footer.{createYear,copyrightInfo}` | 页脚版权 / 备案信息 |
+| `author` / `authorLink` | 默认作者（文章未指定 `author` 时使用） |
+| `editLinkRepo` / `editLinkText` | 文章底部「编辑本页」链接前缀 |
+
+顶部导航在 `data/nav.yaml` 中维护；某个条目不写 `link` 即为纯分组标题。
+
+### 外观模式
+
+- 点击导航栏右侧的月亮图标循环切换：浅色 → 深色 → 阅读；
+- 也可以用 URL 直接指定：`/?mode=dark`；
+- 用户的选择保存在 `localStorage`，未选择过时跟随系统。
+
+### 站内搜索
+
+构建时首页额外输出 `index.json`（标题、链接、日期、分类、标签、正文摘要），前端输入时做本地过滤，不依赖任何第三方服务。
+快捷键：`/` 或 `Ctrl/⌘ + K`。
+
+---
+
+## 与 VuePress 版的差异
+
+**已实现**：首页卡片列表与分页、结构化侧边栏、目录页、分类 / 标签 / 归档、右侧文章大纲、上一篇 / 下一篇、面包屑、深色 / 阅读模式、站内搜索、代码块复制、返回顶部、移动端抽屉侧边栏、自定义容器。
+
+**未实现（可按需自行接入）**：
+
+- Gitalk 评论（原 `vuepress-plugin-comment`）；
+- `vuepress-plugin-demo-block` 的可运行示例（现渲染为普通代码块）；
+- 图片点击放大（`zooming`）、百度统计 / 百度自动推送；
+- 「最近更新时间」按 git 提交时间计算（现用文章 `date`）。
+
+---
+
+## 从 VuePress 重新迁移
+
+原 VuePress 工程整体移动到了 `legacy/`，迁移逻辑保留在脚本中：
+
+```bash
+python tools/migrate_content.py
+```
+
+脚本会清空并重建 `content/`，完成：`permalink → url`、`date` 归一化、序号前缀 → `weight`、`_posts → posts`、`@pages` 归档页、`pageComponent(Catalogue) → layout: catalogue`、`::: 容器 → shortcode`、`public/ → static/`。
+
+构建后可用脚本校验站内链接：
+
+```bash
+hugo && python tools/check_links.py
+```
+
+---
+
+## 部署
+
+```bash
+hugo --minify      # 产物：public/
+```
+
+把 `public/` 部署到任意静态托管（GitHub Pages / Vercel / Netlify / Nginx）即可。原站点的 `CNAME`、备案图标等静态文件已保留在 `static/`。
 
 ## 许可证
-[MIT](https://github.com/xugaoyi/vuepress-theme-vdoing/blob/master/LICENSE)
 
-Copyright (c) 2019-present Evan Xu
+[MIT](LICENSE) · Copyright (c) 2019-present Evan Xu
+
+原始主题：[vuepress-theme-vdoing](https://github.com/xugaoyi/vuepress-theme-vdoing)

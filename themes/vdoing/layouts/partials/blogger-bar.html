@@ -1,0 +1,24 @@
+{{- with site.Params.blogger }}
+{{- $avatar := .avatar -}}
+{{- if not (or (hasPrefix $avatar "http") (hasPrefix $avatar "//")) }}{{ $avatar = $avatar | relURL }}{{ end }}
+<div class="blogger-bar card-box">
+  <div class="blogger-avatar">
+    <img src="{{ $avatar }}" alt="{{ .name }}" loading="lazy"
+         onerror="this.onerror=null;this.src='{{ "img/logo.png" | relURL }}'">
+  </div>
+  <p class="blogger-name">{{ .name }}</p>
+  <p class="blogger-slogan">{{ .slogan }}</p>
+  {{- with site.Params.social }}
+  <div class="blogger-social">
+    {{- range . }}
+    <a class="social-item" href="{{ .link }}" target="_blank" rel="noopener" title="{{ .title }}">
+      {{- if eq .iconClass "icon-github" }}{{ partial "icon.html" "github" }}
+      {{- else if eq .iconClass "icon-erji" }}{{ partial "icon.html" "music" }}
+      {{- else if eq .iconClass "icon-youjian" }}{{ partial "icon.html" "mail" }}
+      {{- else }}{{ partial "icon.html" "rss" }}{{ end -}}
+    </a>
+    {{- end }}
+  </div>
+  {{- end }}
+</div>
+{{- end }}

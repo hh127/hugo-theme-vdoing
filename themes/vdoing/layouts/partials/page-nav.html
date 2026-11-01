@@ -1,0 +1,18 @@
+{{- $prev := .PrevInSection -}}
+{{- $next := .NextInSection -}}
+{{- if or $prev $next }}
+<nav class="page-nav">
+  {{- with $prev }}
+  <a class="page-nav-item prev" href="{{ .RelPermalink }}">
+    <span class="page-nav-label">← 上一篇</span>
+    <span class="page-nav-title">{{ .Title }}</span>
+  </a>
+  {{- end }}
+  {{- with $next }}
+  <a class="page-nav-item next" href="{{ .RelPermalink }}">
+    <span class="page-nav-label">下一篇 →</span>
+    <span class="page-nav-title">{{ .Title }}</span>
+  </a>
+  {{- end }}
+</nav>
+{{- end }}
