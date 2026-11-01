@@ -1,0 +1,396 @@
+// =========================================================
+//  左侧边栏 (原版 Sidebar.vue / SidebarGroup.vue / SidebarLink.vue / SidebarLinks.vue
+//             SidebarButton.vue + styles/mobile.styl) —— shell 区域移植
+// =========================================================
+
+// 遮罩 (styles/index.styl, 仅小屏显示)
+.sidebar-mask {
+  position: fixed;
+  z-index: 12;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: none;
+}
+
+// 侧边栏收起时的左侧悬停触发区 (styles/index.styl)
+.sidebar-hover-trigger {
+  display: none;
+  position: fixed;
+  z-index: 12;
+  top: $navbarHeight + 4.5rem;
+  left: 0;
+  bottom: 0;
+  width: 24px;
+}
+
+// 侧边栏本体 (styles/index.styl)
+.sidebar {
+  font-size: 16px;
+  background-color: var(--sidebarBg);
+  width: $sidebarWidth;
+  position: fixed;
+  z-index: 13;
+  margin: 0;
+  top: $navbarHeight;
+  left: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  border-right: 1px solid var(--borderColor);
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.2s;
+
+  @media (max-width: $MQMobile) {
+    background-color: var(--mainBg);
+  }
+
+  ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+  }
+
+  a {
+    display: inline-block;
+  }
+
+  // 移动端顶部导航 (原版 Sidebar 内 <NavLinks/>)
+  .nav-links {
+    display: none;
+    border-bottom: 1px solid var(--borderColor);
+    padding: 0.5rem 0 0.75rem 0;
+
+    a {
+      font-weight: 600;
+    }
+
+    .nav-item,
+    .repo-link {
+      display: block;
+      line-height: 1.25rem;
+      font-size: 1.1em;
+      padding: 0.5rem 0 0.5rem 1.5rem;
+    }
+  }
+
+  // 顶层结构化树 (原版 Sidebar.vue 的 & > .sidebar-links)
+  & > .sidebar-links {
+    padding: 1.5rem 0;
+
+    & > li > a.sidebar-link {
+      font-size: 1.1em;
+      line-height: 1.7;
+      font-weight: bold;
+    }
+
+    & > li:not(:first-child) {
+      margin-top: 0.75rem;
+    }
+  }
+
+  // 博主信息 (原版 Sidebar.vue 的 .blogger, 桌面端隐藏 / 移动端显示)
+  .blogger {
+    display: none;
+    border-bottom: 1px solid var(--borderColor);
+
+    img {
+      width: 60px;
+      height: 60px;
+      border-radius: 5px;
+      margin: 0.75rem 1rem;
+    }
+
+    .blogger-info {
+      flex: 1;
+      padding: 0 0.3rem 0.3rem 0;
+
+      h3 {
+        margin: 0.95rem 0 0.6rem;
+        font-size: 1.1rem;
+      }
+
+      .icons .iconfont {
+        font-size: 1.2rem;
+        padding-right: 0.6rem;
+        color: #777;
+      }
+    }
+  }
+
+  // html 模块插槽 (原版 Layout.vue 的 .sidebar-slot)
+  .sidebar-slot {
+    margin-bottom: -0.5rem;
+    font-size: 0.85rem;
+
+    &.sidebar-slot-top {
+      padding: 1.5rem 1.5rem 0;
+    }
+
+    &.sidebar-slot-bottom {
+      padding: 0 1.5rem 1.5rem;
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  侧边栏分组 / 链接 (原版 SidebarGroup.vue / SidebarLink.vue)
+// ---------------------------------------------------------
+.sidebar-group {
+  .sidebar-group {
+    padding-left: 0.5em;
+  }
+
+  &:not(.collapsable) {
+    .sidebar-heading:not(.clickable) {
+      cursor: auto;
+      color: inherit;
+    }
+  }
+
+  // 折叠: 未展开的分组不显示子项 (同时只展开一条分支)
+  &:not(.open) > .sidebar-group-items {
+    display: none;
+  }
+
+  &.is-sub-group {
+    padding-left: 0;
+
+    & > .sidebar-heading {
+      font-size: 1.01em;
+      line-height: 1.4;
+      font-weight: bold;
+      padding-left: 2rem;
+    }
+
+    & > .sidebar-group-items {
+      padding-left: 1rem;
+
+      & > li > .sidebar-link {
+        font-size: 0.98em;
+        border-left: none;
+      }
+    }
+  }
+
+  &.depth-2 {
+    & > .sidebar-heading {
+      border-left: none;
+    }
+  }
+}
+
+.sidebar-heading {
+  color: var(--textColor);
+  transition: color 0.15s ease;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  padding: 0.35rem 1.5rem 0.35rem 1.25rem;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  border-left: 0.25rem solid transparent;
+  text-decoration: none;
+  display: block;
+
+  &.open,
+  &:hover {
+    color: inherit;
+  }
+
+  .arrow {
+    position: relative;
+    top: -0.12em;
+    left: 0.5em;
+  }
+
+  &.clickable {
+    &.active {
+      font-weight: 600;
+      color: $accentColor;
+      border-left-color: $accentColor;
+    }
+
+    &:hover {
+      color: $accentColor;
+    }
+  }
+}
+
+.sidebar-group-items {
+  transition: height 0.1s ease-out;
+  font-size: 0.95em;
+  overflow: hidden;
+}
+
+.sidebar .sidebar-sub-headers {
+  padding-left: 1rem;
+  font-size: 0.95em;
+
+  .level4 {
+    padding-left: 0.2rem;
+  }
+
+  .level5 {
+    padding-left: 0.4rem;
+  }
+
+  .level6 {
+    padding-left: 0.6rem;
+  }
+}
+
+a.sidebar-link {
+  font-size: 1em;
+  font-weight: 400;
+  display: inline-block;
+  color: var(--textColor);
+  border-left: 0.25rem solid transparent;
+  padding: 0.35rem 1rem 0.35rem 1.25rem;
+  line-height: 1.4;
+  width: 100%;
+  box-sizing: border-box;
+  text-decoration: none;
+
+  &:hover {
+    color: $accentColor;
+  }
+
+  &.active {
+    font-weight: 600;
+    color: $accentColor;
+    border-left-color: $accentColor;
+  }
+
+  .sidebar-group & {
+    padding-left: 2rem;
+  }
+
+  .sidebar-sub-headers & {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    border-left: none;
+
+    &.active {
+      font-weight: 500;
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  SidebarButton (原版 SidebarButton.vue)
+//  移动端: navbar 内左侧汉堡按钮; 桌面端: 固定左侧圆形按钮
+// ---------------------------------------------------------
+.sidebar-button {
+  cursor: pointer;
+  display: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  position: absolute;
+  padding: 0.6rem;
+  top: 0.6rem;
+  left: 1rem;
+
+  @media (max-width: $MQMobile) {
+    display: block;
+  }
+
+  .icon {
+    display: block;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+}
+
+@media (min-width: ($MQMobile + 1px)) {
+  .sidebar-button {
+    width: 40px;
+    height: 40px;
+    display: inline-block;
+    position: fixed;
+    left: 0;
+    top: $navbarHeight + 1rem;
+    text-align: center;
+    line-height: 44px;
+    margin: 5px 8px;
+    color: #888;
+    border-radius: 50%;
+    padding: 0;
+    transition: all 0.2s;
+
+    &:hover {
+      background: $accentColor;
+      color: #fff;
+      box-shadow: 0 0 6px $accentColor;
+    }
+
+    .icon {
+      display: inline;
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  响应式 (styles/mobile.styl)
+// ---------------------------------------------------------
+@media (max-width: $MQNarrow) {
+  .sidebar {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: $MQMobile) {
+  .sidebar {
+    width: $sidebarWidth * 0.95;
+    top: 0;
+    height: 100vh;
+    padding-top: $navbarHeight;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+
+    .blogger {
+      display: flex;
+    }
+
+    .nav-links {
+      display: block;
+
+      .dropdown-wrapper .nav-dropdown .dropdown-item a.active::after {
+        top: calc(1rem - 2px);
+      }
+    }
+
+    & > .sidebar-links {
+      padding: 1rem 0;
+    }
+  }
+
+  .theme-container.no-navbar .sidebar {
+    padding-top: 0;
+  }
+}
+
+// 侧边栏收起时, 鼠标移到左边缘可弹出 (desktop)
+@media (min-width: ($MQMobile + 1px)) {
+  .theme-container {
+    .sidebar-hover-trigger {
+      display: block;
+    }
+
+    .sidebar-hover-trigger:hover ~ .sidebar {
+      transform: translateX(0);
+      z-index: 100;
+    }
+
+    &:not(.sidebar-open) {
+      .sidebar-hover-trigger ~ .sidebar:hover {
+        transform: translateX(0);
+        z-index: 100;
+      }
+    }
+  }
+}

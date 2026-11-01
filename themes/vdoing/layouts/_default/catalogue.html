@@ -1,43 +1,61 @@
 {{ define "main" }}
-{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
-{{- $sec := site.GetPage (printf "/%s" .Params.catalogue) -}}
-<div class="catalogue-wrapper">
-  <header class="catalogue-header">
-    {{- with .Params.imgUrl }}<img class="catalogue-img" src="{{ . | relURL }}" alt="{{ $.Title }}">{{ end }}
-    <h1 class="catalogue-title">{{ .Title }}</h1>
-    {{- with .Params.description }}<p class="catalogue-desc">{{ . | safeHTML }}</p>{{ end }}
-  </header>
+{{- /* 目录页 (原 Catalogue.vue)
+   frontmatter: layout: catalogue / catalogue: "顶层目录名" / imgUrl / description
+   按 section 树递归输出原版的编号大纲: 1. / 1-1. / 1-1-1. */ -}}
+{{- $catalogue := .Params.catalogue | default "" -}}
+{{- $sec := false -}}
+{{- with $catalogue }}{{ $sec = site.GetPage (printf "/%s" .) }}{{ end -}}
+<div class="custom-page catalogue-page">
+  <div class="theme-vdoing-wrapper">
+    <div class="theme-vdoing-content">
+  <div class="column-wrapper">
+    {{- with .Params.imgUrl }}<img src="{{ . | relURL }}" alt="{{ $.Title }}">{{ end }}
+    <dl class="column-info">
+      <dt class="title">{{ .Title }}</dt>
+      <dd class="description">{{ .Params.description | safeHTML }}</dd>
+    </dl>
+  </div>
 
   {{- with $sec }}
-  <div class="catalogue-grid">
-    {{- range .Pages.ByWeight }}
-    {{- if eq .Kind "section" }}
-    <div class="catalogue-card card-box">
-      <h2 class="catalogue-card-title">{{ .Title }}</h2>
-      <ul class="catalogue-links">
-        {{ partial "catalogue-links.html" . }}
-      </ul>
+  <div class="catalogue-wrapper">
+    <div class="catalogue-title">目录</div>
+    <div class="catalogue-content">
+      {{- range $index, $item := .Pages.ByWeight }}
+      {{- $n := add $index 1 }}
+      {{- if eq $item.Kind "section" }}
+      <dl>
+        <dt id="{{ $item.Title | anchorize }}"><a class="header-anchor" href="#{{ $item.Title | anchorize }}">#</a>{{ $n }}. {{ $item.Title }}</dt>
+        <dd>
+          {{- $children := $item.Pages.ByWeight }}
+          {{- range $i, $c := $children }}
+          {{- $m := add $i 1 }}
+          {{- if eq $c.Kind "section" }}
+          <div class="sub-cat-wrap">
+            <div class="sub-title" id="{{ $c.Title | anchorize }}"><a class="header-anchor" href="#{{ $c.Title | anchorize }}">#</a>{{ $n }}-{{ $m }}. {{ $c.Title }}</div>
+            {{- range $ii, $cc := $c.Pages.ByWeight }}
+            <a href="{{ $cc.RelPermalink }}">{{ $n }}-{{ $m }}-{{ add $ii 1 }}. {{ $cc.Title }}{{ with $cc.Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}</a>
+            {{- end }}
+          </div>
+          {{- else }}
+          <a href="{{ $c.RelPermalink }}">{{ $n }}-{{ $m }}. {{ $c.Title }}{{ with $c.Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}</a>
+          {{- end }}
+          {{- end }}
+        </dd>
+      </dl>
+      {{- else }}
+      <dl class="inline">
+        <dt><a href="{{ $item.RelPermalink }}">{{ $n }}. {{ $item.Title }}{{ with $item.Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}</a></dt>
+      </dl>
+      {{- end }}
+      {{- end }}
     </div>
-    {{- end }}
-    {{- end }}
   </div>
-
-  {{- $loose := slice }}
-  {{- range .Pages.ByWeight }}
-    {{- if ne .Kind "section" }}{{ $loose = $loose | append . }}{{ end }}
-  {{- end }}
-  {{- with $loose }}
-  <div class="catalogue-card card-box">
-    <h2 class="catalogue-card-title">{{ $sec.Title }}</h2>
-    <ul class="catalogue-links">
-      {{- range . }}<li class="catalogue-link"><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}
-    </ul>
-  </div>
-  {{- end }}
   {{- end }}
 
   {{- with .Content }}
-  <div class="theme-vdoing-content card-box catalogue-content">{{ . }}</div>
+  <div class="catalogue-body">{{ . }}</div>
   {{- end }}
+    </div>
+  </div>
 </div>
 {{ end }}

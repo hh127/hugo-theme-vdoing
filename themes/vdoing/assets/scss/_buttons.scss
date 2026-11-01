@@ -1,0 +1,96 @@
+// =========================================================
+//  右下角圆形按钮组与主题模式选择框 (原版 Buttons.vue) —— shell 区域移植
+// =========================================================
+
+// 评论输入框聚焦时的高亮 (Buttons.vue scrollToComment 的 _handleFocus)
+.yellowBorder {
+  border-radius: 5px;
+  box-shadow: 0 0 15px #ffe089 !important;
+}
+
+.buttons {
+  position: fixed;
+  right: 2rem;
+  bottom: 2.5rem;
+  z-index: 11;
+
+  @media (max-width: $MQNarrow) {
+    right: 1rem;
+    bottom: 1.5rem;
+  }
+
+  .button {
+    width: 2.2rem;
+    height: 2.2rem;
+    line-height: 2.2rem;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    margin-top: 0.9rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.5s;
+    background: var(--blurBg);
+    color: var(--textColor);
+    position: relative;
+    user-select: none;
+
+    &.hover {
+      background: $accentColor;
+      box-shadow: 0 0 15px $accentColor;
+
+      &:before {
+        color: #fff;
+      }
+    }
+
+    @media (any-hover: hover) {
+      &:hover {
+        background: $accentColor;
+        box-shadow: 0 0 15px $accentColor;
+
+        &:before {
+          color: #fff;
+        }
+      }
+    }
+
+    // 主题模式选择框 (悬浮 / 点击展开)
+    .select-box {
+      display: none;
+      margin: 0;
+      padding: 0.8rem 0;
+      position: absolute;
+      bottom: 0;
+      right: 1.5rem;
+      background: var(--mainBg);
+      border: 1px solid var(--borderColor);
+      width: 120px;
+      border-radius: 6px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      text-align: left;
+
+      li {
+        list-style: none;
+        line-height: 2rem;
+        font-size: 0.95rem;
+        padding-left: 0.6rem;
+        color: var(--textColor);
+        cursor: pointer;
+
+        &:hover {
+          color: $accentColor;
+        }
+
+        &.active {
+          background-color: rgba(150, 150, 150, 0.2);
+          color: $accentColor;
+        }
+      }
+    }
+
+    &.open .select-box,
+    &:hover .select-box {
+      display: block;
+    }
+  }
+}

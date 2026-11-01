@@ -1,40 +1,43 @@
+{{- /* 文章元信息: 作者 / 创建时间 / 分类 / 标签 (原 PostList/ArticleInfo 的 article-info 区)
+   分类与标签链接一律使用原版的 query 形式: /categories/?category=xxx 、/tags/?tag=xxx */ -}}
 {{- $page := . -}}
 {{- $author := "" -}}
 {{- $authorLink := "" -}}
 {{- with $page.Params.author -}}
   {{- if reflect.IsMap . -}}
-    {{- $author = .name | default "" -}}
-    {{- $authorLink = .link | default "" -}}
+    {{- with .name }}{{ $author = . }}{{ end -}}
+    {{- with .link }}{{ $authorLink = . }}{{ end -}}
   {{- else -}}
     {{- $author = . -}}
   {{- end -}}
 {{- end -}}
 {{- if not $author -}}
-  {{- $author = site.Params.author -}}
-  {{- $authorLink = site.Params.authorLink -}}
+  {{- with site.Params.author }}{{ $author = . }}{{ end -}}
+  {{- with site.Params.authorLink }}{{ $authorLink = . }}{{ end -}}
 {{- end -}}
 <div class="article-info">
-  {{- with $author }}
-  <span class="info-item info-author" title="作者">
-    {{ partial "icon.html" "user" }}
-    {{- if $authorLink }}<a href="{{ $authorLink }}" target="_blank" rel="noopener">{{ . }}</a>{{ else }}{{ . }}{{ end -}}
-  </span>
+  {{- if $author }}
+    {{- if $authorLink }}
+  <a title="作者" class="iconfont icon-touxiang" href="{{ $authorLink }}" target="_blank" rel="noopener">{{ $author }}</a>
+    {{- else }}
+  <span title="作者" class="iconfont icon-touxiang">{{ $author }}</span>
+    {{- end }}
   {{- end }}
   {{- if not $page.Date.IsZero }}
-  <span class="info-item" title="创建时间">
-    {{ partial "icon.html" "date" }}<time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format "2006-01-02" }}</time>
-  </span>
+  <span title="创建时间" class="iconfont icon-riqi">{{ $page.Date.Format "2006-01-02" }}</span>
   {{- end }}
-  {{- with $page.GetTerms "categories" }}
-  <span class="info-item info-categories" title="分类">
-    {{ partial "icon.html" "folder" }}
-    {{- range $i, $t := . }}{{ if $i }}<span class="info-sep">/</span>{{ end }}<a href="{{ $t.RelPermalink }}">{{ $t.LinkTitle }}</a>{{ end -}}
-  </span>
+  {{- if ne site.Params.category false }}
+    {{- $cats := slice }}
+    {{- range $page.Params.categories }}{{ with . }}{{ $cats = $cats | append . }}{{ end }}{{ end }}
+    {{- with $cats }}
+  <span title="分类" class="iconfont icon-wenjian">{{ range . }}<a href="{{ printf "categories/?category=%s" (. | urlquery) | relURL }}">{{ . }}</a>{{ end }}</span>
+    {{- end }}
   {{- end }}
-  {{- with $page.GetTerms "tags" }}
-  <span class="info-item info-tags" title="标签">
-    {{ partial "icon.html" "tag" }}
-    {{- range $i, $t := . }}{{ if $i }}<span class="info-sep">/</span>{{ end }}<a href="{{ $t.RelPermalink }}">{{ $t.LinkTitle }}</a>{{ end -}}
-  </span>
+  {{- if ne site.Params.tag false }}
+    {{- $tags := slice }}
+    {{- range $page.Params.tags }}{{ with . }}{{ $tags = $tags | append . }}{{ end }}{{ end }}
+    {{- with $tags }}
+  <span title="标签" class="iconfont icon-biaoqian tags">{{ range . }}<a href="{{ printf "tags/?tag=%s" (. | urlquery) | relURL }}">{{ . }}</a>{{ end }}</span>
+    {{- end }}
   {{- end }}
 </div>

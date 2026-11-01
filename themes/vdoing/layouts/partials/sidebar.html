@@ -1,22 +1,39 @@
-{{- $page := .page -}}
-{{- $hasTree := .hasTree -}}
-<aside class="sidebar{{ if not $hasTree }} sidebar-simple{{ end }}" id="sidebar">
-  <div class="sidebar-inner">
-    <div class="sidebar-nav-mobile">
-      {{ partial "nav.html" (dict "items" hugo.Data.nav "depth" 1) }}
-    </div>
-    {{- if $hasTree }}
-    {{- if eq $page.Params.sidebar "auto" }}
-    {{ partial "sidebar-toc.html" $page }}
-    {{- else }}
-    {{- $section := $page.FirstSection }}
-    {{- if and $section (ne $section.Kind "home") }}
-    <p class="sidebar-section-title">{{ $section.Title }}</p>
-    {{ partial "sidebar-tree.html" (dict "section" $section "page" $page) }}
-    {{- else }}
-    {{ partial "sidebar-toc.html" $page }}
-    {{- end }}
-    {{- end }}
-    {{- end }}
+{{- /* 左侧边栏 (对应原版 Sidebar.vue): blogger(移动端) + 移动端 nav + sidebarT + 结构化树/本页大纲 + sidebarB */ -}}
+{{- /* 兼容两种调用: 直接传 Page (baseof), 或 dict "page" (旧布局遗留) */ -}}
+{{- $page := . -}}
+{{- if reflect.IsMap . }}{{ $page = .page }}{{ end -}}
+{{- if and $page (not ($page.Store.Get "vdoing-sidebar-rendered")) -}}
+{{- $page.Store.Set "vdoing-sidebar-rendered" true -}}
+{{- $hasTree := partial "func/has-sidebar.html" $page }}
+<aside class="sidebar" data-hover-trigger="{{ if eq site.Params.sidebarHoverTriggerOpen false }}0{{ else }}1{{ end }}">
+  {{- partial "blogger-sidebar.html" $page -}}
+
+  {{- /* 移动端顶部导航 (原版 Sidebar 内 <NavLinks/>) */}}
+  <div class="sidebar-nav-mobile">
+    {{ partial "nav.html" (dict "items" hugo.Data.nav "depth" 1 "page" $page "repo" site.Params.repo "repoLabel" site.Params.repoLabel) }}
   </div>
+
+  {{- /* sidebarT: 侧边栏顶部自定义 html */}}
+  {{- with partial "html-modules.html" (dict "key" "sidebarT" "page" $page) }}
+  <div class="sidebar-slot sidebar-slot-top">{{ . | safeHTML }}</div>
+  {{- end }}
+
+  {{- if $hasTree }}
+    {{- if eq $page.Params.sidebar "auto" }}
+      {{ partial "sidebar-toc.html" $page }}
+    {{- else }}
+      {{- $section := $page.FirstSection }}
+      {{- if and $section (ne $section.Kind "home") }}
+        {{ partial "sidebar-tree.html" (dict "section" $section "page" $page "depth" 0) }}
+      {{- else }}
+        {{ partial "sidebar-toc.html" $page }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+
+  {{- /* sidebarB: 侧边栏底部自定义 html */}}
+  {{- with partial "html-modules.html" (dict "key" "sidebarB" "page" $page) }}
+  <div class="sidebar-slot sidebar-slot-bottom">{{ . | safeHTML }}</div>
+  {{- end }}
 </aside>
+{{- end -}}

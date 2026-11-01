@@ -1,0 +1,22 @@
+{{- /* 自定义 html 模块 slots (对应原版 themeConfig.htmlModules / Layout.vue 的 getHtmlStr) */ -}}
+{{- /* 用法: partial "html-modules.html" (dict "key" "sidebarT" "page" .) */ -}}
+{{- /* 支持 <key>showMode: article(仅文章页) | custom(仅自定义页) | 省略(全部) */ -}}
+{{- $key := .key -}}
+{{- $page := .page -}}
+{{- $mods := hugo.Data.htmlModules -}}
+{{- $html := "" -}}
+{{- with $mods }}{{ with index . $key }}{{ $html = . }}{{ end }}{{ end -}}
+{{- if $html -}}
+  {{- $show := true -}}
+  {{- if $page -}}
+    {{- with $mods -}}
+      {{- $mode := index . (printf "%sshowMode" $key) -}}
+      {{- if eq $mode "article" -}}
+        {{- $show = and (ne $page.Params.article false) (not $page.IsHome) -}}
+      {{- else if eq $mode "custom" -}}
+        {{- $show = not (and (ne $page.Params.article false) (not $page.IsHome)) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if $show }}{{ $html | safeHTML }}{{ end -}}
+{{- end -}}

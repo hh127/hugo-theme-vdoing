@@ -1,0 +1,25 @@
+# 自定义 HTML 模块 (对应原版 themeConfig.htmlModules)
+# homeSidebarB: 首页侧边栏底部
+# sidebarT / sidebarB: 所有左侧边栏顶部 / 底部
+# pageT / pageB: 页面顶部 / 底部 (pageTshowMode / pageBshowMode: 省略=全部, article=仅文章页, custom=仅自定义页)
+# windowLB / windowRB: 全局窗口左下角 / 右下角 (屏幕宽度小于 960px 不显示)
+homeSidebarB: |
+  <div style="padding: 0.95rem">
+    <p style="color: var(--textColor); opacity: 0.9; font-size: 20px; font-weight: bold; margin: 0 0 8px 0;">公众号</p>
+    <img src="https://open.weixin.qq.com/qr/code?username=gh_0cf4b813918c" style="width:100%;" />
+    关注公众号，回复[<b>前端资源</b>]，可获取 <a href="https://game.xugaoyi.com" target="_blank" rel="noopener">前端学习资源</a>
+  </div>
+# sidebarT: |
+#   <div>侧边栏顶部自定义内容</div>
+# sidebarB: |
+#   <div>侧边栏底部自定义内容</div>
+# pageT: |
+#   <div>页面顶部自定义内容</div>
+# pageTshowMode: article
+# pageB: |
+#   <div>页面底部自定义内容</div>
+# pageBshowMode: article
+# windowLB: |
+#   <div>左下角</div>
+# windowRB: |
+#   <div>右下角</div>

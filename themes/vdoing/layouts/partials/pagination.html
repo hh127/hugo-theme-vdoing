@@ -1,14 +1,53 @@
-{{- $p := .Paginator -}}
-{{- if gt $p.TotalPages 1 }}
-<nav class="pagination" aria-label="分页">
+{{- /* 分页 (原 Pagination.vue)
+   用法: {{ partial "pagination.html" . }}          // 直接传 Page, 取 .Paginator
+         {{ partial "pagination.html" (dict "paginator" $paginator) }} */ -}}
+{{- $p := false -}}
+{{- if reflect.IsMap . -}}
+  {{- with .paginator }}{{ $p = . }}{{ end -}}
+{{- else -}}
+  {{- $p = .Paginator -}}
+{{- end -}}
+{{- if and $p (gt $p.TotalPages 1) -}}
+{{- $total := $p.TotalPages -}}
+{{- $cur := $p.PageNumber -}}
+<div class="pagination">
   {{- if $p.HasPrev }}
-  <a class="page-link prev" href="{{ $p.Prev.URL }}">上一页</a>
+  <a class="card-box prev iconfont icon-jiantou-zuo" href="{{ $p.Prev.URL }}"><p>上一页</p></a>
+  {{- else }}
+  <span class="card-box prev iconfont icon-jiantou-zuo disabled"><p>上一页</p></span>
   {{- end }}
-  {{- range $p.Pagers }}
-  <a class="page-link{{ if eq .PageNumber $p.PageNumber }} active{{ end }}" href="{{ .URL }}">{{ .PageNumber }}</a>
-  {{- end }}
+  <div class="pagination-list">
+    {{- if le $total 5 }}
+      {{- range $i, $pg := $p.Pagers }}
+      <a class="card-box{{ if eq (add $i 1) $cur }} active{{ end }}" href="{{ $pg.URL }}">{{ add $i 1 }}</a>
+      {{- end }}
+    {{- else }}
+      {{- $three := 3 -}}
+      {{- if lt $cur 3 }}{{ $three = 3 }}{{ else if gt $cur (sub $total 3) }}{{ $three = sub $total 2 }}{{ else }}{{ $three = $cur }}{{ end -}}
+      {{- /* 一号位 */ -}}
+      <a class="card-box{{ if eq $cur 1 }} active{{ end }}" href="{{ (index $p.Pagers 0).URL }}">1</a>
+      {{- /* 二号位 */ -}}
+      {{- if gt $cur 3 }}
+      <a class="ellipsis ell-two" href="{{ (index $p.Pagers (sub $cur 3)).URL }}" title="上两页"></a>
+      {{- else }}
+      <a class="card-box{{ if eq $cur 2 }} active{{ end }}" href="{{ (index $p.Pagers 1).URL }}">2</a>
+      {{- end }}
+      {{- /* 三号位 */ -}}
+      <a class="card-box{{ if and (ge $cur 3) (le $cur (sub $total 2)) }} active{{ end }}" href="{{ (index $p.Pagers (sub $three 1)).URL }}">{{ $three }}</a>
+      {{- /* 四号位 */ -}}
+      {{- if lt $cur (sub $total 2) }}
+      <a class="ellipsis ell-four" href="{{ (index $p.Pagers (add $cur 1)).URL }}" title="下两页"></a>
+      {{- else }}
+      <a class="card-box{{ if eq $cur (sub $total 1) }} active{{ end }}" href="{{ (index $p.Pagers (sub $total 2)).URL }}">{{ sub $total 1 }}</a>
+      {{- end }}
+      {{- /* 五号位 */ -}}
+      <a class="card-box{{ if eq $cur $total }} active{{ end }}" href="{{ (index $p.Pagers (sub $total 1)).URL }}">{{ $total }}</a>
+    {{- end }}
+  </div>
   {{- if $p.HasNext }}
-  <a class="page-link next" href="{{ $p.Next.URL }}">下一页</a>
+  <a class="card-box next iconfont icon-jiantou-you" href="{{ $p.Next.URL }}"><p>下一页</p></a>
+  {{- else }}
+  <span class="card-box next iconfont icon-jiantou-you disabled"><p>下一页</p></span>
   {{- end }}
-</nav>
-{{- end }}
+</div>
+{{- end -}}

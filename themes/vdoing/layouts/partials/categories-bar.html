@@ -1,15 +1,42 @@
-{{- $cats := site.Taxonomies.categories -}}
-{{- with $cats }}
-<div class="categories-bar card-box">
-  <p class="bar-title">分类</p>
-  <div class="bar-items">
-    {{- range first 10 $cats.ByCount }}
-    <a class="bar-item" href="{{ .Page.RelPermalink }}">
-      <span class="bar-item-name">{{ .Page.LinkTitle }}</span>
-      <span class="bar-item-count">{{ .Count }}</span>
-    </a>
+{{- /* 文章分类栏 (原 CategoriesBar.vue)
+   用法: {{ partial "categories-bar.html" (dict "page" . "length" 10 "category" "") }}
+   length 为 "all" 时显示全部分类 */ -}}
+{{- $page := . -}}
+{{- $length := "all" -}}
+{{- $active := "" -}}
+{{- if reflect.IsMap . -}}
+  {{- $page = .page -}}
+  {{- with .length }}{{ $length = . }}{{ end -}}
+  {{- with .category }}{{ $active = . }}{{ end -}}
+{{- end -}}
+{{- $posts := slice -}}
+{{- range site.RegularPages -}}
+  {{- if ne .Params.article false }}{{ $posts = $posts | append . }}{{ end -}}
+{{- end -}}
+{{- $counts := dict -}}
+{{- range $posts -}}
+  {{- range .Params.categories -}}
+    {{- with . -}}
+      {{- $n := index $counts . | default 0 -}}
+      {{- $counts = merge $counts (dict . (add $n 1)) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $items := slice -}}
+{{- range $k, $v := $counts -}}
+  {{- $items = $items | append (dict "key" (printf "%06d|%s" $v $k) "name" $k "count" $v) -}}
+{{- end -}}
+{{- $items = sort $items "key" "desc" -}}
+{{- $shown := $items -}}
+{{- if ne (printf "%v" $length) "all" }}{{ $shown = first (int $length) $items }}{{ end -}}
+<div class="categories-wrapper card-box">
+  <a class="title iconfont icon-wenjianjia" href="{{ "categories/" | relURL }}" title="全部分类">{{ if eq (printf "%v" $length) "all" }}全部分类{{ else }}文章分类{{ end }}</a>
+  <div class="categories">
+    {{- range $shown }}
+    <a href="{{ printf "categories/?category=%s" (.name | urlquery) | relURL }}"{{ if eq .name $active }} class="active"{{ end }}>{{ .name }}<span>{{ .count }}</span></a>
+    {{- end }}
+    {{- if and (ne (printf "%v" $length) "all") (lt (len $shown) (len $items)) }}
+    <a class="more" href="{{ "categories/" | relURL }}">更多 ...</a>
     {{- end }}
   </div>
-  <a class="bar-more" href="{{ "categories/" | relURL }}">更多分类 →</a>
 </div>
-{{- end }}

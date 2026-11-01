@@ -1,0 +1,286 @@
+// =========================================================
+//  自定义容器 / 徽章 / 代码标签页 / demo
+//  来源: legacy/vdoing/styles/custom-blocks.styl
+//        legacy/vdoing/global-components/Badge.vue, CodeGroup.vue, CodeBlock.vue
+//        legacy/vdoing/index.js (container 配置: 默认标题 / details / theorem)
+// =========================================================
+
+.theme-vdoing-content {
+  // ---------- 通用容器 (vuepress-plugin-container) ----------
+  .custom-block {
+    .custom-block-title {
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    &.tip,
+    &.warning,
+    &.danger,
+    &.note {
+      padding: 0.5rem 1.5rem;
+      border-left-width: 0.5rem;
+      border-left-style: solid;
+      margin: 1rem 0;
+    }
+
+    // 浅色模式配色 (原 stylus: darken() 结果已换算为 hex)
+    &.tip {
+      background-color: #f3f5f7;
+      border-color: #42b983;
+      color: #000;
+    }
+
+    &.warning {
+      background-color: #fff7d0;
+      border-color: #b09300;
+      color: #000;
+
+      .custom-block-title {
+        color: #645300;
+      }
+
+      a {
+        color: var(--textColor);
+      }
+    }
+
+    &.danger {
+      background-color: #ffe6e6;
+      border-color: #990000;
+      color: #000;
+
+      .custom-block-title {
+        color: #330000;
+      }
+
+      a {
+        color: var(--textColor);
+      }
+    }
+
+    &.note {
+      background-color: #e8f5fa;
+      border-color: #157bae;
+      color: #000;
+    }
+
+    &.right {
+      color: var(--textColor);
+      font-size: 0.9rem;
+      text-align: right;
+    }
+
+    &.theorem {
+      margin: 1rem 0;
+      padding: 0.8rem 1.5rem;
+      border-radius: 2px;
+      background-color: var(--customBlockBg);
+
+      .title {
+        font-weight: bold;
+        margin: 0.5rem 0;
+      }
+    }
+
+    &.details {
+      display: block;
+      position: relative;
+      border-radius: 2px;
+      margin: 1em 0;
+      padding: 1.6em;
+      background-color: var(--customBlockBg);
+
+      p {
+        margin: 0.8rem 0;
+      }
+
+      h4 {
+        margin-top: 0;
+      }
+
+      figure,
+      p {
+        &:last-child {
+          margin-bottom: 0;
+          padding-bottom: 0;
+        }
+      }
+
+      summary {
+        outline: none;
+        cursor: pointer;
+
+        &:hover {
+          color: $accentColor;
+        }
+      }
+    }
+  }
+
+  // ---------- 深色模式适配 (原 custom-blocks.styl 末尾) ----------
+  .theme-mode-dark & {
+    .custom-block {
+      &.warning {
+        background-color: rgba(255, 247, 208, 0.2);
+        color: #b09300;
+
+        .custom-block-title {
+          color: #ffd818;
+        }
+      }
+
+      &.tip {
+        background-color: rgba(243, 245, 247, 0.2);
+        color: #42b983;
+      }
+
+      &.danger {
+        background-color: rgba(255, 230, 230, 0.4);
+        color: #000;
+
+        a {
+          color: $accentColor;
+        }
+      }
+
+      &.note {
+        background-color: rgba(243, 245, 247, 0.2);
+        color: #157bae;
+      }
+    }
+  }
+
+  // ---------- demo 容器 (原 vuepress-plugin-demo-block 简化版) ----------
+  .custom-block.demo-block {
+    margin: 1rem 0;
+    border: 1px solid var(--borderColor);
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: var(--mainBg);
+
+    > .custom-block-title {
+      margin: 0;
+      padding: 0.6rem 1rem;
+      background-color: var(--customBlockBg);
+      border-bottom: 1px solid var(--borderColor);
+      color: var(--textColor);
+      font-weight: 600;
+    }
+
+    .demo-block-preview {
+      padding: 0.5rem;
+      background-color: #fff;
+      border-bottom: 1px solid var(--borderColor);
+
+      iframe {
+        display: block;
+        width: 100%;
+        height: 280px;
+        border: 0;
+        background: #fff;
+      }
+    }
+
+    .demo-block-code {
+      padding: 0 0.5rem;
+
+      .highlight {
+        margin: 0.85rem 0;
+      }
+    }
+  }
+
+  // ---------- 代码标签页 (原 CodeGroup.vue / CodeBlock.vue) ----------
+  .theme-code-group {
+    margin: 0.85rem 0;
+    padding: 10px 10px 22px 10px;
+    background-color: var(--codeBg);
+    border-radius: 6px;
+
+    .theme-code-group__nav {
+      margin-bottom: 8px;
+    }
+
+    .theme-code-group__ul {
+      margin: auto 0;
+      padding-left: 0;
+      display: inline-flex;
+      list-style: none;
+    }
+
+    .theme-code-group__li,
+    .theme-code-group__nav-tab {
+      border: 0;
+      padding: 5px;
+      cursor: pointer;
+      background-color: transparent;
+      font-size: 0.85em;
+      line-height: 1.4;
+      color: var(--codeColor);
+      font-weight: 600;
+      opacity: 0.85;
+    }
+
+    .theme-code-group__nav-tab-active {
+      border-bottom: $accentColor 1px solid;
+      opacity: 1;
+    }
+
+    .theme-code-block {
+      display: none;
+    }
+
+    .theme-code-block__active {
+      display: block;
+    }
+
+    .theme-code-block > .highlight {
+      margin: 0;
+    }
+
+    .pre-blank {
+      color: $accentColor;
+    }
+  }
+
+  @media (max-width: $MQMobileNarrow) {
+    .theme-code-group .highlight {
+      margin: 0;
+    }
+  }
+}
+
+// ---------- Badge 徽章 (原 Badge.vue, 全局组件) ----------
+.badge {
+  display: inline-block;
+  font-size: 14px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 3px;
+  padding: 0 6px;
+  color: #fff;
+  background-color: #42b983;
+
+  &.tip,
+  &.green {
+    background-color: #42b983;
+  }
+
+  &.error {
+    background-color: #da5961;
+  }
+
+  &.warning,
+  &.warn,
+  &.yellow {
+    background-color: #b09300;
+  }
+
+  & + & {
+    margin-left: 5px;
+  }
+}

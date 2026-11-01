@@ -1,0 +1,38 @@
+// =========================================================
+//  站点自定义内容样式 (原 legacy/docs/.vuepress/styles/index.styl)
+// =========================================================
+
+// QQ 徽章
+.qq {
+  position: relative;
+
+  &::after {
+    content: "可撩";
+    background: $accentColor;
+    color: #fff;
+    padding: 0 5px;
+    border-radius: 10px;
+    font-size: 12px;
+    position: absolute;
+    top: -4px;
+    right: -35px;
+    transform: scale(0.85);
+  }
+}
+
+// 全文搜索建议框 (保留原版类名兼容)
+.suggestions {
+  overflow: auto;
+  max-height: calc(100vh - 6rem);
+
+  @media (max-width: $MQMobile) {
+    width: 90vw;
+    min-width: 90vw !important;
+    margin-right: -20px;
+  }
+
+  .highlight {
+    color: $accentColor;
+    font-weight: bold;
+  }
+}

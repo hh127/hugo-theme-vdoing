@@ -1,17 +1,22 @@
 # =========================================================
 #  hugo-theme-vdoing 示例站点配置 (由 VuePress 版迁移而来)
 #  站点级配置放这里; 主题相关参数统一放在 [params] 下
+#  参数命名尽量对应原 vuepress-theme-vdoing 的 themeConfig
+#  注意: TOML 子表 ([params.xxx]) 会一直生效到下一个表头,
+#        所以所有普通 key 必须写在子表之前, 子表统一放在文件后部。
 # =========================================================
 
 baseURL = "https://xugaoyi.com/"
 defaultContentLanguage = "zh"
+timeZone = "Asia/Shanghai"
 title = "Evan's blog"
 theme = "vdoing"
 
 enableRobotsTXT = true
 enableEmoji = true
-hasCJKLanguage = true   # 中文摘要按字符数截断
-summaryLength = 80      # 列表摘要长度
+enableGitInfo = true      # 「上次更新」取 git 提交时间 (frontmatter.lastmod 映射见下)
+hasCJKLanguage = true     # 中文摘要按字符数截断
+summaryLength = 80        # 列表摘要长度
 
 # 文章内容里有大量原生 html / img / iframe / 自定义容器, 需要放开
 [markup]
@@ -21,15 +26,21 @@ summaryLength = 80      # 列表摘要长度
   [markup.highlight]
     codeFences = true
     guessSyntax = true
-    lineNos = false
+    lineNos = "inline"          # 原版 markdown.lineNumbers: true
+    lineNumbersInTable = false
     noClasses = false
-    style = "monokai"
+    style = "monokai"           # 实际配色由 _code.scss 覆盖 (Prism 浅色/深色)
+    tabWidth = 4
   [markup.tableOfContents]
     startLevel = 2
-    endLevel = 4
+    endLevel = 6                # 原版 extractHeaders: h2~h6
     ordered = false
 
-# 首页额外输出 index.json 供前端搜索使用
+# 「上次更新」= git 提交时间, 没有 git 信息时退回 date
+[frontmatter]
+  lastmod = [":git", "lastmod", "date"]
+
+# 首页额外输出 index.json 供前端搜索/分类标签页过滤使用
 [outputs]
   home = ["HTML", "JSON", "RSS"]
   section = ["HTML"]
@@ -43,40 +54,96 @@ summaryLength = 80      # 列表摘要长度
   notAlternative = true
 
 [params]
+  # ---------- 站点信息 ----------
   description = "web前端技术博客,专注web前端学习与总结。JavaScript,js,ES6,TypeScript,vue,React,python,css3,html5,Node,git,github等技术文章。"
   keywords = "前端博客,个人技术博客,前端,前端开发,前端框架,web前端,前端面试题,技术文档,学习,面试,JavaScript,js,ES6,TypeScript,vue,python,css3,html5,Node,git,github,markdown"
-
   logo = "/img/logo.png"
   themeColor = "#11a8cd"
-  repo = "xugaoyi/vuepress-theme-vdoing"
+  repo = "hh127/hugo-theme-vdoing"
+  repoLabel = "GitHub"
 
-  # 布局
-  pageStyle = "card"        # card 卡片式 | line 线条式
-  sidebarDepth = 2          # 侧边栏/右侧大纲层级
-  sidebarOpen = true        # 桌面端默认展开侧边栏
-  defaultMode = "auto"      # auto | light | dark | read
-  rightMenuBar = true       # 右侧文章大纲
+  # ---------- 布局 ----------
+  pageStyle = "card"            # card 卡片式 | line 线条式
+  bodyBgImg = []                # body 背景大图, 例如 ["/img/bg.jpeg"]; 非空时固定 card 风格
+  bodyBgImgOpacity = 0.5
+  bodyBgImgInterval = 15
+  contentBgStyle = 0            # 内容区背景纹 1~6, 0 为无
+  titleBadge = true             # 文章标题前的随机小图标
+  titleBadgeIcons = []          # 自定义图标地址, 默认用主题内置 /img/title-badge/*.png
+  sidebarDepth = 2              # 侧边栏/右侧大纲层级
+  sidebarOpen = true            # 桌面端默认展开侧边栏
+  sidebarHoverTriggerOpen = true# 侧边栏收起时, 鼠标移到左侧边缘可弹出
+  rightMenuBar = true           # 右侧文章大纲
+  pageButton = true             # 页面中部左右快捷翻页按钮
+  defaultMode = "auto"          # auto | light | dark | read
+  navbar = true                 # 是否显示顶部导航
+  smoothScroll = false
+  iconfontCssFile = ""          # 额外图标库 css
 
-  # 列表与搜索
+  # ---------- 列表与搜索 ----------
   postPageSize = 10
   searchMaxSuggestions = 10
 
-  # 编辑链接
+  # ---------- 编辑链接 ----------
+  editLinks = true
   editLinkText = "编辑"
-  editLinkRepo = "https://github.com/xugaoyi/vuepress-theme-vdoing/blob/master/"
-  lastUpdatedText = "上次更新"
+  docsRepo = "hh127/hugo-theme-vdoing"
+  docsDir = "content"
+  docsBranch = "master"
 
-  # 作者
+  # ---------- 上次更新 ----------
+  lastUpdated = "上次更新"
+
+  # ---------- 作者 ----------
   author = "xugaoyi"
   authorLink = "https://github.com/xugaoyi"
 
-  # 博主信息 (首页右侧)
+  # ---------- 分类/标签/归档开关 ----------
+  category = true
+  tag = true
+  archive = true
+  categoryText = "随笔"          # 碎片化文章的默认分类
+
+  # =======================================================
+  #  以下为子表 (TOML 表头之后不能再写普通 key)
+  # =======================================================
+
+  # ---------- 评论 (gitalk, 原 vuepress-plugin-comment) ----------
+  [params.gitalk]
+    enable = true
+    clientID = "a6e1355287947096b88b"
+    clientSecret = "f0e77d070fabfcd5af95bebb82b2d574d7248d71"
+    repo = "blog-gitalk-comment"
+    owner = "xugaoyi"
+    admin = ["xugaoyi"]
+    pagerDirection = "last"     # first 正序 | last 倒序
+    distractionFreeMode = false
+    labels = ["Gitalk", "Comment"]
+
+  # ---------- 百度统计 / 自动推送 / 站长验证 ----------
+  [params.baidu]
+    tongji = "503f098e7e5b3a5b5d8c5fc2938af002"   # 留空关闭
+    autopush = true
+    siteVerification = "7F55weZDDc"              # meta baidu-site-verification
+
+  # ---------- 图片放大 (原 vuepress-plugin-zooming) ----------
+  [params.zooming]
+    enable = true
+    bgColor = "rgba(0,0,0,0.6)"
+    selector = ".theme-vdoing-content img:not(.no-zoom)"
+
+  # ---------- 最近更新栏 (原 updateBar) ----------
+  [params.updateBar]
+    showToArticle = true
+    moreArticle = "/archives/"
+
+  # ---------- 博主信息 (首页右侧 / 移动端侧边栏) ----------
   [params.blogger]
     avatar = "https://jsd.cdn.zzko.cn/gh/xugaoyi/image_store/blog/20200103123203.jpg"
     name = "Evan Xu"
     slogan = "前端界的小学生"
 
-  # 社交图标: iconClass 支持 icon-github / icon-youjian / icon-erji / icon-bilibili / icon-rss
+  # 社交图标: iconClass 支持 icon-github / icon-youjian / icon-erji / icon-bilibili ...
   [[params.social]]
     iconClass = "icon-youjian"
     title = "发邮件"
@@ -92,9 +159,9 @@ summaryLength = 80      # 列表摘要长度
     title = "听音乐"
     link = "https://music.163.com/#/playlist?id=755597173"
 
-  # 页脚
+  # ---------- 页脚 ----------
   [params.footer]
     createYear = 2019
     copyrightInfo = 'Evan Xu | <a href="https://github.com/xugaoyi/vuepress-theme-vdoing/blob/master/LICENSE" target="_blank">MIT License</a> | <a href="http://beian.miit.gov.cn/" target="_blank">桂ICP备2024034950号</a> | <img src="/img/beian.png" style="width: 15px; margin-bottom: -3px;" /> <a href="https://beian.mps.gov.cn/#/query/webSearch?code=45142202000030" rel="noreferrer" target="_blank">桂公网安备45142202000030</a>'
 
-# 站内搜索基于 home 输出的 index.json, 无需额外配置
+# 站内搜索基于 home 输出的 index.json; 分类/标签页的前端过滤也用它

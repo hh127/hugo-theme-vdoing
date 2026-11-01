@@ -1,0 +1,353 @@
+// =========================================================
+//  页面骨架 / 页脚 / 背景图 / html 模块窗口 / 主题模式
+//  (原版 MainLayout.vue / Footer.vue / BodyBgImg.vue / layouts/Layout.vue 内 style)
+//  —— shell 区域移植
+// =========================================================
+
+// ---------------------------------------------------------
+//  theme-container 与 .page 布局
+// ---------------------------------------------------------
+.theme-container {
+  color: var(--textColor);
+  min-height: 100vh;
+
+  &.sidebar-open {
+    .sidebar-mask {
+      display: block;
+    }
+  }
+
+  &.no-navbar {
+    .sidebar {
+      top: 0;
+    }
+
+    .sidebar-button {
+      top: 1rem;
+    }
+  }
+}
+
+.page {
+  transition: padding 0.2s ease;
+  padding-left: 0.8rem;
+}
+
+// 桌面端 / iPad
+@media (min-width: ($MQMobile + 1px)) {
+  .theme-container {
+    &.sidebar-open {
+      .sidebar-mask {
+        display: none;
+      }
+
+      .sidebar {
+        transform: translateX(0);
+      }
+
+      .sidebar-button {
+        left: $sidebarWidth;
+      }
+
+      .page {
+        padding-left: $sidebarWidth + 0.8rem;
+        padding-right: 0.8rem;
+      }
+
+      .sidebar-hover-trigger {
+        display: none;
+      }
+    }
+
+    &.have-rightmenu {
+      .page {
+        padding-right: calc(#{$rightMenuWidth} + 20rem);
+      }
+    }
+
+    &.no-sidebar {
+      .page {
+        padding-left: 0 !important;
+      }
+
+      .sidebar,
+      .sidebar-button {
+        display: none;
+      }
+
+      .sidebar-hover-trigger {
+        display: none;
+      }
+    }
+
+    &.hide-navbar {
+      .sidebar-hover-trigger {
+        top: 4.5rem;
+      }
+
+      .sidebar {
+        top: 0;
+      }
+    }
+  }
+
+  // 窄桌面: 侧边栏更窄, 圆形按钮跟随
+  @media (max-width: $MQNarrow) {
+    .theme-container {
+      &.sidebar-open:not(.on-sidebar) {
+        .sidebar-button {
+          left: $sidebarWidth * 0.7;
+        }
+      }
+    }
+  }
+
+  .theme-container.no-sidebar {
+    .sidebar-button {
+      display: none;
+    }
+  }
+}
+
+// 右侧文章大纲隐藏的区间: 不给 .page 预留右侧空间 (原版 Page.vue 自适应)
+@media (min-width: ($MQMobile + 1px)) and (max-width: 1279px) {
+  .theme-container.have-rightmenu {
+    .page {
+      padding-right: 0.8rem !important;
+    }
+  }
+}
+
+// 左侧边栏只有一项且没有右侧大纲时隐藏侧边栏 (原版 Page.vue only-sidebarItem)
+.theme-container.only-sidebarItem:not(.have-rightmenu) {
+  .sidebar,
+  .sidebar-button {
+    display: none;
+  }
+
+  @media (min-width: ($MQMobile + 1px)) {
+    .page {
+      padding-left: 0.8rem !important;
+    }
+  }
+
+  @media (max-width: $MQMobile) {
+    .page {
+      padding-left: 0 !important;
+    }
+
+    .sidebar,
+    .sidebar-button {
+      display: block;
+    }
+  }
+}
+
+.theme-container.only-sidebarItem.have-rightmenu {
+  @media (min-width: ($MQMobile + 1px)) and (max-width: 1279px) {
+    .sidebar,
+    .sidebar-button {
+      display: block;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .sidebar,
+    .sidebar-button {
+      display: none;
+    }
+  }
+}
+
+// 移动端: 侧边栏抽屉 + 遮罩
+@media (max-width: $MQMobile) {
+  .theme-container {
+    .page {
+      padding-left: 0;
+    }
+
+    // JS 初始化前的首屏防闪烁 (服务端默认带 sidebar-open, 移动端应先收起)
+    &:not(.sidebar-ready) {
+      .sidebar {
+        transform: translateX(-100%) !important;
+        transition: none !important;
+      }
+
+      .sidebar-mask {
+        display: none !important;
+      }
+    }
+
+    &.sidebar-open {
+      .sidebar {
+        transform: translateX(0);
+      }
+
+      .sidebar-mask {
+        display: block;
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  页脚 (原版 Footer.vue)
+// ---------------------------------------------------------
+.footer {
+  padding: 5rem 1.5rem 2.5rem;
+  text-align: center;
+  color: #666;
+  box-sizing: border-box;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+
+  > span {
+    line-height: 1.5rem;
+  }
+
+  .icons {
+    margin-bottom: 12px;
+
+    .iconfont {
+      padding: 0 10px;
+      font-size: 1.3rem;
+    }
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      color: $accentColor;
+    }
+  }
+}
+
+@media (min-width: ($MQMobile + 1px)) {
+  .sidebar-open .footer {
+    width: auto;
+    padding-left: $sidebarWidth + 1.5rem;
+  }
+}
+
+@media (min-width: 1520px) {
+  .have-rightmenu .footer {
+    padding-right: calc(#{$rightMenuWidth} + 1.5rem);
+  }
+}
+
+.no-sidebar .footer {
+  width: auto;
+  padding-left: 1.5rem;
+}
+
+// ---------------------------------------------------------
+//  body 背景大图 (原版 BodyBgImg.vue)
+// ---------------------------------------------------------
+.body-bg {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: -999999;
+  height: 100vh;
+  width: 100vw;
+  transition: background 0.5s;
+}
+
+// 有背景大图时内容区保持卡片风格 (原版 Layout.vue setBodyClass)
+.theme-container.have-body-img {
+  background: transparent;
+}
+
+// ---------------------------------------------------------
+//  左下角 / 右下角自定义 html 窗口 (原版 Layout.vue)
+// ---------------------------------------------------------
+.custom-html-window {
+  position: fixed;
+  bottom: 0;
+  display: flex;
+  overflow: hidden;
+  font-weight: 350;
+
+  @media (max-width: 960px) {
+    display: none;
+  }
+
+  .custom-wrapper {
+    position: relative;
+    max-width: 200px;
+    max-height: 400px;
+
+    .close-but {
+      cursor: pointer;
+      position: absolute;
+      right: 0;
+      top: 0;
+      font-size: 1.5rem;
+      line-height: 1.5rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      opacity: 0;
+      transition: all 0.2s;
+      z-index: 2;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+
+    &:hover {
+      .close-but {
+        opacity: 0.7;
+      }
+    }
+  }
+
+  &.custom-html-window-lb {
+    left: 0;
+    z-index: 99;
+
+    & > * {
+      align-self: flex-end;
+    }
+  }
+
+  &.custom-html-window-rb {
+    right: 80px;
+    z-index: 10;
+    justify-content: flex-end;
+
+    & > * {
+      align-self: flex-end;
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  html 模块插槽容器 (html-modules.html / page-slot.html)
+// ---------------------------------------------------------
+.sidebar-slot {
+  margin-bottom: -0.5rem;
+  font-size: 0.85rem;
+
+  &.sidebar-slot-top {
+    padding: 1.5rem 1.5rem 0;
+  }
+
+  &.sidebar-slot-bottom {
+    padding: 0 1.5rem 1.5rem;
+  }
+}
+
+.page-slot {
+  font-size: 0.9rem;
+
+  &.page-slot-top {
+    margin-bottom: 1rem;
+  }
+
+  &.page-slot-bottom {
+    margin-top: 1rem;
+  }
+}

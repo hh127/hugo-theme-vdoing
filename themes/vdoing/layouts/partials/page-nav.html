@@ -1,18 +1,62 @@
-{{- $prev := .PrevInSection -}}
-{{- $next := .NextInSection -}}
-{{- if or $prev $next }}
-<nav class="page-nav">
-  {{- with $prev }}
-  <a class="page-nav-item prev" href="{{ .RelPermalink }}">
-    <span class="page-nav-label">← 上一篇</span>
-    <span class="page-nav-title">{{ .Title }}</span>
-  </a>
+{{- /* 上一篇 / 下一篇 + 页面中部左右固定快捷翻页 (原 PageNav.vue)
+     调用: {{ partial "page-nav.html" . }} */ -}}
+{{- $page := . -}}
+{{- if reflect.IsMap . }}{{ $page = .page }}{{ end -}}
+
+{{- $prev := false -}}
+{{- $next := false -}}
+{{- /* 侧边栏关闭 (sidebar: false) 的页面原版没有翻页数据 */ -}}
+{{- if ne $page.Params.sidebar false -}}
+  {{- $prev = $page.PrevInSection -}}
+  {{- $next = $page.NextInSection -}}
+  {{- /* 同级没有时退化为整个 section(FirstSection) 的权重顺序 */ -}}
+  {{- if or (not $prev) (not $next) -}}
+    {{- $flat := slice -}}
+    {{- with $page.FirstSection }}{{ $flat = .RegularPagesRecursive.ByWeight }}{{ end -}}
+    {{- $idx := -1 -}}
+    {{- range $i, $p := $flat -}}
+      {{- if eq $p.RelPermalink $page.RelPermalink }}{{ $idx = $i }}{{ end -}}
+    {{- end -}}
+    {{- if ge $idx 0 -}}
+      {{- if and (not $prev) (gt $idx 0) }}{{ $prev = index $flat (sub $idx 1) }}{{ end -}}
+      {{- if and (not $next) (lt $idx (sub (len $flat) 1)) }}{{ $next = index $flat (add $idx 1) }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+<div class="page-nav-wapper">
+  {{- /* 页面中间左右翻页 */ -}}
+  {{- if and (ne site.Params.pageButton false) (or $prev $next) }}
+  <div class="page-nav-centre-wrap">
+    {{- with $prev }}
+    <a class="page-nav-centre page-nav-centre-prev" href="{{ .RelPermalink }}" aria-label="上一篇: {{ .Title }}">
+      <div class="tooltip">{{ .Title }}</div>
+    </a>
+    {{- end }}
+    {{- with $next }}
+    <a class="page-nav-centre page-nav-centre-next" href="{{ .RelPermalink }}" aria-label="下一篇: {{ .Title }}">
+      <div class="tooltip">{{ .Title }}</div>
+    </a>
+    {{- end }}
+  </div>
   {{- end }}
-  {{- with $next }}
-  <a class="page-nav-item next" href="{{ .RelPermalink }}">
-    <span class="page-nav-label">下一篇 →</span>
-    <span class="page-nav-title">{{ .Title }}</span>
-  </a>
+
+  {{- /* 底部翻页按钮 */ -}}
+  {{- if or $prev $next }}
+  <div class="page-nav">
+    <p class="inner">
+      {{- with $prev }}
+      <span class="prev">
+        ←
+        <a class="prev" href="{{ .RelPermalink }}">{{ .Title }}</a>
+      </span>
+      {{- end }}
+      {{- with $next }}
+      <span class="next">
+        <a href="{{ .RelPermalink }}">{{ .Title }}</a>→
+      </span>
+      {{- end }}
+    </p>
+  </div>
   {{- end }}
-</nav>
-{{- end }}
+</div>

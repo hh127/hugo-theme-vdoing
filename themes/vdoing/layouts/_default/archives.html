@@ -1,30 +1,50 @@
 {{ define "main" }}
-{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
+{{- /* 全部文章按时间倒序 (原 $sortPostsByDate) */ -}}
 {{- $posts := slice -}}
 {{- range site.RegularPages.ByDate.Reverse -}}
-  {{- if ne .Params.article false -}}
-    {{- $posts = $posts | append . -}}
+  {{- if ne .Params.article false }}{{ $posts = $posts | append . }}{{ end -}}
+{{- end -}}
+{{- /* 按年份分组, 保持时间倒序 */ -}}
+{{- $years := slice -}}
+{{- $byYear := dict -}}
+{{- range $posts -}}
+  {{- $y := .Date.Format "2006" -}}
+  {{- $list := index $byYear $y -}}
+  {{- if not $list -}}
+    {{- $years = $years | append $y -}}
+    {{- $list = slice -}}
   {{- end -}}
-{{- end }}
-<div class="archives-wrapper">
-  <header class="taxonomy-header">
-    <h1 class="taxonomy-title">{{ .Title | default "归档" }}</h1>
-    <p class="taxonomy-desc">共 {{ len $posts }} 篇文章</p>
-  </header>
-
-  {{- range $posts.GroupByDate "2006" }}
-  <section class="archive-group card-box">
-    <h2 class="archive-year">{{ .Key }}<span class="archive-count">{{ len .Pages }} 篇</span></h2>
-    <ul class="archive-list">
-      {{- range .Pages }}
-      <li class="archive-item">
-        <span class="archive-date">{{ .Date.Format "01-02" }}</span>
-        <a class="archive-title" href="{{ .RelPermalink }}">{{ .Title }}</a>
-        {{- with .Params.categories }}<span class="archive-cate">{{ index . 0 }}</span>{{ end }}
+  {{- $byYear = merge $byYear (dict $y ($list | append .)) -}}
+{{- end -}}
+{{- $badges := slice -}}
+{{- range (site.Params.titleBadgeIcons | default (slice "img/title-badge/1.png" "img/title-badge/2.png" "img/title-badge/3.png")) -}}
+  {{- $badges = $badges | append (. | relURL) -}}
+{{- end -}}
+<div class="custom-page archives-page">
+  <div class="theme-vdoing-wrapper">
+    <h1>
+      {{- if ne site.Params.titleBadge false }}<img src="{{ index (shuffle $badges) 0 }}" alt="">{{ end -}}
+      {{ .Title }}
+    </h1>
+    <div class="count">总共 <i>{{ len $posts }}</i> 篇文章</div>
+    <ul>
+      {{- range $years }}
+      {{- $year := . }}
+      {{- $postsOfYear := index $byYear $year }}
+      <li class="year">
+        <h2>{{ $year }}<span><i>{{ len $postsOfYear }}</i> 篇</span></h2>
+      </li>
+      {{- range $postsOfYear }}
+      <li>
+        <a href="{{ .RelPermalink }}">
+          <span class="date">{{ .Date.Format "01-02" }}</span>
+          {{ .Title }}
+          {{- with .Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}
+        </a>
       </li>
       {{- end }}
+      {{- end }}
     </ul>
-  </section>
-  {{- end }}
+  </div>
 </div>
 {{ end }}

@@ -3,7 +3,7 @@
 <h2 align="center">hugo-theme-vdoing</h2>
 
 <p align="center">
-  由 <a href="https://github.com/xugaoyi/vuepress-theme-vdoing">vuepress-theme-vdoing</a> 迁移而来的 Hugo 主题：知识库 + 博客。
+  由 <a href="https://github.com/xugaoyi/vuepress-theme-vdoing">vuepress-theme-vdoing</a> 完整迁移而来的 Hugo 主题：知识库 + 博客。
 </p>
 
 ![首页](docs/screenshots/home.png)
@@ -12,13 +12,12 @@
 
 ## 这是什么
 
-这个仓库原本是 xugaoyi 的 VuePress 版「vdoing」主题 + 博客工程（已完整保留在 `legacy/`）。
-现在它被改造成一个 **Hugo 站点 + `themes/vdoing` 主题**，并完成了内容迁移：
+这个仓库原本是 xugaoyi 的 VuePress 版「vdoing」主题 + 博客工程（已完整保留在 `legacy/` 作为对照）。
+现在它是一个 **Hugo 站点 + `themes/vdoing` 主题**：不仅完成了内容迁移，主题的 DOM 结构、样式与交互也按原版 `legacy/vdoing` 逐组件移植并对齐。
 
-- 230 个内容页（其中 214 篇正式文章）全部迁移，**保留了原来的 `/pages/xxx/` 永久链接**，老站外链不失效；
-- 首页卡片式文章列表 + 分页、结构化可折叠侧边栏、目录页、分类 / 标签 / 归档、右侧文章大纲、上一篇 / 下一篇、面包屑；
-- 浅色 / 深色 / 阅读三种外观（跟随系统）、站内搜索、代码块复制、返回顶部、移动端抽屉式侧边栏；
-- 原 VuePress 的 `::: tip` 容器语法已转换为 Hugo shortcode，渲染效果保持一致。
+- 230 个内容页（其中 214 篇正式文章）全部迁移，**保留原 `/pages/xxx/` 永久链接**，老站外链不失效；
+- 保留原版的全部主题配置项（`pageStyle`、`bodyBgImg`、`contentBgStyle`、`titleBadge`、`rightMenuBar`、`pageButton`、`updateBar`、`htmlModules`、`gitalk`、`baidu`、`zooming` …）；
+- 原版 vendored 的 iconfont 图标库、标题徽标、Prism 浅色/深色代码主题均已本地化，**不依赖任何外部 CDN**（评论/统计按配置可关）。
 
 | 文章页 | 目录页 |
 | --- | --- |
@@ -27,6 +26,49 @@
 | 归档 | 深色模式 |
 | --- | --- |
 | ![归档](docs/screenshots/archives.png) | ![深色](docs/screenshots/dark.png) |
+
+---
+
+## 与原版对齐的功能
+
+**外壳 / 导航**
+
+- 顶栏 `.navbar.blur`：logo + 站名、搜索框、三层嵌套导航（`data/nav.yaml`，桌面 hover / 移动端点击展开）、当前页高亮、GitHub 仓库链接、向下滚动自动隐藏；
+- 左侧边栏：结构化目录树（按 `weight` 排序、可折叠分组、同时只展开当前分支）、`sidebar: auto` 碎片文章显示本页大纲、桌面左缘悬停弹出、收起状态记忆、移动端抽屉 + 遮罩 + 右滑手势；
+- 移动端侧边栏博主信息卡（`.blogger`）；
+- 右下角圆形按钮组：返回顶部、去评论、主题模式选择框（`auto / light / dark / read` 四项）；
+- `bodyBgImg` 背景大图（单图 / 多图轮播 + 透明度）、`theme-style-line` 线条风格、footer 社交图标与备案信息；
+- 自定义 HTML 模块（`data/htmlModules.yaml`）：`homeSidebarB` / `sidebarT` / `sidebarB` / `pageT` / `pageB` / `windowLB` / `windowRB`，支持 `*showMode: article|custom`。
+
+**文章页**
+
+- 面包屑（首页 / 顶级目录 → 目录页 / 子目录 → 目录页锚点）、作者 / 日期 / 分类；
+- 标题前随机徽标（`titleBadge`，`titleBadgeIcons` 可自定义）、`titleTag` 小徽标、`contentBgStyle` 1~6 内容区背景纹；
+- 右侧文章大纲（h2~h6，滚动高亮、点击平滑滚动）、中部左右固定快捷翻页按钮 + tooltip、底部上一篇 / 下一篇；
+- 编辑链接（GitHub / GitLab / Gitee 自动识别，`editLink: false` 可关）、标签列表、最近更新时间（`enableGitInfo` 取 git 提交时间）；
+- 「最近更新」栏（`updateBar`）、gitalk 评论（`comment: false` 可关）、`pageT` / `pageB` 自定义 HTML 槽位。
+
+**首页 / 列表 / 归档 / 分类 / 标签 / 目录页**
+
+- 首页 banner：网格纹背景、`bannerBg`（auto / none / 图片 / 自定义 CSS）、heroImage / heroText / tagline / actionButton、features 卡片 + 移动端轮播；
+- 首页文章列表：`postList: detailed | simple | none`、`sticky` 置顶、`postPageSize` 分页、`hideRightBar`、右侧博主卡 / 分类 / 标签 / `homeSidebarB`；
+- 归档页：年份 sticky 分组、总数 / 年度篇数、日期 + 标题 + `titleTag` + 标题徽标；
+- 分类 / 标签页：原版 URL 行为 `/categories/?category=xxx`、`/tags/?tag=xxx`（读取 `index.json` 前端过滤 + 分页），term 页兜底；
+- 目录页：`column-wrapper`（图片 + 标题 + 描述）+ 原版编号大纲 `1. / 1-1. / 1-1-1.`，`#锚点` 与面包屑联动；
+- 404：大号 404 + 随机文案 + 返回首页。
+
+**Markdown 渲染**
+
+- 标题 hover 显示 `#` 锚点；代码块：语言标签、行号（`lineNos = inline`）、`{hl_lines=[..]}` 行高亮、一键复制（自动剔除行号）、`CodeGroup` / `CodeBlock` 标签页；
+- 自定义容器：`tip / warning / danger / note / theorem / details / center / right / cardList / cardImgList`（含原版配色、深色适配；`cardList` 直接解析容器内的 YAML 数据渲染成卡片，`demo` 容器带 sandbox iframe 实时预览）；
+- `Badge` 短代码、kbd、表格、引用、居中容器等原版排版；图片点击放大（`zooming`）。
+
+**其他**
+
+- 站内搜索（`index.json` 本地过滤，`/` 或 `Ctrl/⌘ + K` 唤起，支持标题 / 正文命中与高亮）；
+- 主题模式三套配色 + `auto` 跟随系统，`localStorage` 记忆，`?mode=dark` 直接指定；
+- 百度统计 / 百度自动推送 / 百度站长验证 meta、OpenGraph、Twitter Card、RSS、robots.txt、sitemap.xml；
+- 打印样式、419 / 719 / 959 / 1279 / 1520 断点响应式。
 
 ---
 
@@ -40,7 +82,7 @@ hugo server --disableFastRender
 hugo --minify
 ```
 
-依赖：**Hugo extended 0.120+**（需要 SCSS 编译能力）。
+依赖：**Hugo extended 0.156+**（需要 SCSS 编译能力）。
 
 ---
 
@@ -48,24 +90,25 @@ hugo --minify
 
 ```
 .
-├── hugo.toml              # 站点配置（站名、主题参数、taxonomy、markup）
-├── data/nav.yaml          # 顶部导航菜单（支持三层嵌套）
+├── hugo.toml              # 站点配置（站名、主题参数、taxonomy、markup、git 信息）
+├── data/
+│   ├── nav.yaml           # 顶部导航菜单（支持三层嵌套）
+│   └── htmlModules.yaml   # 自定义 HTML 模块（侧边栏 / 页面顶部底部 / 左右下角窗口）
 ├── content/               # 文章内容（由 VuePress docs/ 迁移而来）
-│   ├── _index.md          # 首页（heroText / tagline / features）
+│   ├── _index.md          # 首页（heroText / tagline / features / bannerBg / postList …）
 │   ├── archives.md        # 归档页  -> /archives/
 │   ├── catalogue/         # 目录页  -> /web/ /ui/ /technology/ /more/
-│   ├── posts/             # 碎片化文章（原 _posts/）
+│   ├── posts/             # 碎片化文章（原 _posts/，sidebar: auto）
 │   ├── 前端/ 页面/ 技术/ 更多/ 关于/ 收藏夹/
 │   └── 《ES6 教程》笔记/ 《Vue》笔记/ …… （学习笔记专辑）
-├── static/                # 图片、favicon、CNAME 等静态资源
-├── themes/vdoing/         # 主题源码
-│   ├── layouts/           # 模板、partials、shortcodes
-│   ├── assets/scss/       # 样式（SCSS -> 带指纹的 CSS）
-│   ├── assets/js/         # 交互脚本（主题模式 / 侧边栏 / 搜索 / 复制）
-│   └── static/            # 主题自带静态文件
-├── tools/                 # 迁移与校验脚本
-│   ├── migrate_content.py # legacy/docs -> content 的一次性迁移脚本
-│   └── check_links.py     # 构建后站内链接检查
+├── static/                # 站点图片、favicon、CNAME、备案图标等
+├── themes/vdoing/
+│   ├── layouts/           # 模板 / partials / shortcodes / _markup 渲染钩子
+│   ├── assets/scss/       # 样式，按区域拆分为 partial（variables/base/navbar/sidebar/article/…）
+│   ├── assets/js/         # 交互脚本，构建时按文件名拼接成一个 main.js
+│   └── static/            # 主题自带静态资源（iconfont、标题徽标、兜底 css）
+├── tools/                 # 迁移与校验脚本（见下文）
+├── docs/                  # 截图 + 与 VuePress 版的对齐说明（docs/parity-plan.md）
 ├── archetypes/default.md  # hugo new 的文章骨架
 └── legacy/                # 原 VuePress 工程（含 vdoing 主题源码），仅作参考
 ```
@@ -88,7 +131,12 @@ author:
   link: https://github.com/xugaoyi
 weight: 1                         # 同级排序，等价于原文件名 "01." 序号
 titleTag: 原创                     # 可选：标题旁小徽标
-sticky: 1                         # 可选：首页置顶，数字越大越靠前
+sticky: 1                         # 可选：置顶，数字越大越靠前
+comment: false                    # 可选：关闭本页评论
+editLink: false                   # 可选：关闭本页「编辑」链接
+sidebar: auto                     # 可选：左侧边栏改为本页大纲（碎片文章）
+sidebar: false                    # 可选：关闭左侧边栏
+article: false                    # 可选：自定义页（不进列表 / 归档 / 搜索）
 ---
 
 正文……
@@ -96,11 +144,9 @@ sticky: 1                         # 可选：首页置顶，数字越大越靠�
 
 ### 侧边栏与排序
 
-- 左侧边栏 = 当前文章所在**顶级目录**的整棵目录树，顺序由 `weight` 决定（从小到大）。
-- 子目录自动变成**可折叠分组**，分组的先后由该目录 `_index.md` 的 `weight` 决定。
+- 左侧边栏 = 当前文章所在**顶级目录**的整棵目录树，顺序由 `weight` 决定（从小到大）；
+- 子目录自动变成**可折叠分组**，分组先后由该目录 `_index.md` 的 `weight` 决定；
 - 目录本身不生成页面（`_index.md` 中 `build.render: never`），分组标题只负责展开 / 收起。
-- 文章写 `sidebar: auto` 时，左侧边栏改为显示**本页标题大纲**（原主题碎片化文章的用法）。
-- 想关闭侧边栏：`sidebar: false`。
 
 ### 目录页（catalogue）
 
@@ -114,11 +160,9 @@ imgUrl: /img/web.png
 description: JavaScript、ES6、Vue框架等前端技术
 url: "/web/"
 sidebar: false
-article: false            # 不进入首页列表 / 归档 / 搜索
+article: false
 ---
 ```
-
-页面会把该目录下所有子目录渲染成卡片，卡片内是该子目录下全部文章链接。
 
 ### VuePress 容器的替代写法
 
@@ -130,35 +174,51 @@ article: false            # 不进入首页列表 / 归档 / 搜索
 {{% /block %}}
 ```
 
-`type` 支持：`tip` / `warning` / `danger` / `note` / `theorem` / `details` / `center` / `right` / `cardList` / `demo`。
+`type` 支持：`tip` / `warning` / `danger` / `note` / `theorem` / `details` / `center` / `right` / `cardList` / `cardImgList` / `demo`；
+`cardList` / `cardImgList` 容器内直接放一段 ```yaml 数据即可渲染成原版卡片列表（见 `content/更多/友情链接.md`）。
 
 ---
 
 ## 主题配置
 
-全部在 `hugo.toml` 的 `[params]` 下：
+站点配置在 `hugo.toml` 的 `[params]` 下（注意 TOML 子表要放在普通 key 之后）：
 
 | 参数 | 说明 |
 | --- | --- |
-| `logo` / `repo` / `themeColor` | 导航栏 logo、GitHub 仓库、浏览器 theme-color |
-| `pageStyle` | `card` 卡片式 / `line` 线条式 |
-| `postPageSize` | 首页每页文章数 |
-| `searchMaxSuggestions` | 搜索下拉最多显示条数 |
+| `logo` / `repo` / `repoLabel` / `themeColor` | 导航栏 logo、仓库、仓库链接文字、浏览器 theme-color |
+| `pageStyle` | `card` 卡片式 / `line` 线条式（有 `bodyBgImg` 时强制 `card`） |
+| `bodyBgImg` / `bodyBgImgOpacity` / `bodyBgImgInterval` | body 背景大图（数组则轮播） |
+| `contentBgStyle` | 内容区背景纹 `1~6`，`0` 为无 |
+| `titleBadge` / `titleBadgeIcons` | 标题前随机徽标 |
+| `sidebarOpen` / `sidebarHoverTriggerOpen` / `sidebarDepth` | 侧边栏初始状态 / 悬停弹出 / 层级 |
+| `rightMenuBar` / `pageButton` | 右侧文章大纲 / 页面中部快捷翻页按钮 |
 | `defaultMode` | `auto` / `light` / `dark` / `read` |
-| `rightMenuBar` / `sidebarOpen` / `sidebarDepth` | 右侧大纲开关、侧边栏初始状态、层级 |
-| `blogger.{avatar,name,slogan}` | 首页右侧博主信息卡 |
-| `[[params.social]]` | 社交图标（`icon-github` / `icon-youjian` / `icon-erji`，其他走 rss） |
-| `footer.{createYear,copyrightInfo}` | 页脚版权 / 备案信息 |
+| `navbar` | 是否显示顶部导航 |
+| `postPageSize` / `searchMaxSuggestions` | 首页每页文章数 / 搜索下拉条数 |
+| `editLinks` / `editLinkText` / `docsRepo` / `docsDir` / `docsBranch` | 文章底部「编辑本页」 |
+| `lastUpdated` | 「上次更新」文案（时间取 git 提交时间） |
 | `author` / `authorLink` | 默认作者（文章未指定 `author` 时使用） |
-| `editLinkRepo` / `editLinkText` | 文章底部「编辑本页」链接前缀 |
+| `category` / `tag` / `archive` / `categoryText` | 分类 / 标签 / 归档开关与碎片文章默认分类 |
+| `blogger.{avatar,name,slogan}` | 首页右侧 / 移动端侧边栏博主信息卡 |
+| `[[params.social]]` | 社交图标（`iconClass` 取 iconfont 类名，如 `icon-github`） |
+| `footer.{createYear,copyrightInfo}` | 页脚版权 / 备案信息 |
+| `[params.updateBar]` | 最近更新栏（`showToArticle` / `moreArticle`） |
+| `[params.gitalk]` | gitalk 评论（`enable` / `clientID` / `clientSecret` / `repo` / `owner` / `admin` …） |
+| `[params.baidu]` | 百度统计 / 自动推送 / 站长验证（留空即关闭） |
+| `[params.zooming]` | 图片放大（`enable` / `bgColor` / `selector`） |
 
-顶部导航在 `data/nav.yaml` 中维护；某个条目不写 `link` 即为纯分组标题。
+自定义 HTML 模块放在 `data/htmlModules.yaml`，顶部导航在 `data/nav.yaml` 中维护（某个条目不写 `link` 即为纯分组标题）。
 
 ### 外观模式
 
-- 点击导航栏右侧的月亮图标循环切换：浅色 → 深色 → 阅读；
+- 右下角圆形按钮组的主题选择框：浅色 → 深色 → 阅读 → 跟随系统（`auto`）；
 - 也可以用 URL 直接指定：`/?mode=dark`；
-- 用户的选择保存在 `localStorage`，未选择过时跟随系统。
+- 用户的选择保存在 `localStorage`（键 `vdoing-mode`），未选择过时跟随系统。
+
+### 评论（gitalk）
+
+在 `[params.gitalk]` 填写 GitHub OAuth App 的 `clientID` / `clientSecret`、评论仓库 `repo` / `owner` / `admin` 即可；
+文章页 frontmatter 写 `comment: false` 可单独关闭；整站关闭把 `enable` 设为 `false`。
 
 ### 站内搜索
 
@@ -169,32 +229,39 @@ article: false            # 不进入首页列表 / 归档 / 搜索
 
 ## 与 VuePress 版的差异
 
-**已实现**：首页卡片列表与分页、结构化侧边栏、目录页、分类 / 标签 / 归档、右侧文章大纲、上一篇 / 下一篇、面包屑、深色 / 阅读模式、站内搜索、代码块复制、返回顶部、移动端抽屉侧边栏、自定义容器。
+**已对齐**：导航 / 侧边栏 / 首页 banner 与文章列表 / 文章页（面包屑、徽标、编辑链接、上次更新、右侧大纲、翻页、最近更新栏）/ 归档 / 分类 / 标签 / 目录页 / 404 / 代码块与自定义容器 / gitalk 评论 / 图片放大 / 三套主题模式 / body 背景图 / 自定义 HTML 模块 / 百度统计等。
 
-**未实现（可按需自行接入）**：
+**有意不同 / 未实现**：
 
-- Gitalk 评论（原 `vuepress-plugin-comment`）；
-- `vuepress-plugin-demo-block` 的可运行示例（现渲染为普通代码块）；
-- 图片点击放大（`zooming`）、百度统计 / 百度自动推送；
-- 「最近更新时间」按 git 提交时间计算（现用文章 `date`）。
+- 分类、标签页为「服务端渲染 + 前端 query 过滤分页」，无 JS 时仍可用（原版是纯 SPA 渲染）；
+- 文章列表摘要为纯文本（Hugo 截断 HTML 可能产生未闭合标签，`plainify` 更稳），卡片中不再包含摘要图片；
+- `demo` 容器为简化的「iframe 预览 + 代码块」，不含原 `vuepress-plugin-demo-block` 的 CodePen 外链；
+- 未接入 Algolia 搜索与第三方搜索跳转（`thirdparty-search`）；
+- 原 `vuepress-plugin-nprogress` 的页面加载进度条未实现（Hugo 是多页应用，收益有限）。
 
 ---
 
-## 从 VuePress 重新迁移
+## 从 VuePress 重新迁移 / 开发校验
 
-原 VuePress 工程整体移动到了 `legacy/`，迁移逻辑保留在脚本中：
+原 VuePress 工程整体保留在 `legacy/`，迁移与校验脚本都在 `tools/`：
 
 ```bash
+# 重新生成 content/（会清空重建，谨慎）
 python tools/migrate_content.py
+
+# 构建后校验站内链接（0 missing 为通过）
+hugo --minify && python tools/check_links.py
+
+# 一键验收：构建 + 链接检查 + 关键页面截图（截图输出到 .tmp/verify-*.png）
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify.ps1
+
+# 单个页面截图（本地静态服务 + Edge/Chrome headless）
+tools\screenshot.cmd -BuildDir public -Page "/pages/8143cc480faf9a11/" -Port 8899 -Out .tmp/a.png
 ```
 
-脚本会清空并重建 `content/`，完成：`permalink → url`、`date` 归一化、序号前缀 → `weight`、`_posts → posts`、`@pages` 归档页、`pageComponent(Catalogue) → layout: catalogue`、`::: 容器 → shortcode`、`public/ → static/`。
-
-构建后可用脚本校验站内链接：
-
-```bash
-hugo && python tools/check_links.py
-```
+> 构建时如需并行/避免构建锁：`hugo --noBuildLock --cacheDir "<绝对路径>/.tmp/cache"`；
+> 无外网环境做截图验收时用 `tools/qa.toml` 覆盖配置关闭 gitalk / 百度统计：`--config hugo.toml,tools/qa.toml`。
+> `docs/parity-plan.md` 记录了与 `legacy/vdoing` 逐组件的对齐方式与文件映射。
 
 ---
 

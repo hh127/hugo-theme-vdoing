@@ -1,0 +1,59 @@
+{{- /* 编辑链接 / 标签 / 上次更新 (原 PageEdit.vue)
+     调用: {{ partial "page-edit.html" . }} */ -}}
+{{- $page := . -}}
+{{- if reflect.IsMap . }}{{ $page = .page }}{{ end -}}
+
+{{- /* ---------- 编辑链接 ---------- */ -}}
+{{- $showEdit := site.Params.editLinks | default false -}}
+{{- if isset $page.Params "editlink" }}{{ $showEdit = $page.Params.editLink }}{{ end -}}
+{{- $editLink := "" -}}
+{{- $docsRepo := site.Params.docsRepo | default "" -}}
+{{- if and $showEdit $docsRepo -}}
+  {{- with $page.File -}}
+    {{- $docsDir := strings.TrimSuffix "/" (site.Params.docsDir | default "") -}}
+    {{- $branch := site.Params.docsBranch | default "master" -}}
+    {{- $base := $docsRepo -}}
+    {{- if not (or (hasPrefix $docsRepo "http://") (hasPrefix $docsRepo "https://") (hasPrefix $docsRepo "//")) -}}
+      {{- $base = printf "https://github.com/%s" $docsRepo -}}
+    {{- end -}}
+    {{- $base = strings.TrimSuffix "/" $base -}}
+    {{- $path := strings.TrimPrefix "/" (replace .Path "\\" "/") -}}
+    {{- if in $base "gitlab.com" -}}
+      {{- $editLink = printf "%s/-/edit/%s/%s%s" $base $branch (cond (ne $docsDir "") (printf "%s/" $docsDir) "") $path -}}
+    {{- else if in $base "gitee.com" -}}
+      {{- $giteeBase := replace $base "gitee.com" "gitee.com/-/ide/project" -}}
+      {{- $editLink = printf "%s/edit/%s/-/%s%s" $giteeBase $branch (cond (ne $docsDir "") (printf "%s/" $docsDir) "") $path -}}
+    {{- else -}}
+      {{- $editLink = printf "%s/edit/%s/%s%s" $base $branch (cond (ne $docsDir "") (printf "%s/" $docsDir) "") $path -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* ---------- 标签 ---------- */ -}}
+{{- $tags := slice -}}
+{{- if ne site.Params.tag false }}{{ with $page.Params.tags }}{{ $tags = . }}{{ end }}{{ end -}}
+
+{{- /* ---------- 上次更新 ---------- */ -}}
+{{- $lastUpdated := site.Params.lastUpdated | default "上次更新" -}}
+{{- $showUpdated := and (ne site.Params.lastUpdated false) (not $page.Lastmod.IsZero) -}}
+
+{{- if or $editLink $tags $showUpdated }}
+<div class="page-edit">
+  {{- with $editLink }}
+  <div class="edit-link">
+    <a href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ site.Params.editLinkText | default "编辑" }}</a>
+  </div>
+  {{- end }}
+  {{- with $tags }}
+  <div class="tags">
+    {{- range . }}{{ with . }}<a href="{{ printf "%s?%s" ("tags/" | relURL) (querify "tag" .) }}" title="标签">#{{ . }}</a>{{ end }}{{ end -}}
+  </div>
+  {{- end }}
+  {{- if $showUpdated }}
+  <div class="last-updated">
+    <span class="prefix">{{ if eq $lastUpdated true }}上次更新{{ else }}{{ $lastUpdated }}{{ end }}:</span>
+    <span class="time">{{ $page.Lastmod.Format "2006/01/02, 15:04:05" }}</span>
+  </div>
+  {{- end }}
+</div>
+{{- end }}

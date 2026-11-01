@@ -1,10 +1,8 @@
-{{- /* 站内搜索: 读取 home 输出的 index.json, 纯前端过滤 */ -}}
-<div class="search-box" id="search-box">
-  <button class="search-toggle icon-button" id="search-toggle" title="搜索" aria-label="搜索">
-    {{ partial "icon.html" "search" }}
+{{- /* 站内搜索 (VuePress SearchBox 的替代实现, 数据来自首页 index.json) */ -}}
+<div class="search-box" id="search-box" role="search">
+  <button type="button" class="search-toggle" id="search-toggle" title="搜索" aria-label="搜索">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
   </button>
-  <div class="search-panel" id="search-panel">
-    <input type="text" id="search-input" class="search-input" placeholder="搜索文章标题或内容..." autocomplete="off">
-    <ul class="search-results" id="search-results"></ul>
-  </div>
+  <input type="text" id="search-input" class="search-input" placeholder="搜索" autocomplete="off" aria-label="搜索">
+  <ul class="search-results" id="search-results"></ul>
 </div>

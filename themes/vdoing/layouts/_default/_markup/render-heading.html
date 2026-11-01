@@ -1,0 +1,16 @@
+{{- /*
+  标题渲染钩子: 对齐 VuePress 原版 <hN id="锚点"><a class="header-anchor" href="#锚点">#</a>标题</hN>
+  右侧大纲 / 锚点跳转都依赖 id，必须保留 .Anchor
+  可选支持 goldmark 属性 ({#id .class})，用 .Attributes 原样输出
+*/ -}}
+{{- $level := .Level -}}
+{{- $anchor := .Anchor -}}
+{{- $attrs := "" -}}
+{{- with .Attributes -}}
+  {{- range $key, $value := . -}}
+    {{- if ne $key "id" -}}
+      {{- $attrs = printf "%s %s=%q" $attrs $key (printf "%v" $value) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+<h{{ $level }} id="{{ $anchor }}"{{ $attrs | safeHTMLAttr }}><a class="header-anchor" href="#{{ $anchor }}" aria-hidden="true">#</a>{{ .Text | safeHTML }}</h{{ $level }}>

@@ -1,16 +1,14 @@
-{{- $logo := site.Params.logo -}}
-<footer class="footer">
-  <div class="footer-inner">
-    {{- with site.Params.footer }}
-    <div class="footer-copyright">
-      <span>Copyright © {{ .createYear }}-{{ now.Format "2006" }}</span>
-      <span class="footer-sep">|</span>
-      <span class="footer-info">{{ .copyrightInfo | safeHTML }}</span>
-    </div>
-    {{- else }}
-    <div class="footer-copyright">
-      <span>Copyright © {{ now.Format "2006" }} {{ site.Title }}</span>
-    </div>
+{{- /* 页脚 (对应原版 Footer.vue): 社交图标 + Theme by Vdoing + Copyright(createYear-now) + copyrightInfo */ -}}
+<div class="footer">
+  {{- with site.Params.social }}
+  <div class="icons">
+    {{- range . }}
+    <a href="{{ .link }}" title="{{ .title }}" class="iconfont {{ .iconClass }}" target="_blank" rel="noopener"></a>
     {{- end }}
   </div>
-</footer>
+  {{- end }}
+  <span class="footer-theme">Theme by <a href="https://github.com/xugaoyi/vuepress-theme-vdoing" target="_blank" rel="noopener" title="本站主题">Vdoing</a></span>
+  {{- with site.Params.footer }}
+  <span class="footer-copyright">| Copyright © {{ .createYear }}-{{ now.Format "2006" }} <span class="footer-info">{{ .copyrightInfo | safeHTML }}</span></span>
+  {{- end }}
+</div>

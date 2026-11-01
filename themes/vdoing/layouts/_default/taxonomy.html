@@ -1,10 +1,33 @@
 {{ define "main" }}
-{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
-<div class="taxonomy-wrapper">
-  <header class="taxonomy-header">
-    <h1 class="taxonomy-title">{{ .Title }}</h1>
-    <p class="taxonomy-desc">共 {{ len .Pages }} 篇文章</p>
-  </header>
-  {{ partial "post-list.html" (dict "pages" .Pages.ByDate.Reverse) }}
+{{- /* 分类/标签 term 页 (Hugo 自动生成, 作为原版 query URL 的兜底)
+   服务端直接渲染该 term 下的文章, 前端只管分页 (?p=N) */ -}}
+{{- $plural := "categories" -}}
+{{- with .Data.Plural }}{{ $plural = . }}{{ end -}}
+{{- $isTag := eq $plural "tags" -}}
+{{- $term := "" -}}
+{{- with .Data.Term }}{{ $term = . }}{{ end -}}
+{{- $posts := slice -}}
+{{- range .Pages.ByDate.Reverse -}}
+  {{- if ne .Params.article false }}{{ $posts = $posts | append . }}{{ end -}}
+{{- end -}}
+<div class="custom-page {{ if $isTag }}tags-page{{ else }}categories-page{{ end }}" data-taxonomy="{{ $plural }}" data-taxonomy-value="{{ $term }}" data-per-page="{{ site.Params.postPageSize | default 10 }}">
+  <div class="main-wrapper">
+    <div class="main-left">
+      {{- if $isTag }}
+      {{ partial "tags-bar.html" (dict "page" . "length" "all" "tag" $term) }}
+      {{- else }}
+      {{ partial "categories-bar.html" (dict "page" . "length" "all" "category" $term) }}
+      {{- end }}
+      {{ partial "post-list.html" (dict "pages" $posts "page" .) }}
+      <div class="pagination" data-pagination hidden></div>
+    </div>
+    <div class="main-right">
+      {{- if $isTag }}
+      {{ partial "tags-bar.html" (dict "page" . "length" "all" "tag" $term) }}
+      {{- else }}
+      {{ partial "categories-bar.html" (dict "page" . "length" "all" "category" $term) }}
+      {{- end }}
+    </div>
+  </div>
 </div>
 {{ end }}

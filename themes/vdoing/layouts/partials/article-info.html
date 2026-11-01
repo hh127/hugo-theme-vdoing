@@ -1,0 +1,104 @@
+{{- /* 面包屑 + 作者 / 日期 / 分类 (原 ArticleInfo.vue)
+     调用: {{ partial "article-info.html" . }}
+     文章页 (frontmatter article !== false) 输出 .articleInfo-wrap; 自定义页输出 .placeholder */ -}}
+{{- $page := . -}}
+{{- if reflect.IsMap . }}{{ $page = .page }}{{ end -}}
+{{- $isArticle := ne $page.Params.article false -}}
+
+{{- if not $isArticle -}}
+<div class="placeholder"></div>
+{{- else -}}
+{{- /* ---------- 目录层级 (content 下的文件夹, 去掉 "01." 之类序号前缀) ---------- */ -}}
+{{- $classifyList := slice -}}
+{{- with $page.File -}}
+  {{- /* Windows 下 .File.Dir 用反斜杠, 统一成正斜杠 */ -}}
+  {{- $dir := strings.TrimSuffix "/" (replace .Dir "\\" "/") -}}
+  {{- range (split $dir "/") -}}
+    {{- if . -}}
+      {{- $name := . -}}
+      {{- if in . "." -}}
+        {{- $name = delimit (after 1 (split . ".")) "." -}}
+      {{- end -}}
+      {{- if $name }}{{ $classifyList = $classifyList | append $name }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $classify1 := "" -}}
+{{- with $classifyList }}{{ $classify1 = index . 0 }}{{ end -}}
+{{- /* 碎片化文章目录 (原版 _posts) 不显示面包屑 */ -}}
+{{- $isFragment := eq $classify1 "posts" -}}
+
+{{- /* ---------- 顶级目录 -> 目录页 URL (content/catalogue/*.md 的 catalogue 参数) ---------- */ -}}
+{{- $catalogue := false -}}
+{{- if $classify1 -}}
+  {{- with site.GetPage "/catalogue" -}}
+    {{- range .Pages -}}
+      {{- if and (eq .Params.catalogue $classify1) (not $catalogue) }}{{ $catalogue = . }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+<div class="articleInfo-wrap">
+  <div class="articleInfo">
+    {{- if and $classify1 (not $isFragment) }}
+    <ul class="breadcrumbs">
+      <li><a href="{{ "" | relURL }}" class="iconfont icon-home" title="首页"></a></li>
+      {{- range $i, $item := $classifyList }}
+        {{- $href := "" -}}
+        {{- if eq $i 0 -}}
+          {{- if $catalogue -}}
+            {{- $href = $catalogue.RelPermalink -}}
+          {{- else if ne site.Params.category false -}}
+            {{- $href = printf "%s?%s" ("categories/" | relURL) (querify "category" $item) -}}
+          {{- end -}}
+        {{- else -}}
+          {{- if $catalogue -}}
+            {{- $href = printf "%s#%s" $catalogue.RelPermalink (anchorize $item) -}}
+          {{- end -}}
+        {{- end }}
+      <li>
+        {{- if $href }}<a href="{{ $href }}"{{ if and (ne $i 0) $catalogue }} title="目录"{{ else if not $catalogue }} title="分类"{{ end }}>{{ $item }}</a>{{ else }}<span>{{ $item }}</span>{{ end -}}
+      </li>
+      {{- end }}
+    </ul>
+    {{- end }}
+
+    <div class="info">
+      {{- /* 作者 */ -}}
+      {{- $authorName := "" -}}
+      {{- $authorLink := "" -}}
+      {{- with $page.Params.author -}}
+        {{- if reflect.IsMap . -}}
+          {{- $authorName = .name | default "" -}}
+          {{- $authorLink = .link | default (.href | default "") -}}
+        {{- else -}}
+          {{- $authorName = . -}}
+        {{- end -}}
+      {{- end -}}
+      {{- if not $authorName -}}
+        {{- $authorName = site.Params.author -}}
+        {{- $authorLink = site.Params.authorLink -}}
+      {{- end -}}
+      {{- with $authorName }}
+      <div class="author iconfont icon-touxiang" title="作者">
+        {{- if $authorLink }}<a href="{{ $authorLink }}" target="_blank" rel="noopener" class="beLink" title="作者">{{ . }}</a>{{ else }}<a href="javascript:;">{{ . }}</a>{{ end -}}
+      </div>
+      {{- end }}
+
+      {{- /* 创建时间 */ -}}
+      {{- if not $page.Date.IsZero }}
+      <div class="date iconfont icon-riqi" title="创建时间"><a href="javascript:;">{{ $page.Date.Format "2006-01-02" }}</a></div>
+      {{- end }}
+
+      {{- /* 碎片化文章 (无面包屑时): 显示 frontmatter 分类 */ -}}
+      {{- if and (ne site.Params.category false) (or (not $classify1) $isFragment) }}
+        {{- with $page.Params.categories }}
+      <div class="date iconfont icon-wenjian" title="分类">
+          {{- range $item := . }}<a href="{{ printf "%s?%s" ("categories/" | relURL) (querify "category" $item) }}">{{ $item }} </a>{{ end -}}
+      </div>
+        {{- end }}
+      {{- end }}
+    </div>
+  </div>
+</div>
+{{- end -}}

@@ -1,0 +1,561 @@
+// =========================================================
+//  顶部导航 (原版 Navbar.vue / NavLinks.vue / NavLink.vue / DropdownLink.vue + VuePress SearchBox)
+//  —— shell 区域移植
+// =========================================================
+
+$navbar-vertical-padding: 0.7rem;
+$navbar-horizontal-padding: 1.5rem;
+
+// 导航栏本体 (原版 styles/index.styl + Navbar.vue)
+.navbar {
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: $navbarHeight;
+  background-color: var(--blurBg);
+  box-sizing: border-box;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+  padding: $navbar-vertical-padding $navbar-horizontal-padding;
+  line-height: $navbarHeight - 1.4rem;
+  transition: transform 0.3s;
+
+  a,
+  span,
+  img {
+    display: inline-block;
+  }
+
+  .home-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .logo {
+    height: $navbarHeight - 1.4rem;
+    min-width: $navbarHeight - 1.4rem;
+    margin-right: 0.8rem;
+    vertical-align: top;
+  }
+
+  .site-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--textColor);
+    position: relative;
+  }
+
+  // 右侧区域: 搜索框 + 导航链接 + repo 链接
+  .links {
+    padding-left: 1.5rem;
+    box-sizing: border-box;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    position: absolute;
+    right: $navbar-horizontal-padding;
+    top: $navbar-vertical-padding;
+    display: flex;
+    align-items: center;
+
+    .search-box {
+      flex: 0 0 auto;
+      vertical-align: top;
+    }
+  }
+}
+
+// 向下滚动时隐藏导航栏 (Layout.vue hideNavbar)
+.hide-navbar {
+  .navbar {
+    transform: translateY(-100%);
+  }
+}
+
+// ---------------------------------------------------------
+//  搜索框 (VuePress SearchBox 外观, DOM 由 search.html 提供)
+// ---------------------------------------------------------
+.navbar .search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: 1rem;
+
+  .search-toggle {
+    display: none;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    color: var(--textColor);
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+
+    &:hover {
+      color: $accentColor;
+    }
+  }
+
+  .search-input {
+    width: 10rem;
+    height: 2rem;
+    box-sizing: border-box;
+    padding: 0 0.8rem 0 2rem;
+    color: var(--textColor);
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0.6rem center;
+    background-size: 1rem;
+    border: 1px solid var(--borderColor, #ccc);
+    border-radius: 2rem;
+    font-size: 0.9rem;
+    line-height: 2rem;
+    outline: none;
+    transition: border-color 0.2s, width 0.2s, opacity 0.2s;
+
+    &::placeholder {
+      color: var(--textColor);
+      opacity: 0.5;
+    }
+
+    &:focus {
+      border-color: $accentColor;
+    }
+  }
+
+  // 搜索结果面板
+  .search-results {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 2.5rem;
+    z-index: 30;
+    width: 22rem;
+    max-width: 80vw;
+    max-height: 60vh;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0.4rem 0;
+    list-style: none;
+    text-align: left;
+    white-space: normal;
+    background: var(--mainBg);
+    border: 1px solid var(--borderColor);
+    border-radius: 0.4rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+
+    .search-result-item {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      a {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding: 0.45rem 0.9rem;
+        color: var(--textColor);
+        line-height: 1.4rem;
+        text-decoration: none;
+
+        &:hover,
+        &.active {
+          background: rgba(150, 150, 150, 0.12);
+          color: $accentColor;
+        }
+      }
+    }
+
+    .search-result-title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .search-result-date {
+      flex: 0 0 auto;
+      font-size: 0.8rem;
+      opacity: 0.6;
+    }
+
+    em {
+      color: $accentColor;
+      font-style: normal;
+    }
+
+    .search-empty {
+      padding: 0.6rem 0.9rem;
+      opacity: 0.7;
+    }
+  }
+
+  &.open .search-results:not(:empty),
+  .search-input:focus ~ .search-results:not(:empty) {
+    display: block;
+  }
+}
+
+// ---------------------------------------------------------
+//  导航链接 (原版 NavLinks.vue)
+// ---------------------------------------------------------
+.nav-links {
+  display: inline-block;
+
+  a {
+    line-height: 1.4rem;
+    color: inherit;
+    text-decoration: none;
+
+    &:hover,
+    &.active {
+      color: $accentColor;
+    }
+  }
+
+  .nav-item {
+    position: relative;
+    display: inline-block;
+    margin-left: 1.5rem;
+    line-height: 2rem;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+
+  .repo-link {
+    margin-left: 1.5rem;
+    color: inherit;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      color: $accentColor;
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  下拉菜单 (原版 DropdownLink.vue)
+// ---------------------------------------------------------
+.dropdown-wrapper {
+  cursor: pointer;
+
+  .dropdown-title {
+    display: block;
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: inherit;
+    padding: inherit;
+    line-height: 1.4rem;
+    background: transparent;
+    border: none;
+    font-weight: 500;
+    color: var(--textColor);
+    text-align: inherit;
+
+    &:hover {
+      border-color: transparent;
+    }
+
+    .link-title {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .title {
+      display: none;
+    }
+
+    .arrow {
+      vertical-align: middle;
+      margin-top: -1px;
+      margin-left: 0.4rem;
+    }
+  }
+
+  .nav-dropdown {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    .dropdown-item {
+      color: inherit;
+      line-height: 1.7rem;
+
+      h4,
+      h5 {
+        margin: 0.45rem 0 0;
+        border-top: 1px solid var(--borderColor);
+        padding: 0.45rem 1.5rem 0 1.25rem;
+        font-size: inherit;
+        font-weight: 600;
+      }
+
+      .dropdown-subitem-wrapper {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+
+        .dropdown-subitem {
+          font-size: 0.9em;
+          list-style: none;
+        }
+      }
+
+      a {
+        display: block;
+        line-height: 1.7rem;
+        position: relative;
+        border-bottom: none;
+        font-weight: 400;
+        margin-bottom: 0;
+        padding: 0 1.5rem 0 1.25rem;
+        text-decoration: none;
+
+        &:hover,
+        &.active {
+          color: $accentColor;
+        }
+
+        &.active::after {
+          content: "";
+          width: 0;
+          height: 0;
+          border-left: 5px solid $accentColor;
+          border-top: 3px solid transparent;
+          border-bottom: 3px solid transparent;
+          position: absolute;
+          top: calc(50% - 2px);
+          left: 9px;
+        }
+      }
+
+      &:first-child h4,
+      &:first-child h5 {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: 0;
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  响应式 (Navbar.vue / NavLinks.vue / DropdownLink.vue / mobile.styl)
+// ---------------------------------------------------------
+@mixin navbar-responsive {
+  @media (max-width: $MQNarrow) {
+    .navbar {
+      .site-name {
+        display: none;
+      }
+    }
+
+    .nav-links {
+      .nav-item {
+        margin-left: 1.2rem;
+      }
+    }
+  }
+
+  @media (max-width: $MQMobile) {
+    .navbar {
+      padding-left: 4rem;
+
+      .can-hide {
+        display: none;
+      }
+
+      .links {
+        padding-left: 1.5rem;
+      }
+
+      .site-name {
+        width: calc(100vw - 9.4rem);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .nav-links {
+      .nav-item,
+      .repo-link {
+        margin-left: 0;
+      }
+    }
+
+    // 移动端搜索框: 默认只显示放大镜图标, 点击后展开输入框浮层
+    .navbar .search-box {
+      margin-right: 0.25rem;
+
+      .search-toggle {
+        display: inline-flex;
+      }
+
+      .search-input {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 0;
+        padding-left: 0.6rem;
+        padding-right: 0;
+        opacity: 0;
+        pointer-events: none;
+        background-image: none;
+        background-color: var(--mainBg);
+        z-index: 25;
+      }
+
+      &.open {
+        .search-toggle {
+          display: none;
+        }
+
+        .search-input {
+          width: 11rem;
+          padding-left: 0.8rem;
+          opacity: 1;
+          pointer-events: auto;
+        }
+      }
+
+      .search-results {
+        top: 2.4rem;
+        width: 15rem;
+      }
+    }
+
+    // 移动端下拉菜单: 点击展开
+    .dropdown-wrapper {
+      &.open .dropdown-title {
+        margin-bottom: 0.5rem;
+      }
+
+      .dropdown-title {
+        font-weight: 600;
+        font-size: inherit;
+
+        .link-title {
+          display: none;
+        }
+
+        .title {
+          display: inline-block !important;
+        }
+
+        &:hover {
+          color: $accentColor;
+        }
+      }
+
+      .nav-dropdown {
+        display: none;
+        transition: height 0.1s ease-out;
+        overflow: hidden;
+        padding-left: 0;
+
+        .dropdown-item {
+          h4,
+          h5 {
+            border-top: 0;
+            margin-top: 0;
+            padding-top: 0;
+          }
+
+          h4,
+          h5,
+          & > a {
+            font-size: 15px;
+            line-height: 2rem;
+          }
+
+          .dropdown-subitem {
+            font-size: 14px;
+            padding-left: 1rem;
+          }
+        }
+      }
+
+      &.open .nav-dropdown {
+        display: block;
+      }
+    }
+  }
+
+  @media (min-width: ($MQMobile + 1px)) {
+    .nav-links {
+      a {
+        &:hover,
+        &.active {
+          color: var(--textColor);
+        }
+      }
+    }
+
+    .nav-item > .dropdown-wrapper .dropdown-title .title:first-child {
+      display: inline-block;
+    }
+
+    .nav-item > a:not(.external),
+    .nav-item > .dropdown-wrapper .dropdown-title .link-title {
+      &:hover,
+      &.active {
+        margin-bottom: -2px;
+        border-bottom: 2px solid lighten($accentColor, 8%);
+      }
+    }
+
+    .dropdown-wrapper {
+      height: 1.8rem;
+
+      &:hover .nav-dropdown,
+      &.open .nav-dropdown {
+        display: block;
+      }
+
+      &.active > .dropdown-title .link-title {
+        margin-bottom: -2px;
+        border-bottom: 2px solid lighten($accentColor, 8%);
+      }
+
+      .dropdown-title .arrow {
+        // 桌面端箭头始终朝下
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 6px solid $arrowBgColor;
+        border-bottom: 0;
+      }
+
+      .nav-dropdown {
+        display: none;
+        height: auto !important;
+        box-sizing: border-box;
+        max-height: calc(100vh - 2.7rem);
+        overflow-y: auto;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: var(--mainBg);
+        padding: 0.6rem 0;
+        margin: 0;
+        border: 1px solid var(--borderColor);
+        text-align: left;
+        border-radius: 0.25rem;
+        white-space: nowrap;
+        list-style: none;
+        z-index: 30;
+      }
+    }
+  }
+}
+
+@include navbar-responsive;

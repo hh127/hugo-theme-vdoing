@@ -1,0 +1,697 @@
+// =========================================================
+//  文章列表 / 分页 / 博主卡 / 分类标签栏
+//  (原 components/PostList.vue · Pagination.vue · BloggerBar.vue
+//        CategoriesBar.vue · TagsBar.vue · UpdateArticle.vue · MainLayout.vue)
+// =========================================================
+
+// ---------- MainLayout (原 MainLayout.vue) ----------
+.main-wrapper {
+  margin: 1.5rem auto 0 auto;
+  max-width: $homePageWidth;
+  padding: 0 0.9rem;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+
+  .main-left {
+    flex: 1;
+    min-width: 0;
+
+    .theme-vdoing-content.card-box {
+      padding: 1rem 1.5rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .home-content {
+      padding: 1rem 1.5rem 0;
+    }
+  }
+
+  .main-right {
+    & > * {
+      width: 245px;
+      box-sizing: border-box;
+
+      @media (max-width: 900px) {
+        width: 235px;
+      }
+    }
+
+    .card-box {
+      margin: 0 0 0.8rem 0.8rem;
+      padding-top: 0.95rem;
+      padding-bottom: 0.95rem;
+    }
+  }
+}
+
+// ---------- 详细版文章列表 ----------
+.post-list {
+  margin-bottom: 3rem;
+
+  .post {
+    position: relative;
+    padding: 1rem 1.5rem;
+    margin-bottom: 0.8rem;
+    transition: all 0.3s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.post-leave-active {
+      display: none;
+    }
+
+    &.post-enter {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+
+    &::before {
+      position: absolute;
+      top: -1px;
+      right: 0;
+      font-size: 2.5rem;
+      color: $activeColor;
+      opacity: 0.85;
+    }
+
+    .title-wrapper {
+      a {
+        color: var(--textColor);
+        text-decoration: none;
+
+        &:hover {
+          color: $accentColor;
+        }
+      }
+
+      h2 {
+        margin: 0.5rem 0;
+        font-size: 1.4rem;
+        border: none;
+
+        .title-tag {
+          height: 1.2rem;
+          line-height: 1.2rem;
+          border: 1px solid $activeColor;
+          color: $activeColor;
+          font-size: 0.8rem;
+          padding: 0 0.35rem;
+          border-radius: 0.2rem;
+          margin-left: 0;
+          transform: translate(0, -0.15rem);
+          display: inline-block;
+        }
+
+        a {
+          display: block;
+
+          @media (max-width: $MQMobile) {
+            font-weight: 400;
+          }
+        }
+      }
+
+      .article-info {
+        & > a,
+        & > span {
+          opacity: 0.7;
+          font-size: 0.8rem;
+          margin-right: 1rem;
+          cursor: pointer;
+
+          &::before {
+            margin-right: 0.3rem;
+          }
+
+          a {
+            margin: 0;
+            text-decoration: none;
+
+            &:not(:first-child)::before {
+              content: '/';
+            }
+          }
+        }
+
+        .tags a:not(:first-child)::before {
+          content: '、';
+        }
+      }
+    }
+
+    .excerpt-wrapper {
+      border-top: 1px solid var(--borderColor);
+      margin: 0.5rem 0;
+      overflow: hidden;
+
+      .excerpt {
+        margin-bottom: 0.3rem;
+        font-size: 0.92rem;
+        line-height: 1.7;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow: hidden;
+
+        h1,
+        h2,
+        h3 {
+          display: none;
+        }
+
+        img {
+          max-height: 280px;
+          max-width: 100% !important;
+          margin: 0 auto;
+        }
+      }
+
+      .readmore {
+        float: right;
+        margin-right: 1rem;
+        line-height: 1rem;
+        text-decoration: none;
+
+        &::before {
+          float: right;
+          font-size: 0.8rem;
+          margin: 0.1rem 0 0 0.2rem;
+        }
+      }
+    }
+  }
+}
+
+.theme-style-line {
+  .post-list {
+    border: 1px solid var(--borderColor);
+    border-bottom: none;
+    border-radius: 5px;
+    overflow: hidden;
+
+    .post {
+      margin-bottom: 0;
+      border: none;
+      border-bottom: 1px solid var(--borderColor);
+      border-radius: 0;
+    }
+  }
+}
+
+// ---------- 分页 ----------
+.pagination {
+  position: relative;
+  height: 60px;
+  text-align: center;
+
+  @media (max-width: 720px) {
+    margin-left: 1px;
+    margin-right: 1px;
+  }
+
+  span,
+  a {
+    line-height: 1rem;
+    opacity: 0.9;
+    cursor: pointer;
+    text-decoration: none;
+
+    &:hover {
+      color: $accentColor;
+    }
+
+    &.ellipsis {
+      opacity: 0.5;
+
+      &::before {
+        content: '...';
+        font-size: 1.2rem;
+      }
+
+      @media (any-hover: hover) {
+        &.ell-two:hover::before {
+          content: '«';
+        }
+
+        &.ell-four:hover::before {
+          content: '»';
+        }
+      }
+    }
+  }
+
+  & > span,
+  & > a {
+    position: absolute;
+    top: 0;
+    padding: 1rem 1.2rem;
+    font-size: 0.95rem;
+    color: var(--textColor);
+
+    &::before {
+      font-size: 0.4rem;
+    }
+
+    &.disabled {
+      color: rgba(125, 125, 125, 0.5);
+      cursor: default;
+    }
+
+    &.prev {
+      left: 0;
+
+      &::before {
+        margin-right: 0.3rem;
+      }
+    }
+
+    &.next {
+      right: 0;
+
+      &::before {
+        float: right;
+        margin-left: 0.3rem;
+      }
+    }
+
+    p {
+      display: inline;
+      line-height: 0.95rem;
+    }
+  }
+
+  .pagination-list {
+    span,
+    a {
+      display: inline-block;
+      width: 2.5rem;
+      height: 2.5rem;
+      line-height: 2.5rem;
+      margin: 0.3rem;
+      color: var(--textColor);
+
+      &.active {
+        background: $accentColor;
+        color: var(--mainBg);
+      }
+    }
+  }
+}
+
+@media (max-width: 800px) {
+  .pagination > span,
+  .pagination > a {
+    padding: 1rem 1.5rem;
+
+    p {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: $MQMobile) {
+  .pagination {
+    & > span,
+    & > a {
+      padding: 0.9rem 1.5rem;
+    }
+
+    .pagination-list {
+      span,
+      a {
+        width: 2.3rem;
+        height: 2.3rem;
+        line-height: 2.3rem;
+        margin: 0.25rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 390px) {
+  .pagination {
+    & > span,
+    & > a {
+      padding: 0.8rem 1.3rem;
+    }
+
+    .pagination-list {
+      span,
+      a {
+        width: 2rem;
+        height: 2rem;
+        line-height: 2rem;
+        margin: 0.1rem;
+        margin-top: 0.3rem;
+      }
+    }
+  }
+}
+
+// ---------- 博主信息卡 ----------
+.blogger-wrapper {
+  height: auto;
+  display: inline-table;
+  padding-top: 0 !important;
+  overflow: hidden;
+
+  .avatar {
+    width: 100%;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  }
+
+  .icons {
+    border-top: none;
+    height: 35px;
+    line-height: 35px;
+
+    a {
+      font-size: 20px;
+      color: var(--textColor);
+      display: block;
+      float: left;
+      text-align: center;
+      opacity: 0.8;
+      text-decoration: none;
+
+      &:hover {
+        color: $accentColor;
+      }
+    }
+  }
+
+  .blogger {
+    padding: 0.3rem 0.95rem 0 0.95rem;
+
+    .name {
+      font-size: 1.3rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .slogan {
+      color: var(--textColor);
+    }
+  }
+}
+
+// ---------- 分类栏 ----------
+.categories-wrapper {
+  .title {
+    color: var(--textColor);
+    opacity: 0.9;
+    font-size: 1.2rem;
+    padding: 0 0.95rem;
+    text-decoration: none;
+
+    &::before {
+      margin-right: 0.3rem;
+    }
+  }
+
+  .categories {
+    margin-top: 0.6rem;
+
+    a {
+      display: block;
+      padding: 8px 2.4rem 7px 0.95rem;
+      color: var(--textColor);
+      opacity: 0.8;
+      font-size: 0.95rem;
+      line-height: 0.95rem;
+      position: relative;
+      transition: all 0.2s;
+      border-left: 2px solid transparent;
+      margin-top: -1px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-decoration: none;
+
+      @media (max-width: $MQMobile) {
+        font-weight: 400;
+      }
+
+      &:not(.active):hover {
+        color: $accentColor;
+        background: #f8f8f8;
+        border-color: $accentColor;
+
+        span {
+          opacity: 0.8;
+        }
+      }
+
+      span {
+        background-color: var(--textColor);
+        color: var(--mainBg);
+        border-radius: 8px;
+        padding: 0 0.13rem;
+        min-width: 1rem;
+        height: 1rem;
+        line-height: 1rem;
+        font-size: 12px;
+        text-align: center;
+        opacity: 0.6;
+        transition: opacity 0.3s;
+        position: absolute;
+        right: 0.95rem;
+        top: 8px;
+      }
+
+      &.active {
+        background: $accentColor;
+        color: var(--mainBg);
+        padding-left: 0.8rem;
+        border-radius: 1px;
+        border-color: transparent;
+      }
+    }
+  }
+}
+
+.theme-mode-dark .categories-wrapper .categories a:not(.active):hover,
+.theme-mode-read .categories-wrapper .categories a:not(.active):hover {
+  background: var(--customBlockBg);
+}
+
+// ---------- 标签栏 ----------
+.tags-wrapper {
+  padding: 0 0.95rem;
+
+  .title {
+    color: var(--textColor);
+    opacity: 0.9;
+    font-size: 1.2rem;
+    text-decoration: none;
+
+    &::before {
+      margin-right: 0.3rem;
+    }
+  }
+
+  .tags {
+    text-align: justify;
+    padding: 0.8rem 0.5rem 0.5rem 0.5rem;
+    margin: 0 -0.5rem -0.5rem -0.5rem;
+
+    a {
+      opacity: 0.8;
+      display: inline-block;
+      padding: 0.2rem 0.4rem;
+      transition: all 0.4s;
+      background-color: var(--textColor);
+      color: var(--mainBg);
+      border-radius: 3px;
+      margin: 0 0.3rem 0.5rem 0;
+      min-width: 2rem;
+      height: 1rem;
+      line-height: 1rem;
+      font-size: 0.8rem;
+      text-align: center;
+      text-decoration: none;
+
+      @media (max-width: $MQMobile) {
+        font-weight: 400;
+      }
+
+      &:hover {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+
+      &.active {
+        box-shadow: 0 5px 10px -5px var(--randomColor, rgba(0, 0, 0, 0.15));
+        transform: scale(1.22);
+        opacity: 1;
+
+        &:hover {
+          text-decoration: none;
+        }
+      }
+    }
+  }
+}
+
+// ---------- 最近更新 (原 UpdateArticle.vue) ----------
+.article-list {
+  padding: 1rem 2rem;
+
+  @media (max-width: $MQNarrow) {
+    padding: 1rem 1.5rem;
+  }
+
+  &.no-article-list {
+    display: none;
+  }
+
+  .article-title {
+    border-bottom: 1px solid var(--borderColor);
+    font-size: 1.3rem;
+    padding: 1rem;
+
+    a {
+      font-size: 1.2rem;
+      color: var(--textColor);
+      opacity: 0.9;
+      text-decoration: none;
+
+      &::before {
+        margin-right: 0.4rem;
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  .article-wrapper {
+    overflow: hidden;
+
+    dl {
+      border-bottom: 1px dotted var(--borderColor);
+      float: left;
+      display: flex;
+      padding: 8px 0;
+      margin: 0;
+      height: 45px;
+      width: 100%;
+
+      dd {
+        font-size: 1.1rem;
+        color: #f17229;
+        width: 50px;
+        text-align: center;
+        margin: 0;
+        line-height: 45px;
+      }
+
+      dt {
+        flex: 1;
+        display: flex;
+
+        a {
+          color: var(--textColor);
+          flex: 1;
+          display: flex;
+          height: 45px;
+          align-items: center;
+          font-weight: normal;
+          text-decoration: none;
+
+          div {
+            overflow: hidden;
+            white-space: normal;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+
+            .title-tag {
+              border: 1px solid $activeColor;
+              color: $activeColor;
+              font-size: 0.8rem;
+              padding: 0 0.35rem;
+              border-radius: 0.2rem;
+              margin-left: 0;
+              transform: translate(0, -0.05rem);
+              display: inline-block;
+            }
+          }
+
+          &:hover {
+            text-decoration: underline;
+          }
+
+          &.more {
+            color: $accentColor;
+          }
+        }
+
+        .date {
+          width: 50px;
+          margin-right: 15px;
+          color: #999;
+          text-align: right;
+          font-size: 0.9rem;
+          line-height: 45px;
+        }
+      }
+    }
+  }
+}
+
+// ---------- 分类/标签页过滤无结果 ----------
+.post-list-empty {
+  padding: 2rem 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  opacity: 0.8;
+}
+
+// ---------- 移动端 ----------
+@media (max-width: $MQMobile) {
+  .main-wrapper {
+    margin: 0.9rem 0;
+    padding: 0;
+    display: block;
+
+    .main-left {
+      width: 100%;
+
+      .post-list {
+        margin-bottom: 3rem;
+
+        .post {
+          border-radius: 0;
+        }
+      }
+
+      .pagination {
+        margin-bottom: 3rem;
+      }
+    }
+
+    .main-right {
+      .blogger-wrapper {
+        display: none;
+      }
+
+      .card-box {
+        margin: 0 0 0.9rem 0;
+        border-radius: 0;
+        width: 100%;
+      }
+    }
+  }
+
+  .theme-style-line .main-wrapper .main-right .card-box {
+    margin: -1px 0 0 0;
+  }
+}

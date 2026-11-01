@@ -1,14 +1,29 @@
-{{- $pages := slice -}}
+{{- /* 站内搜索 / 分类标签页前端过滤的数据源, 排序与原版 $sortPosts 一致(置顶优先, 然后时间倒序) */ -}}
+{{- $sticky := slice -}}
+{{- $normal := slice -}}
 {{- range site.RegularPages -}}
   {{- if ne .Params.article false -}}
-    {{- $pages = $pages | append (dict
-      "title" .Title
-      "permalink" .RelPermalink
-      "date" (.Date.Format "2006-01-02")
-      "categories" (.Params.categories | default slice)
-      "tags" (.Params.tags | default slice)
-      "content" (.Plain | truncate 1500)
-    ) -}}
+    {{- if .Params.sticky -}}
+      {{- $sticky = $sticky | append . -}}
+    {{- else -}}
+      {{- $normal = $normal | append . -}}
+    {{- end -}}
   {{- end -}}
+{{- end -}}
+{{- $posts := slice -}}
+{{- range sort $sticky "Params.sticky" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
+{{- range sort $normal "Date" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
+{{- $pages := slice -}}
+{{- range $posts -}}
+  {{- $pages = $pages | append (dict
+    "title" .Title
+    "permalink" .RelPermalink
+    "date" (.Date.Format "2006-01-02")
+    "categories" (.Params.categories | default slice)
+    "tags" (.Params.tags | default slice)
+    "titleTag" (.Params.titleTag | default "")
+    "sticky" (.Params.sticky | default 0)
+    "content" (.Plain | truncate 1500)
+  ) -}}
 {{- end -}}
 {{- $pages | jsonify -}}

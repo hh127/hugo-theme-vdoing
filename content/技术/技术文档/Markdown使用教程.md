@@ -628,7 +628,7 @@ function test() {
 可使用相对路径（前提是有该路径下的文件）
 [test](test.md)
 ```
-[test](./md-img/test.md)
+`[test](./md-img/test.md)`
 
 
 
@@ -696,7 +696,7 @@ function test() {
 相对路径图片：
 
 ```markdown
-![头像图片](./md-img/test.jpg)
+`![头像图片](./md-img/test.jpg)`
 ```
 
 github上如果引用其他github仓库中的图片则要注意地址格式：`仓库地址/raw/分支名/图片路径` 或 `https://raw.githubusercontent.com/用户名/仓库名/分支名/图片路径`

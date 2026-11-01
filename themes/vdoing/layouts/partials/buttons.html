@@ -1,0 +1,14 @@
+{{- /* 右下角圆形按钮组 (对应原版 Buttons.vue): 返回顶部 / 去评论 / 主题模式选择 */ -}}
+{{- $defaultMode := site.Params.defaultMode | default "auto" -}}
+<div class="buttons">
+  <div class="button blur go-to-top iconfont icon-fanhuidingbu" id="go-to-top" title="返回顶部" style="display:none"></div>
+  <div class="button blur go-to-comment iconfont icon-pinglun" id="go-to-comment" title="去评论" style="display:none"></div>
+  <div class="button blur theme-mode-but iconfont icon-zhuti" id="theme-mode-but" title="主题模式">
+    <ul class="select-box" id="mode-select-box">
+      <li class="iconfont icon-zidong{{ if eq $defaultMode "auto" }} active{{ end }}" data-mode="auto">跟随系统</li>
+      <li class="iconfont icon-rijianmoshi{{ if eq $defaultMode "light" }} active{{ end }}" data-mode="light">浅色模式</li>
+      <li class="iconfont icon-yejianmoshi{{ if eq $defaultMode "dark" }} active{{ end }}" data-mode="dark">深色模式</li>
+      <li class="iconfont icon-yuedu{{ if eq $defaultMode "read" }} active{{ end }}" data-mode="read">阅读模式</li>
+    </ul>
+  </div>
+</div>

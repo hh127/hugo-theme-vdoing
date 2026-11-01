@@ -1,7 +1,41 @@
-{{- /* 用于 sidebar: auto 的页面(如碎片化文章), 侧边栏显示本页标题大纲 */ -}}
-<p class="sidebar-section-title">{{ .Title }}</p>
-{{- if in .TableOfContents "<li>" }}
-<div class="sidebar-toc">
-  {{ .TableOfContents }}
-</div>
-{{- end }}
+{{- /* 本页标题大纲 (sidebar: auto 页面, 对应原版 SidebarLink type=auto) */ -}}
+{{- /* 参数: 直接传 Page, 或 dict "page"/"headings"/"depth"/"maxDepth" 用于递归 */ -}}
+{{- $page := . -}}
+{{- $isRecursion := reflect.IsMap . -}}
+{{- $headings := slice -}}
+{{- $depth := 1 -}}
+{{- $maxDepth := site.Params.sidebarDepth | default 2 -}}
+{{- if $isRecursion -}}
+  {{- $page = .page -}}
+  {{- $headings = .headings -}}
+  {{- $depth = .depth | default 1 -}}
+  {{- with .maxDepth }}{{ $maxDepth = . }}{{ end -}}
+{{- end -}}
+{{- with $page -}}
+{{- if $isRecursion -}}
+  {{- if and $headings (le $depth $maxDepth) }}
+<ul class="sidebar-sub-headers">
+  {{- range $headings }}
+  {{- if ge .Level 2 }}
+  <li class="level{{ .Level }}">
+    <a class="sidebar-link" href="{{ $page.RelPermalink }}#{{ .ID }}">{{ .Title }}</a>
+    {{- with .Headings }}{{ partial "sidebar-toc.html" (dict "page" $page "headings" . "depth" (add $depth 1) "maxDepth" $maxDepth) }}{{ end -}}
+  </li>
+  {{- end }}
+  {{- end }}
+</ul>
+  {{- end -}}
+{{- else -}}
+{{- /* Hugo 的 .Fragments.Headings 顶层是一个空的虚拟根 (Level 0, ID 为空), 需要展开 */}}
+{{- $roots := .Fragments.Headings -}}
+{{- if and (eq (len $roots) 1) (eq (index $roots 0).ID "") -}}
+  {{- $roots = (index $roots 0).Headings -}}
+{{- end -}}
+<ul class="sidebar-links">
+  <li>
+    <a class="sidebar-link" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+    {{- with $roots }}{{ partial "sidebar-toc.html" (dict "page" $page "headings" . "depth" 1 "maxDepth" $maxDepth) }}{{ end -}}
+  </li>
+</ul>
+{{- end -}}
+{{- end -}}

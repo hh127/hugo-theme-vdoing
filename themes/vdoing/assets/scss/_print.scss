@@ -1,0 +1,12 @@
+// 打印时的样式 (原 index.styl 末尾)
+@media print {
+  .navbar,
+  .sidebar,
+  .buttons {
+    display: none;
+  }
+
+  .page {
+    padding-top: 0 !important;
+  }
+}

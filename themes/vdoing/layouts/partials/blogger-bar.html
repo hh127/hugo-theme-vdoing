@@ -1,24 +1,23 @@
+{{- /* 博主信息卡 (原 BloggerBar.vue) */ -}}
 {{- with site.Params.blogger }}
-{{- $avatar := .avatar -}}
-{{- if not (or (hasPrefix $avatar "http") (hasPrefix $avatar "//")) }}{{ $avatar = $avatar | relURL }}{{ end }}
-<div class="blogger-bar card-box">
-  <div class="blogger-avatar">
-    <img src="{{ $avatar }}" alt="{{ .name }}" loading="lazy"
+<aside class="blogger-wrapper card-box">
+  <div class="avatar">
+    <img src="{{ .avatar }}" alt="头像" title="我好看吗" loading="lazy"
          onerror="this.onerror=null;this.src='{{ "img/logo.png" | relURL }}'">
   </div>
-  <p class="blogger-name">{{ .name }}</p>
-  <p class="blogger-slogan">{{ .slogan }}</p>
   {{- with site.Params.social }}
-  <div class="blogger-social">
+  {{- if . }}
+  <div class="icons">
+    {{- $total := len . }}
     {{- range . }}
-    <a class="social-item" href="{{ .link }}" target="_blank" rel="noopener" title="{{ .title }}">
-      {{- if eq .iconClass "icon-github" }}{{ partial "icon.html" "github" }}
-      {{- else if eq .iconClass "icon-erji" }}{{ partial "icon.html" "music" }}
-      {{- else if eq .iconClass "icon-youjian" }}{{ partial "icon.html" "mail" }}
-      {{- else }}{{ partial "icon.html" "rss" }}{{ end -}}
-    </a>
+    <a href="{{ .link }}" title="{{ .title }}" class="iconfont {{ .iconClass }}" style="width: {{ div 100 $total }}%" target="_blank" rel="noopener"></a>
     {{- end }}
   </div>
   {{- end }}
-</div>
+  {{- end }}
+  <div class="blogger">
+    <span class="name">{{ .name }}</span>
+    <span class="slogan">{{ .slogan }}</span>
+  </div>
+</aside>
 {{- end }}

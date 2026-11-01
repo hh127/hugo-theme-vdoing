@@ -1,48 +1,56 @@
+{{- /* 文章页 —— 对应原 vuepress-theme-vdoing 的 components/Page.vue
+     baseof.html 已渲染 navbar / sidebar / footer / buttons / body-bg / custom-windows,
+     这里只输出 <main class="page"> 文章主体 */ -}}
 {{ define "main" }}
-{{- $hasSidebar := partial "func/has-sidebar.html" . -}}
-<div class="page-wrapper{{ if $hasSidebar }} has-sidebar{{ else }} no-sidebar{{ end }}">
-  {{ partial "sidebar.html" (dict "page" . "hasTree" $hasSidebar) }}
-  <div class="page-content">
-    <main class="article-wrapper">
-      <nav class="breadcrumb">
-        {{ partial "icon.html" "home" }}<a href="{{ "/" | relURL }}">首页</a>
-        {{- with .GetTerms "categories" }}{{ with index . 0 }}<span class="sep">/</span><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}{{ end }}
-        <span class="sep">/</span><span class="current">{{ .Title }}</span>
-      </nav>
+{{- $page := . -}}
+{{- $isArticle := ne $page.Params.article false -}}
 
-      <article class="theme-vdoing-content article card-box">
-        <header class="article-header">
-          <h1 class="article-title">{{ .Title }}{{ with .Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}</h1>
-          {{ partial "post-meta.html" . }}
-        </header>
+{{- /* 内容区背景纹: site.Params.contentBgStyle = 1~6 */ -}}
+{{- $bgStyle := "" -}}
+{{- with site.Params.contentBgStyle -}}
+  {{- $n := int . -}}
+  {{- if and (gt $n 0) (le $n 6) -}}
+    {{- $bgStyle = printf "bg-style-%d" $n -}}
+  {{- end -}}
+{{- end -}}
 
-        <div class="article-body">
-          {{ .Content }}
-        </div>
+<main class="page">
+  <div class="theme-vdoing-wrapper{{ with $bgStyle }} {{ . }}{{ end }}">
+    {{ partial "article-info.html" $page }}
 
-        <footer class="article-footer">
-          {{- with .GetTerms "tags" }}
-          <div class="article-tags">
-            <span class="article-tags-label">标签:</span>
-            {{- range . }}<a class="tag-item" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
-          </div>
-          {{- end }}
-          {{- if and site.Params.editLinkRepo (ne .Params.editLink false) }}
-          {{- with .File }}
-          <a class="edit-link" href="{{ site.Params.editLinkRepo }}content/{{ .Path }}" target="_blank" rel="noopener">{{ site.Params.editLinkText | default "编辑" }}本页</a>
-          {{- end }}
-          {{- end }}
-        </footer>
-      </article>
+    <div class="content-wrapper">
+      {{ partial "right-menu.html" $page }}
 
-      {{ partial "page-nav.html" . }}
-    </main>
+      <h1>
+        {{- /* 标题前随机徽标 (原 titleBadge: 每页加载随机) */ -}}
+        {{- if ne site.Params.titleBadge false -}}
+          {{- $icons := site.Params.titleBadgeIcons -}}
+          {{- if not $icons -}}
+            {{- $icons = slice ("img/title-badge/1.png" | relURL) ("img/title-badge/2.png" | relURL) ("img/title-badge/3.png" | relURL) -}}
+          {{- end -}}
+          {{- $idx := mod (len $page.Content) (len $icons) -}}
+          <img src="{{ index $icons $idx }}" data-badges="{{ delimit $icons "," }}" alt="">
+        {{- end -}}
+        {{ $page.Title }}
+        {{- with $page.Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end -}}
+      </h1>
 
-    {{- if and site.Params.rightMenuBar (ne .Params.rightMenuBar false) }}
-    <aside class="right-menu">
-      {{ partial "toc.html" . }}
-    </aside>
-    {{- end }}
+      {{ partial "page-slot.html" (dict "page" $page "key" "pageT") }}
+
+      <div class="theme-vdoing-content">
+        {{ $page.Content }}
+      </div>
+
+      {{ partial "comment.html" $page }}
+    </div>
+
+    {{ partial "page-slot.html" (dict "page" $page "key" "pageB") }}
+
+    {{ partial "page-edit.html" $page }}
+
+    {{ partial "page-nav.html" $page }}
   </div>
-</div>
+
+  {{ partial "update-bar.html" (dict "page" $page "length" 3) }}
+</main>
 {{ end }}

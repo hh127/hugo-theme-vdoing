@@ -1,30 +1,37 @@
 {{ define "main" }}
-{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
-{{- $plural := .Data.Plural -}}
-<div class="taxonomy-wrapper">
-  <header class="taxonomy-header">
-    <h1 class="taxonomy-title">
-      {{- if eq $plural "tags" }}标签{{ else if eq $plural "categories" }}分类{{ else }}{{ .Title }}{{ end -}}
-    </h1>
-    <p class="taxonomy-desc">共 {{ len .Data.Terms }} 个{{ if eq $plural "tags" }}标签{{ else }}分类{{ end }}</p>
-  </header>
-
-  {{- if eq $plural "tags" }}
-  <div class="tag-cloud card-box">
-    {{- range .Data.Terms.ByCount }}
-    {{- $size := cond (ge .Count 20) "1.3rem" (cond (ge .Count 8) "1.1rem" (cond (ge .Count 3) "1rem" ".92rem")) }}
-    <a class="cloud-tag" href="{{ .Page.RelPermalink }}" style="font-size:{{ $size }}">{{ .Page.LinkTitle }}<span class="tag-count">{{ .Count }}</span></a>
-    {{- end }}
+{{- /* 分类页 / 标签页 (原 CategoriesPage.vue / TagsPage.vue)
+   无参数显示全部文章; /categories/?category=xxx 、/tags/?tag=xxx 由 pages.js 前端过滤 + 分页 */ -}}
+{{- $plural := "categories" -}}
+{{- with .Data.Plural }}{{ $plural = . }}{{ end -}}
+{{- $isTag := eq $plural "tags" -}}
+{{- $sticky := slice -}}
+{{- $normal := slice -}}
+{{- range site.RegularPages -}}
+  {{- if ne .Params.article false -}}
+    {{- if .Params.sticky }}{{ $sticky = $sticky | append . }}{{ else }}{{ $normal = $normal | append . }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- $posts := slice -}}
+{{- range sort $sticky "Params.sticky" "asc" }}{{ $posts = $posts | append . }}{{ end -}}
+{{- range sort $normal "Date" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
+<div class="custom-page {{ if $isTag }}tags-page{{ else }}categories-page{{ end }}" data-taxonomy="{{ $plural }}" data-per-page="{{ site.Params.postPageSize | default 10 }}">
+  <div class="main-wrapper">
+    <div class="main-left">
+      {{- if $isTag }}
+      {{ partial "tags-bar.html" (dict "page" . "length" "all") }}
+      {{- else }}
+      {{ partial "categories-bar.html" (dict "page" . "length" "all") }}
+      {{- end }}
+      {{ partial "post-list.html" (dict "pages" $posts "page" .) }}
+      <div class="pagination" data-pagination hidden></div>
+    </div>
+    <div class="main-right">
+      {{- if $isTag }}
+      {{ partial "tags-bar.html" (dict "page" . "length" "all") }}
+      {{- else }}
+      {{ partial "categories-bar.html" (dict "page" . "length" "all") }}
+      {{- end }}
+    </div>
   </div>
-  {{- else }}
-  <div class="category-grid">
-    {{- range .Data.Terms.ByCount }}
-    <a class="category-card card-box" href="{{ .Page.RelPermalink }}">
-      <span class="category-name">{{ .Page.LinkTitle }}</span>
-      <span class="category-count">{{ .Count }} 篇</span>
-    </a>
-    {{- end }}
-  </div>
-  {{- end }}
 </div>
 {{ end }}

@@ -1,21 +1,30 @@
+{{- /* 详细版文章列表 (原 PostList.vue)
+   参数: dict "pages" (集合) "page" (当前页面, 可选)
+   data-* 属性供 pages.js 在分类/标签页做前端过滤与分页
+   摘要只用纯文本, 避免截断后的 HTML 破坏 DOM 结构 */ -}}
 {{- $pages := .pages -}}
 <div class="post-list">
   {{- range $pages }}
   {{- $p := . }}
-  <article class="post card-box{{ with .Params.sticky }} sticky{{ end }}">
-    <div class="post-title-wrapper">
-      <h2 class="post-title">
-        <a href="{{ $p.RelPermalink }}">{{ $p.Title }}</a>
-        {{- with $p.Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}
+  {{- $cats := slice }}
+  {{- range $p.Params.categories }}{{ with . }}{{ $cats = $cats | append . }}{{ end }}{{ end }}
+  {{- $tags := slice }}
+  {{- range $p.Params.tags }}{{ with . }}{{ $tags = $tags | append . }}{{ end }}{{ end }}
+  {{- $excerpt := $p.Summary | plainify | htmlUnescape | strings.TrimSpace }}
+  {{- if not $excerpt }}{{ $excerpt = $p.Content | plainify | htmlUnescape | strings.TrimSpace }}{{ end }}
+  <div class="post card-box{{ if $p.Params.sticky }} iconfont icon-zhiding{{ end }}" data-permalink="{{ $p.RelPermalink }}" data-date="{{ $p.Date.Format "2006-01-02" }}"{{ with $cats }} data-categories="{{ delimit . "|" }}"{{ end }}{{ with $tags }} data-tags="{{ delimit . "|" }}"{{ end }}>
+    <div class="title-wrapper">
+      <h2>
+        <a href="{{ $p.RelPermalink }}">{{ $p.Title }}{{ with $p.Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}</a>
       </h2>
       {{ partial "post-meta.html" $p }}
     </div>
-    {{- with $p.Summary }}
-    <div class="post-excerpt">
-      <p>{{ . | plainify | htmlUnescape | strings.TrimSpace | truncate 150 }}</p>
-      <a class="read-more" href="{{ $p.RelPermalink }}">阅读全文</a>
+    {{- with $excerpt }}
+    <div class="excerpt-wrapper">
+      <div class="excerpt">{{ . | truncate 220 }}</div>
+      <a class="readmore iconfont icon-jiantou-you" href="{{ $p.RelPermalink }}">阅读全文</a>
     </div>
     {{- end }}
-  </article>
+  </div>
   {{- end }}
 </div>

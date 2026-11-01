@@ -1,0 +1,17 @@
+{{- /* 左下角 / 右下角自定义 html 悬浮窗口 (对应原版 Layout.vue 的 windowLB / windowRB) */ -}}
+{{- with partial "html-modules.html" (dict "key" "windowLB" "page" $) }}
+<div class="custom-html-window custom-html-window-lb" id="custom-window-lb">
+  <div class="custom-wrapper">
+    <span class="close-but" role="button" tabindex="0" title="关闭">×</span>
+    <div class="custom-content">{{ . | safeHTML }}</div>
+  </div>
+</div>
+{{- end }}
+{{- with partial "html-modules.html" (dict "key" "windowRB" "page" $) }}
+<div class="custom-html-window custom-html-window-rb" id="custom-window-rb">
+  <div class="custom-wrapper">
+    <span class="close-but" role="button" tabindex="0" title="关闭">×</span>
+    <div class="custom-content">{{ . | safeHTML }}</div>
+  </div>
+</div>
+{{- end }}

@@ -1,0 +1,41 @@
+{{- /* 计算 <div class="theme-container"> 上的状态类 (对应原 Layout.vue 的 pageClasses) */ -}}
+{{- $page := . -}}
+{{- $hasSidebar := partial "func/has-sidebar.html" $page -}}
+{{- $p := slice -}}
+
+{{- /* 导航栏 */ -}}
+{{- if eq site.Params.navbar false }}{{ $p = $p | append "no-navbar" }}{{ end -}}
+{{- if eq $page.Params.navbar false }}{{ $p = $p | append "no-navbar" }}{{ end -}}
+
+{{- /* 侧边栏展开状态 (桌面端默认展开, 小屏由 JS 关闭) */ -}}
+{{- if ne site.Params.sidebarOpen false }}{{ $p = $p | append "sidebar-open" }}{{ end -}}
+{{- if not $hasSidebar }}{{ $p = $p | append "no-sidebar" }}{{ end -}}
+
+{{- /* 右侧大纲 */ -}}
+{{- $showRightMenu := false -}}
+{{- if and
+      (not $page.IsHome)
+      (ne site.Params.rightMenuBar false)
+      (ne $page.Params.rightMenuBar false)
+      (ne $page.Params.sidebar false)
+      (in $page.TableOfContents "<li>") -}}
+  {{- $showRightMenu = true -}}
+{{- end -}}
+{{- if $showRightMenu }}{{ $p = $p | append "have-rightmenu" }}{{ end -}}
+
+{{- /* body 背景大图 */ -}}
+{{- with site.Params.bodyBgImg }}{{ $p = $p | append "have-body-img" }}{{ end -}}
+
+{{- /* 左侧边栏只有一项且没有右侧边栏时, 隐藏侧边栏 (原 only-sidebarItem) */ -}}
+{{- if and $hasSidebar (not $showRightMenu) (ne $page.Params.sidebar "auto") -}}
+  {{- $section := $page.FirstSection -}}
+  {{- if and $section (ne $section.Kind "home") -}}
+    {{- $childSections := where $section.Pages "Kind" "section" -}}
+    {{- if and (eq (len $childSections) 0) (eq (len $section.RegularPagesRecursive) 1) -}}
+      {{- $p = $p | append "only-sidebarItem" -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- with $page.Params.pageClass }}{{ $p = $p | append . }}{{ end -}}
+{{- delimit $p " " -}}

@@ -1,14 +1,11 @@
 {{ define "main" }}
-{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
-<div class="page-wrapper no-sidebar">
-  <div class="page-content">
-    <main class="article-wrapper">
-      <div class="not-found card-box">
-        <h1 class="not-found-code">404</h1>
-        <p class="not-found-text">页面不存在，可能已被移除或者链接有误。</p>
-        <a class="action-button" href="{{ "/" | relURL }}">返回首页</a>
-      </div>
-    </main>
+{{- /* 404 (原 layouts/404.vue): 大号 404 + 随机文案 + 返回首页 */ -}}
+{{- $msgs := slice "这里什么都没有。" "我是谁？我在哪？" "这是一个Four-Oh-Four." "看来我们的链接坏掉了~" -}}
+<div class="custom-page not-found-page">
+  <div class="theme-vdoing-content">
+    <span>404</span>
+    <blockquote>{{ index (shuffle $msgs) 0 }}</blockquote>
+    <a href="{{ "/" | relURL }}">返回首页</a>
   </div>
 </div>
 {{ end }}

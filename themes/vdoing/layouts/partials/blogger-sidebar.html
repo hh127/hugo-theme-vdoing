@@ -1,0 +1,22 @@
+{{- /* 侧边栏顶部博主信息 (移动端显示, 对应原版 Sidebar.vue 的 .blogger) */ -}}
+{{- with site.Params.blogger -}}
+{{- $blogger := . }}
+<div class="blogger">
+  <img src="{{ .avatar }}" alt="{{ .name }}">
+  <div class="blogger-info">
+    {{- with .name }}<h3>{{ . }}</h3>{{ end }}
+    {{- $icons := slice -}}
+    {{- with .social }}{{ with .icons }}{{ $icons = . }}{{ end }}{{ end -}}
+    {{- if not $icons }}{{ with site.Params.social }}{{ $icons = . }}{{ end }}{{ end -}}
+    {{- if $icons }}
+    <div class="icons">
+      {{- range $icons }}
+      <a href="{{ .link }}" title="{{ .title }}" class="iconfont {{ .iconClass }}" target="_blank" rel="noopener"></a>
+      {{- end }}
+    </div>
+    {{- else }}
+    {{- with .slogan }}<span>{{ . }}</span>{{ end }}
+    {{- end }}
+  </div>
+</div>
+{{- end -}}

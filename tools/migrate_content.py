@@ -140,7 +140,7 @@ def transform_front_matter(fm_lines, weight, extra=None, drop_keys=()):
         line = fm_lines[i]
         raw = line.strip()
 
-        if re.match(r'^-\s*null\s*$', raw):
+        if re.match(r'^-(?:\s*null)?\s*$', raw):
             stats['null_items'] += 1
             i += 1
             continue

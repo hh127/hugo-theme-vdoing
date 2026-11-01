@@ -1,0 +1,27 @@
+{{- /*
+  代码块子项 (原 global-components/CodeBlock.vue 的等价写法), 需要放在 code-group 里
+  用法一 (推荐, 直接写代码):
+    {{< code-block title="YARN" active="true" lang="bash" >}}
+    yarn create vuepress-site
+    {{< /code-block >}}
+  用法二 (Inner 里写 markdown 代码围栏, 自动识别语言):
+    {{< code-block title="YARN" >}}
+    ```bash
+    yarn create vuepress-site
+    ```
+    {{< /code-block >}}
+*/ -}}
+{{- $title := .Get "title" | default "" -}}
+{{- $lang := .Get "lang" | default "" -}}
+{{- $active := false -}}
+{{- with .Get "active" -}}{{- if ne . "false" -}}{{- $active = true -}}{{- end -}}{{- end -}}
+{{- if in .Params "active" -}}{{- $active = true -}}{{- end -}}
+{{- $code := printf "%s" .Inner -}}
+{{- with findRESubmatch "(?s)```[ \\t]*([a-zA-Z0-9_+.-]*)[ \\t]*\\r?\\n(.*?)\\r?\\n[ \\t]*```" $code 1 -}}
+  {{- $groups := index . 0 -}}
+  {{- if not $lang -}}{{- $lang = index $groups 1 -}}{{- end -}}
+  {{- $code = index $groups 2 -}}
+{{- end -}}
+{{- $code = trim $code " \t\r\n" -}}
+{{- $highlighted := transform.Highlight $code $lang (dict "noClasses" false) -}}
+<div class="theme-code-block{{ if $active }} theme-code-block__active{{ end }}" data-title="{{ $title }}" data-lang="{{ $lang }}">{{ $highlighted | safeHTML }}</div>

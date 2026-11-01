@@ -1,0 +1,49 @@
+{{- /* 右侧文章大纲 (原 RightMenu.vue)
+     调用: {{ partial "right-menu.html" . }} */ -}}
+{{- $page := . -}}
+{{- if reflect.IsMap . }}{{ $page = .page }}{{ end -}}
+
+{{- /* 显示条件与 func/page-classes.html 的 have-rightmenu 保持一致 */ -}}
+{{- $show := and
+      (not $page.IsHome)
+      (ne site.Params.rightMenuBar false)
+      (ne $page.Params.rightMenuBar false)
+      (ne $page.Params.sidebar false)
+      (in $page.TableOfContents "<li>") -}}
+
+{{- if $show -}}
+{{- /* 按文档顺序扁平化标题 (h2~h6). Fragments.Headings 是嵌套结构, 逐层展开 */ -}}
+{{- $heads := slice -}}
+{{- range $page.Fragments.Headings -}}
+  {{- $heads = $heads | append . -}}
+  {{- range .Headings -}}
+    {{- $heads = $heads | append . -}}
+    {{- range .Headings -}}
+      {{- $heads = $heads | append . -}}
+      {{- range .Headings -}}
+        {{- $heads = $heads | append . -}}
+        {{- range .Headings -}}
+          {{- $heads = $heads | append . -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $heads = where $heads "Level" "ge" 2 -}}
+{{- with $heads }}
+<div class="right-menu-wrapper">
+  <div class="right-menu-margin">
+    <div class="right-menu-title">目录</div>
+    <div class="right-menu-content">
+      {{- range . }}
+      {{- if ge .Level 2 }}
+      <div class="right-menu-item level{{ .Level }}">
+        <a href="#{{ .ID }}">{{ .Title | plainify }}</a>
+      </div>
+      {{- end }}
+      {{- end }}
+    </div>
+  </div>
+</div>
+{{- end -}}
+{{- end -}}

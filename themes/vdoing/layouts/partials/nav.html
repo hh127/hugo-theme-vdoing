@@ -1,19 +1,106 @@
-{{- /* 递归渲染导航菜单: 传入 dict "items" <菜单数组> "depth" <层级> */ -}}
-{{- $depth := .depth -}}
-<ul class="nav-links nav-depth-{{ $depth }}">
-  {{- range .items }}
-  {{- $children := .items }}
-  <li class="nav-item{{ if $children }} has-dropdown{{ end }}">
-    {{- if .link }}
-    <a class="nav-link" href="{{ .link | relURL }}">{{ .text }}{{ if $children }}<span class="nav-arrow"></span>{{ end }}</a>
+{{- /* 导航菜单 (对应原版 NavLinks.vue / NavLink.vue / DropdownLink.vue), 支持三层嵌套 */ -}}
+{{- /* 参数: dict "items" <菜单数组> "depth" <层级> "page" <当前页> "mode" <links|dropdown> */ -}}
+{{- /*       "class" <额外类名> "repo" <仓库> "repoLabel" <仓库文字> */ -}}
+{{- $items := .items -}}
+{{- $page := .page -}}
+{{- $depth := .depth | default 1 -}}
+{{- $mode := .mode | default "links" -}}
+{{- $cur := "" -}}
+{{- with $page }}{{ $cur = .RelPermalink }}{{ end -}}
+{{- if eq $mode "links" -}}
+<nav class="nav-links{{ with .class }} {{ . }}{{ end }}">
+  {{- range $items -}}
+    {{- $item := . -}}
+    {{- $children := $item.items -}}
+    {{- $active := false -}}
+    {{- with $item.link -}}
+      {{- if eq . "/" }}{{ $active = eq $cur "/" }}{{ else }}{{ $active = hasPrefix $cur . }}{{ end -}}
+    {{- end -}}
+    {{- if not $active -}}
+      {{- range $children -}}
+        {{- $child := . -}}
+        {{- with $child.link -}}
+          {{- if eq . "/" }}{{ $active = eq $cur "/" }}{{ else }}{{ $active = hasPrefix $cur . }}{{ end -}}
+        {{- end -}}
+        {{- range $child.items -}}
+          {{- with .link -}}
+            {{- if eq . "/" }}{{ $active = eq $cur "/" }}{{ else }}{{ $active = hasPrefix $cur . }}{{ end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end }}
+  <div class="nav-item{{ if $children }} has-dropdown{{ end }}{{ if $active }} active{{ end }}">
+    {{- if $children }}
+    {{- partial "nav.html" (dict "items" $children "depth" (add $depth 1) "page" $page "mode" "dropdown" "text" $item.text "link" $item.link "open" $active) }}
     {{- else }}
-    <span class="nav-link nav-group-title">{{ .text }}{{ if $children }}<span class="nav-arrow"></span>{{ end }}</span>
+    {{- with $item.link }}
+    <a class="nav-link{{ if $active }} active{{ end }}" href="{{ . | relURL }}">{{ $item.text }}</a>
+    {{- else }}
+    <span class="nav-link">{{ $item.text }}</span>
     {{- end }}
-    {{- with $children }}
-    <div class="nav-dropdown">
-      {{ partial "nav.html" (dict "items" . "depth" (add $depth 1)) }}
-    </div>
     {{- end }}
-  </li>
+  </div>
   {{- end }}
-</ul>
+  {{- with .repo }}
+  <a class="repo-link" href="{{ if hasPrefix . "http" }}{{ . }}{{ else }}https://github.com/{{ . }}{{ end }}" target="_blank" rel="noopener noreferrer">{{ with $.repoLabel }}{{ . }}{{ else }}GitHub{{ end }}</a>
+  {{- end }}
+</nav>
+{{- else if eq $mode "dropdown" -}}
+{{- $active := .open | default false -}}
+<div class="dropdown-wrapper{{ if $active }} active{{ end }}">
+  <button class="dropdown-title" type="button" aria-label="{{ .text }}">
+    {{- with .link }}<a class="link-title" href="{{ . | relURL }}">{{ $.text }}</a>{{ end -}}
+    <span class="title">{{ .text }}</span>
+    <span class="arrow right"></span>
+  </button>
+  <ul class="nav-dropdown">
+    {{- range $items -}}
+      {{- $item := . -}}
+      {{- $childActive := false -}}
+      {{- with $item.link -}}
+        {{- if eq . "/" }}{{ $childActive = eq $cur "/" }}{{ else }}{{ $childActive = hasPrefix $cur . }}{{ end -}}
+      {{- end -}}
+      {{- if not $childActive -}}
+        {{- range $item.items -}}
+          {{- with .link -}}
+            {{- if eq . "/" }}{{ $childActive = eq $cur "/" }}{{ else }}{{ $childActive = hasPrefix $cur . }}{{ end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+      {{- if $item.items }}
+      <li class="dropdown-item">
+        <h4>{{ $item.text }}</h4>
+        <ul class="dropdown-subitem-wrapper">
+          {{- range $item.items -}}
+            {{- $sub := . -}}
+            {{- $subActive := false -}}
+            {{- with $sub.link -}}
+              {{- if eq . "/" }}{{ $subActive = eq $cur "/" }}{{ else }}{{ $subActive = hasPrefix $cur . }}{{ end -}}
+            {{- end -}}
+            {{- with $sub.items -}}
+            <li class="dropdown-subitem dropdown-subitem-group">
+              <h5>{{ $sub.text }}</h5>
+              <ul class="dropdown-subitem-wrapper">
+                {{- range . -}}
+                  {{- $leaf := . -}}
+                  {{- $leafActive := false -}}
+                  {{- with $leaf.link -}}
+                    {{- if eq . "/" }}{{ $leafActive = eq $cur "/" }}{{ else }}{{ $leafActive = hasPrefix $cur . }}{{ end -}}
+                  {{- end }}
+                <li class="dropdown-subitem"><a class="nav-link{{ if $leafActive }} active{{ end }}" href="{{ $leaf.link | relURL }}">{{ $leaf.text }}</a></li>
+                {{- end -}}
+              </ul>
+            </li>
+            {{- else }}
+            <li class="dropdown-subitem"><a class="nav-link{{ if $subActive }} active{{ end }}" href="{{ $sub.link | relURL }}">{{ $sub.text }}</a></li>
+            {{- end -}}
+          {{- end -}}
+        </ul>
+      </li>
+      {{- else }}
+      <li class="dropdown-item"><a class="nav-link{{ if $childActive }} active{{ end }}" href="{{ $item.link | relURL }}">{{ $item.text }}</a></li>
+      {{- end -}}
+    {{- end -}}
+  </ul>
+</div>
+{{- end -}}

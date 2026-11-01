@@ -6,13 +6,28 @@
 <meta name="keywords" content="{{ with .Params.keywords }}{{ . }}{{ else }}{{ site.Params.keywords }}{{ end }}">
 <meta name="theme-color" content="{{ site.Params.themeColor | default "#11a8cd" }}">
 <meta name="author" content="{{ site.Params.author }}">
-<link rel="icon" href="{{ "img/favicon.ico" | relURL }}">
 <meta name="renderer" content="webkit">
+{{- with site.Params.baidu.siteVerification }}
+<meta name="baidu-site-verification" content="{{ . }}">
+{{- end }}
+<link rel="icon" href="{{ "img/favicon.ico" | relURL }}">
+{{- /* 原版 iconfont 图标库 (已本地化) */}}
+<link rel="stylesheet" href="{{ "css/iconfont.css" | relURL }}">
+{{- with site.Params.iconfontCssFile }}
+<link rel="stylesheet" href="{{ . }}">
+{{- end }}
+{{- /* gitalk 评论样式 */}}
+{{- if and site.Params.gitalk site.Params.gitalk.enable }}
+<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+{{- end }}
 
 {{- with .OutputFormats.Get "rss" }}
 <link rel="alternate" type="application/rss+xml" href="{{ .RelPermalink }}" title="{{ site.Title }}">
 {{- end }}
 
+{{- /* 页面风格: 有 body 背景大图时强制卡片风格 (原 Layout.vue setBodyClass) */ -}}
+{{- $pageStyle := site.Params.pageStyle | default "card" -}}
+{{- if site.Params.bodyBgImg }}{{ $pageStyle = "card" }}{{ end -}}
 {{- /* 提前设置主题模式, 避免刷新时闪烁 */}}
 <script>
 (function () {
@@ -21,9 +36,21 @@
     if (mode === 'auto') {
       mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-    document.documentElement.className = 'theme-mode-' + mode + ' theme-style-{{ site.Params.pageStyle | default "card" }}';
+    document.documentElement.className = 'theme-mode-' + mode + ' theme-style-{{ $pageStyle }}';
   } catch (e) {}
 })();
+</script>
+
+{{- /* 前端全局配置 */}}
+<script>
+window.__BASE__ = '{{ "" | relURL }}';
+window.__SEARCH_MAX__ = {{ site.Params.searchMaxSuggestions | default 10 }};
+{{- with site.Params.zooming }}
+window.__ZOOMING__ = {{ . | jsonify | safeJS }};
+{{- end }}
+{{- if and site.Params.gitalk site.Params.gitalk.enable }}
+window.__GITALK__ = {{ site.Params.gitalk | jsonify | safeJS }};
+{{- end }}
 </script>
 
 {{- $scss := resources.Get "scss/main.scss" }}
@@ -36,3 +63,18 @@
 
 {{- template "_internal/opengraph.html" . }}
 {{- template "_internal/twitter_cards.html" . }}
+
+{{- /* 百度统计 */}}
+{{- with site.Params.baidu }}
+{{- with .tongji }}
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?{{ . }}";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+{{- end }}
+{{- end }}

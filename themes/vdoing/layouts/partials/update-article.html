@@ -1,0 +1,47 @@
+{{- /* 最近更新 (原 UpdateArticle.vue)
+   用法: {{ partial "update-article.html" (dict "page" . "length" 3) }}
+   可选: "moreArticle" (更多文章链接), "class" (附加 class) */ -}}
+{{- $page := . -}}
+{{- $length := 3 -}}
+{{- $more := "" -}}
+{{- $extraClass := "" -}}
+{{- if reflect.IsMap . -}}
+  {{- $page = .page -}}
+  {{- with .length }}{{ $length = . }}{{ end -}}
+  {{- with .moreArticle }}{{ $more = . }}{{ end -}}
+  {{- with .class }}{{ $extraClass = . }}{{ end -}}
+{{- end -}}
+{{- if not $more -}}
+  {{- with site.Params.updateBar }}{{ with .moreArticle }}{{ $more = . }}{{ end }}{{ end -}}
+{{- end -}}
+{{- if not $more }}{{ $more = "archives/" | relURL }}{{ end -}}
+{{- $noList := eq $page.Params.article false -}}
+{{- $current := $page.RelPermalink -}}
+{{- $posts := slice -}}
+{{- range site.RegularPages.ByDate.Reverse -}}
+  {{- if and (ne .Params.article false) (ne .RelPermalink $current) -}}
+    {{- if lt (len $posts) $length }}{{ $posts = $posts | append . }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+<div class="article-list{{ if $noList }} no-article-list{{ end }}{{ with $extraClass }} {{ . }}{{ end }}">
+  <div class="article-title">
+    <a class="iconfont icon-bi" href="{{ $more }}">最近更新</a>
+  </div>
+  <div class="article-wrapper">
+    {{- range $i, $p := $posts }}
+    <dl>
+      <dd>{{ if lt $i 9 }}0{{ end }}{{ add $i 1 }}</dd>
+      <dt>
+        <a href="{{ $p.RelPermalink }}">
+          <div>{{ $p.Title }}{{ with $p.Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}</div>
+        </a>
+        <span class="date">{{ $p.Date.Format "01-02" }}</span>
+      </dt>
+    </dl>
+    {{- end }}
+    <dl>
+      <dd></dd>
+      <dt><a class="more" href="{{ $more }}">更多文章&gt;</a></dt>
+    </dl>
+  </div>
+</div>

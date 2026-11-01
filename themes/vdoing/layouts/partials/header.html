@@ -1,30 +1,24 @@
-{{- $nav := hugo.Data.nav -}}
-<header class="navbar" id="navbar">
-  <div class="navbar-inner">
-    <div class="navbar-left">
-      <button class="sidebar-button" id="sidebar-toggle" aria-label="打开侧边栏">
-        <span></span><span></span><span></span>
-      </button>
-      <a class="site-name" href="{{ "/" | relURL }}">
-        {{- with site.Params.logo }}
-        <img class="logo" src="{{ . | relURL }}" alt="{{ site.Title }}">
-        {{- end }}
-        <span class="site-title">{{ site.Title }}</span>
-      </a>
-    </div>
-    <div class="navbar-right">
-      {{- with $nav }}
-      {{ partial "nav.html" (dict "items" . "depth" 1) }}
-      {{- end }}
-      {{ partial "search.html" . }}
-      {{- with site.Params.repo }}
-      <a class="icon-button repo-link" href="https://github.com/{{ . }}" target="_blank" rel="noopener" title="GitHub">
-        {{ partial "icon.html" "github" }}
-      </a>
-      {{- end }}
-      <button class="icon-button mode-button" id="mode-toggle" title="切换主题模式" aria-label="切换主题模式">
-        {{ partial "icon.html" "mode" }}
-      </button>
-    </div>
+{{- /* 顶部导航 (对应原版 Navbar.vue): sidebar-button + home-link(logo/site-name) + links(search + nav-links + repo-link) */ -}}
+{{- $show := true -}}
+{{- if eq site.Params.navbar false }}{{ $show = false }}{{ end -}}
+{{- if eq .Params.navbar false }}{{ $show = false }}{{ end -}}
+{{- if $show -}}
+<header class="navbar blur">
+  {{- /* 桌面端: 固定左侧圆形按钮; 移动端: navbar 左侧汉堡按钮 (原版 SidebarButton.vue) */}}
+  <div class="sidebar-button" id="sidebar-button" title="目录" role="button" tabindex="0">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512">
+      <path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"/>
+    </svg>
+  </div>
+
+  <a class="home-link" href="{{ "/" | relURL }}">
+    {{- with site.Params.logo }}<img class="logo" src="{{ . | relURL }}" alt="{{ site.Title }}">{{ end -}}
+    {{- with site.Title }}<span class="site-name can-hide">{{ . }}</span>{{ end -}}
+  </a>
+
+  <div class="links">
+    {{ partial "search.html" . }}
+    {{- partial "nav.html" (dict "items" hugo.Data.nav "depth" 1 "page" . "class" "can-hide" "repo" site.Params.repo "repoLabel" site.Params.repoLabel) -}}
   </div>
 </header>
+{{- end -}}

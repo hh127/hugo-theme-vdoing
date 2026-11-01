@@ -1,0 +1,10 @@
+{{- /* gitalk 评论容器 (原 vuepress-plugin-comment)
+     调用: {{ partial "comment.html" . }}
+     初始化由 assets/js/gitalk.js 完成 (读取 head.html 注入的 window.__GITALK__) */ -}}
+{{- $page := . -}}
+{{- if reflect.IsMap . }}{{ $page = .page }}{{ end -}}
+
+{{- /* 仅文章页 (article !== false) 且 frontmatter comment !== false */ -}}
+{{- if and (ne $page.Params.article false) (ne $page.Params.comment false) }}
+<div id="vuepress-plugin-comment" class="comment"></div>
+{{- end -}}

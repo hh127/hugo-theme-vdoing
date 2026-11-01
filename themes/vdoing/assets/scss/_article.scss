@@ -1,0 +1,724 @@
+// =========================================================
+//  文章页样式
+//  移植自 legacy/vdoing/components/{Page,ArticleInfo,PageEdit,PageNav,UpdateArticle,RightMenu}.vue
+//  依赖 _variables.scss 中的变量与 %vdoing-wrapper 占位符
+// =========================================================
+
+// ---------------------------------------------------------
+//  Page.vue
+// ---------------------------------------------------------
+.page {
+  padding-bottom: 2rem;
+  display: block;
+
+  @media (max-width: $MQMobile) {
+    padding-top: $navbarHeight;
+  }
+
+  @media (min-width: #{$MQMobile + 1px}) {
+    padding-top: ($navbarHeight + 1.5rem);
+  }
+
+  > * {
+    @extend %vdoing-wrapper;
+  }
+}
+
+// 线条风格
+.theme-style-line {
+  .page {
+    @media (min-width: #{$MQMobile + 1px}) {
+      padding-top: $navbarHeight;
+    }
+
+    > *:not(.footer) {
+      box-shadow: 0 0;
+    }
+
+    .placeholder {
+      @media (min-width: 720px) {
+        height: 1.2rem;
+      }
+    }
+  }
+}
+
+.theme-vdoing-wrapper {
+  .content-wrapper {
+    position: relative;
+  }
+
+  h1 {
+    .title-tag {
+      height: 1.5rem;
+      line-height: 1.5rem;
+      border: 1px solid $activeColor;
+      color: $activeColor;
+      font-size: 1rem;
+      padding: 0 0.4rem;
+      border-radius: 0.2rem;
+      margin-left: 0.5rem;
+      transform: translate(0, -0.25rem);
+      display: inline-block;
+    }
+
+    img {
+      margin-bottom: -0.2rem;
+      margin-right: 0.2rem;
+      max-width: 2.2rem;
+      max-height: 2.2rem;
+    }
+  }
+}
+
+// 内容区背景纹 (contentBgStyle 1~6)
+.theme-vdoing-wrapper {
+  --linesColor: rgba(50, 0, 0, 0.05);
+
+  &.bg-style-1 {
+    // 方格
+    background-image: linear-gradient(90deg, var(--linesColor) 3%, transparent 3%),
+      linear-gradient(0deg, var(--linesColor) 3%, transparent 3%);
+    background-position: center center;
+    background-size: 20px 20px;
+  }
+
+  &.bg-style-2 {
+    // 横线
+    background-image: repeating-linear-gradient(
+      0,
+      var(--linesColor) 0,
+      var(--linesColor) 1px,
+      transparent 0,
+      transparent 50%
+    );
+    background-size: 30px 30px;
+  }
+
+  &.bg-style-3 {
+    // 竖线
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--linesColor) 0,
+      var(--linesColor) 1px,
+      transparent 0,
+      transparent 50%
+    );
+    background-size: 30px 30px;
+  }
+
+  &.bg-style-4 {
+    // 左斜线
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--linesColor) 0,
+      var(--linesColor) 1px,
+      transparent 0,
+      transparent 50%
+    );
+    background-size: 20px 20px;
+  }
+
+  &.bg-style-5 {
+    // 右斜线
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--linesColor) 0,
+      var(--linesColor) 1px,
+      transparent 0,
+      transparent 50%
+    );
+    background-size: 20px 20px;
+  }
+
+  &.bg-style-6 {
+    // 点状
+    background-image: radial-gradient(var(--linesColor) 1px, transparent 1px);
+    background-size: 10px 10px;
+  }
+}
+
+// 背景纹适应深色模式
+.theme-mode-dark {
+  .theme-vdoing-wrapper {
+    --linesColor: rgba(125, 125, 125, 0.05);
+  }
+}
+
+// 右侧菜单的自适应
+@media (min-width: 720px) and (max-width: 1279px) {
+  .have-rightmenu {
+    .page {
+      padding-right: 0.8rem !important;
+    }
+  }
+}
+
+@media (max-width: 1279px) {
+  .have-rightmenu {
+    .right-menu-wrapper {
+      display: none;
+    }
+  }
+}
+
+@media (min-width: 1280px) {
+  .have-rightmenu {
+    .sidebar .sidebar-sub-headers {
+      display: none;
+    }
+  }
+}
+
+// 左侧边栏只有一项且没有右侧边栏时
+.theme-container.only-sidebarItem:not(.have-rightmenu) {
+  .sidebar,
+  .sidebar-button {
+    display: none;
+  }
+
+  @media (min-width: #{$MQMobile + 1px}) {
+    .page {
+      padding-left: 0.8rem !important;
+    }
+  }
+
+  @media (max-width: $MQMobile) {
+    .page {
+      padding-left: 0rem !important;
+    }
+
+    .sidebar,
+    .sidebar-button {
+      display: block;
+    }
+  }
+}
+
+// 左侧边栏只有一项且有右侧边栏时
+.theme-container.only-sidebarItem.have-rightmenu {
+  @media (min-width: 720px) and (max-width: 1279px) {
+    .sidebar,
+    .sidebar-button {
+      display: block;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .sidebar,
+    .sidebar-button {
+      display: none;
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  ArticleInfo.vue
+// ---------------------------------------------------------
+.theme-style-line {
+  .articleInfo-wrap {
+    .articleInfo {
+      padding-top: 0.5rem;
+    }
+  }
+}
+
+.articleInfo-wrap {
+  position: relative;
+  z-index: 1;
+  color: #888;
+
+  .articleInfo {
+    overflow: hidden;
+    font-size: 0.92rem;
+
+    .breadcrumbs {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: inline-block;
+      line-height: 2rem;
+
+      @media (max-width: 960px) {
+        width: 100%;
+      }
+
+      li {
+        list-style-type: none;
+        float: left;
+        padding-right: 5px;
+
+        &:after {
+          content: "/";
+          margin-left: 5px;
+          color: #999;
+        }
+
+        &:last-child {
+          &:after {
+            content: "";
+          }
+        }
+
+        a {
+          color: #888;
+
+          &:before {
+            font-size: 0.92rem;
+          }
+
+          &:hover {
+            color: $accentColor;
+          }
+        }
+
+        .icon-home {
+          text-decoration: none;
+        }
+      }
+    }
+
+    .info {
+      float: right;
+      line-height: 32px;
+
+      @media (max-width: 960px) {
+        float: left;
+      }
+
+      div {
+        float: left;
+        margin-left: 20px;
+        font-size: 0.8rem;
+
+        @media (max-width: 960px) {
+          margin: 0 20px 0 0;
+        }
+
+        &:before {
+          margin-right: 3px;
+        }
+
+        a {
+          color: #888;
+
+          &:hover {
+            text-decoration: none;
+          }
+        }
+
+        a.beLink {
+          &:hover {
+            color: $accentColor;
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  PageEdit.vue
+// ---------------------------------------------------------
+.page-edit {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  overflow: auto;
+
+  .edit-link {
+    display: inline-block;
+    float: left;
+    margin: 0 2rem 0.5rem 0;
+
+    a {
+      margin-right: 0.25rem;
+    }
+  }
+
+  .tags {
+    float: left;
+
+    a {
+      margin: 0 0.8rem 0.5rem 0;
+      display: inline-block;
+      color: var(--textLightenColor);
+      padding: 0.2rem 0.7rem;
+      font-size: 0.9em;
+      background-color: rgba(128, 128, 128, 0.08);
+      border-radius: 3px;
+      opacity: 0.8;
+    }
+  }
+
+  .last-updated {
+    float: right;
+    font-size: 0.9em;
+
+    .prefix {
+      font-weight: 500;
+      color: var(--textColor);
+      opacity: 0.8;
+    }
+
+    .time {
+      font-weight: 400;
+      color: #aaa;
+    }
+  }
+}
+
+@media (max-width: $MQMobile) {
+  .page-edit {
+    .edit-link,
+    .tags {
+      margin-bottom: 0.5rem;
+    }
+
+    .last-updated {
+      width: 100%;
+      font-size: 0.8em;
+      text-align: left;
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  PageNav.vue
+// ---------------------------------------------------------
+.page-nav {
+  padding-top: 1rem;
+  padding-bottom: 0;
+
+  .inner {
+    min-height: 2rem;
+    margin-top: 0;
+    border-top: 1px solid var(--borderColor);
+    padding-top: 1rem;
+    overflow: auto; // clear float
+  }
+
+  .next {
+    float: right;
+  }
+}
+
+.page-nav-centre-wrap {
+  .page-nav-centre {
+    position: fixed;
+    top: 50%;
+    width: 80px;
+    height: 70px;
+    margin-top: -35px;
+    outline: 0;
+    transition: all 0.2s;
+    border-radius: 3px;
+    opacity: 0.55;
+    z-index: 99;
+
+    @media (max-width: 1340px) {
+      width: 50px;
+    }
+
+    @media (max-width: 960px) {
+      display: none;
+    }
+
+    &:hover {
+      background: rgba(153, 153, 153, 0.15);
+      opacity: 1;
+
+      .tooltip {
+        display: block;
+      }
+    }
+
+    &:before {
+      content: "";
+      display: block;
+      width: 10px;
+      height: 10px;
+      border-top: 2px solid #999;
+      border-right: 2px solid #999;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      margin: auto;
+    }
+
+    .tooltip {
+      display: none;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 13px;
+      border-radius: 3px;
+      position: fixed;
+      max-width: 200px;
+      z-index: 99;
+    }
+  }
+
+  .page-nav-centre-prev {
+    left: 0;
+
+    &:before {
+      transform: rotate(-135deg);
+    }
+  }
+
+  .page-nav-centre-next {
+    right: 0;
+
+    &:before {
+      transform: rotate(45deg);
+    }
+  }
+}
+
+.sidebar-open .page-nav-centre-wrap .page-nav-centre-prev {
+  left: $sidebarWidth;
+}
+
+.no-sidebar .page-nav-centre-wrap .page-nav-centre-prev {
+  left: 0;
+}
+
+// ---------------------------------------------------------
+//  UpdateArticle.vue
+// ---------------------------------------------------------
+.article-list {
+  padding: 1rem 2rem;
+
+  @media (max-width: $MQNarrow) {
+    padding: 1rem 1.5rem;
+  }
+
+  &.no-article-list {
+    display: none;
+  }
+
+  .article-title {
+    border-bottom: 1px solid var(--borderColor);
+    font-size: 1.3rem;
+    padding: 1rem;
+
+    a {
+      font-size: 1.2rem;
+      color: var(--textColor);
+      opacity: 0.9;
+
+      &:before {
+        margin-right: 0.4rem;
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  .article-wrapper {
+    overflow: hidden;
+
+    dl {
+      border-bottom: 1px dotted var(--borderColor);
+      float: left;
+      display: flex;
+      padding: 8px 0;
+      margin: 0;
+      height: 45px;
+      width: 100%;
+
+      dd {
+        font-size: 1.1rem;
+        color: #f17229;
+        width: 50px;
+        text-align: center;
+        margin: 0;
+        line-height: 45px;
+      }
+
+      dt {
+        flex: 1;
+        display: flex;
+
+        a {
+          color: var(--textColor);
+          flex: 1;
+          display: flex;
+          height: 45px;
+          align-items: center;
+          font-weight: normal;
+
+          div {
+            overflow: hidden;
+            white-space: normal;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+
+            .title-tag {
+              border: 1px solid $activeColor;
+              color: $activeColor;
+              font-size: 0.8rem;
+              padding: 0 0.35rem;
+              border-radius: 0.2rem;
+              margin-left: 0rem;
+              transform: translate(0, -0.05rem);
+              display: inline-block;
+            }
+          }
+
+          &:hover {
+            text-decoration: underline;
+          }
+
+          &.more {
+            color: $accentColor;
+          }
+        }
+
+        .date {
+          width: 50px;
+          margin-right: 15px;
+          color: #999;
+          text-align: right;
+          font-size: 0.9rem;
+          line-height: 45px;
+        }
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  RightMenu.vue
+// ---------------------------------------------------------
+.theme-style-line {
+  .right-menu-wrapper {
+    .right-menu-margin {
+      border-left: 1px solid var(--borderColor);
+    }
+  }
+}
+
+.right-menu-wrapper {
+  width: $rightMenuWidth;
+  float: right;
+  margin-right: -($rightMenuWidth + 55px);
+  position: sticky;
+  top: 0;
+  font-size: 0.8rem;
+
+  .right-menu-margin {
+    margin-top: ($navbarHeight + 1rem);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .right-menu-title {
+    padding: 10px 15px 0 15px;
+    background: var(--mainBg);
+    font-size: 1rem;
+
+    &:after {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: var(--borderColor);
+      margin-top: 10px;
+    }
+  }
+
+  .right-menu-content {
+    max-height: 80vh;
+    position: relative;
+    overflow: hidden;
+    background: var(--mainBg);
+    padding: 4px 3px 4px 0;
+
+    &::-webkit-scrollbar {
+      width: 3px;
+      height: 3px;
+    }
+
+    &::-webkit-scrollbar-track-piece {
+      background: none;
+    }
+
+    &::-webkit-scrollbar-thumb:vertical {
+      background-color: hsla(0, 0%, 49%, 0.3);
+    }
+
+    &:hover {
+      overflow-y: auto;
+      padding-right: 0;
+    }
+
+    .right-menu-item {
+      padding: 4px 15px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      position: relative;
+
+      &.level2 {
+        font-size: 0.8rem;
+      }
+
+      &.level3 {
+        padding-left: 27px;
+      }
+
+      &.level4 {
+        padding-left: 37px;
+      }
+
+      &.level5 {
+        padding-left: 47px;
+      }
+
+      &.level6 {
+        padding-left: 57px;
+      }
+
+      &.active {
+        &:before {
+          content: "";
+          position: absolute;
+          top: 5px;
+          left: 0;
+          width: 3px;
+          height: 14px;
+          background: $accentColor;
+          border-radius: 0 4px 4px 0;
+        }
+
+        a {
+          color: $accentColor;
+          opacity: 1;
+        }
+      }
+
+      a {
+        color: var(--textColor);
+        opacity: 0.75;
+        display: inline-block;
+        width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+
+    &:hover {
+      color: $accentColor;
+    }
+  }
+}

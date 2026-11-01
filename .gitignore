@@ -3,6 +3,9 @@ public/
 resources/
 .hugo_build.lock
 
+# 本地构建/截图临时目录
+.tmp/
+
 # npm / node（legacy 里的 VuePress 工程可能用到）
 node_modules/
 package-lock.json

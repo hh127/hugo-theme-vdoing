@@ -1,14 +1,24 @@
+{{- /* 有 body 背景大图时强制卡片风格 (原 Layout.vue setBodyClass) */ -}}
+{{- $pageStyle := site.Params.pageStyle | default "card" -}}
+{{- if site.Params.bodyBgImg }}{{ $pageStyle = "card" }}{{ end -}}
 <!DOCTYPE html>
-<html lang="{{ site.Language.Lang }}" class="theme-mode-light theme-style-{{ site.Params.pageStyle | default "card" }}">
+<html lang="{{ site.Language.Lang }}" class="theme-mode-light theme-style-{{ $pageStyle }}">
 <head>
   {{ partial "head.html" . }}
 </head>
-<body class="theme-style-{{ site.Params.pageStyle | default "card" }}">
-  {{ partial "header.html" . }}
-  <div class="sidebar-mask" id="sidebar-mask"></div>
-  {{ block "main" . }}{{ end }}
-  {{ partial "footer.html" . }}
-  <button class="back-to-top" id="back-to-top" title="返回顶部" aria-label="返回顶部"></button>
+<body class="theme-style-{{ $pageStyle }}">
+  {{- $classes := partial "func/page-classes.html" . }}
+  <div class="theme-container{{ with $classes }} {{ . }}{{ end }}" id="theme-container">
+    {{ partial "header.html" . }}
+    <div class="sidebar-mask" id="sidebar-mask"></div>
+    <div class="sidebar-hover-trigger" id="sidebar-hover-trigger"></div>
+    {{ partial "sidebar.html" . }}
+    {{ block "main" . }}{{ end }}
+    {{ partial "footer.html" . }}
+    {{ partial "buttons.html" . }}
+    {{ partial "body-bg.html" . }}
+    {{ partial "custom-windows.html" . }}
+  </div>
   {{ partial "scripts.html" . }}
 </body>
 </html>

@@ -1,12 +1,44 @@
-{{- $tags := site.Taxonomies.tags -}}
-{{- with $tags }}
-<div class="tags-bar card-box">
-  <p class="bar-title">标签</p>
-  <div class="bar-items bar-tags">
-    {{- range first 30 $tags.ByCount }}
-    <a class="tag-item" href="{{ .Page.RelPermalink }}">{{ .Page.LinkTitle }}<span class="tag-count">{{ .Count }}</span></a>
+{{- /* 热门标签栏 (原 TagsBar.vue)
+   用法: {{ partial "tags-bar.html" (dict "page" . "length" 30 "tag" "") }}
+   length 为 "all" 时显示全部标签; 每个标签随机取一个主题配色 */ -}}
+{{- $page := . -}}
+{{- $length := "all" -}}
+{{- $active := "" -}}
+{{- if reflect.IsMap . -}}
+  {{- $page = .page -}}
+  {{- with .length }}{{ $length = . }}{{ end -}}
+  {{- with .tag }}{{ $active = . }}{{ end -}}
+{{- end -}}
+{{- $posts := slice -}}
+{{- range site.RegularPages -}}
+  {{- if ne .Params.article false }}{{ $posts = $posts | append . }}{{ end -}}
+{{- end -}}
+{{- $counts := dict -}}
+{{- range $posts -}}
+  {{- range .Params.tags -}}
+    {{- with . -}}
+      {{- $n := index $counts . | default 0 -}}
+      {{- $counts = merge $counts (dict . (add $n 1)) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $items := slice -}}
+{{- range $k, $v := $counts -}}
+  {{- $items = $items | append (dict "key" (printf "%06d|%s" $v $k) "name" $k "count" $v) -}}
+{{- end -}}
+{{- $items = sort $items "key" "desc" -}}
+{{- $shown := $items -}}
+{{- if ne (printf "%v" $length) "all" }}{{ $shown = first (int $length) $items }}{{ end -}}
+{{- $colors := slice "#11a8cd" "#F8B26A" "#67CC86" "#E15B64" "#F47E60" "#849B87" -}}
+<div class="tags-wrapper card-box">
+  <a class="title iconfont icon-biaoqian1" href="{{ "tags/" | relURL }}" title="全部标签">{{ if eq (printf "%v" $length) "all" }}全部标签{{ else }}热门标签{{ end }}</a>
+  <div class="tags">
+    {{- range $i, $t := $shown }}
+    {{- $c := index $colors (mod $i (len $colors)) }}
+    <a href="{{ printf "tags/?tag=%s" ($t.name | urlquery) | relURL }}" style="background: {{ $c }};--randomColor:{{ $c }};"{{ if eq $t.name $active }} class="active"{{ end }}>{{ $t.name }}</a><span></span>
+    {{- end }}
+    {{- if and (ne (printf "%v" $length) "all") (lt (len $shown) (len $items)) }}
+    <a href="{{ "tags/" | relURL }}">更多...</a>
     {{- end }}
   </div>
-  <a class="bar-more" href="{{ "tags/" | relURL }}">更多标签 →</a>
 </div>
-{{- end }}

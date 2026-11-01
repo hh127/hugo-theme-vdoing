@@ -1,26 +1,139 @@
-{{- /* VuePress 容器语法迁移后的渲染: ::: tip 标题 -> {{% block type="tip" title="标题" %}} */ -}}
+{{- /*
+  VuePress 容器语法迁移后的渲染:
+    ::: tip 标题       -> {{% block type="tip" title="标题" %}}…{{% /block %}}
+    ::: cardList 3     -> {{% block type="cardList" row="3" %}} 其中包含一个 yaml 代码块 {{% /block %}}
+    ::: cardImgList    -> {{% block type="cardImgList" %}} 同理
+  与原版 vuepress-plugin-container / vdoing index.js 的 renderCardList 对齐:
+  cardList    -> .cardListContainer > .card-list > .card-item(.row-N)
+  cardImgList -> .cardImgListContainer > .card-list > .card-item > (.box-img/.box-info/.box-footer)
+  每行数量: row 参数, 或 type 后面的数字 (1~4, 默认 3)
+*/ -}}
 {{- $type := .Get "type" | default "tip" -}}
+{{- $type = trim $type " " -}}
+{{- $baseType := replaceRE "\\s*[0-9]+\\s*$" "" $type -}}
 {{- $title := .Get "title" | default "" -}}
-{{- $body := .Inner | markdownify -}}
-{{- if eq $type "details" -}}
-<details class="custom-block details">
-  <summary class="custom-block-title">{{ $title | default "详细信息" }}</summary>
-  <div class="custom-block-content">{{ $body }}</div>
-</details>
-{{- else if eq $type "center" -}}
-<div class="custom-block center">{{ $body }}</div>
-{{- else if eq $type "right" -}}
-<div class="custom-block right">{{ $body }}</div>
-{{- else if eq $type "cardList" -}}
-<div class="custom-block card-list">{{ $body }}</div>
-{{- else if eq $type "demo" -}}
-<div class="custom-block demo-block">
-  <p class="custom-block-title">示例{{ with $title }} · {{ . }}{{ end }}</p>
-  <div class="custom-block-content">{{ $body }}</div>
-</div>
+
+{{- /* 每行显示几个 (row 参数 / type 后缀数字 / 默认 3) */ -}}
+{{- $row := 0 -}}
+{{- with .Get "row" -}}{{- $row = int . -}}{{- end -}}
+{{- if lt $row 1 -}}
+  {{- with findRESubmatch "[0-9]+" $type 1 -}}
+    {{- $row = int (index (index . 0) 0) -}}
+  {{- end -}}
+{{- end -}}
+{{- if or (lt $row 1) (gt $row 4) -}}{{- $row = 3 -}}{{- end -}}
+
+{{- if or (eq $baseType "cardList") (eq $baseType "cardImgList") -}}
+  {{- /* ================= 卡片列表: 解析 Inner 里的 ```yaml 数据 ================= */ -}}
+  {{- $inner := printf "%s" .Inner -}}
+  {{- $yamlText := "" -}}
+  {{- with findRESubmatch "(?s)```[ \\t]*[a-zA-Z0-9_+.-]*[ \\t]*\\r?\\n(.*?)\\r?\\n[ \\t]*```" $inner 1 -}}
+    {{- $yamlText = index (index . 0) 1 -}}
+  {{- end -}}
+  {{- if not $yamlText -}}
+    {{- /* 没有代码围栏时, 直接把 Inner 当 yaml (兼容无围栏写法) */ -}}
+    {{- $yamlText = $inner -}}
+  {{- end -}}
+  {{- $yamlText = trim $yamlText " \t\r\n" -}}
+  {{- $dataObj := false -}}
+  {{- if $yamlText -}}
+    {{- $res := try (transform.Unmarshal $yamlText) -}}
+    {{- with $res.Err -}}
+      {{- warnf "vdoing block: cardList YAML 解析失败: %s" . -}}
+    {{- else -}}
+      {{- $dataObj = $res.Value -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $list := slice -}}
+  {{- $config := dict -}}
+  {{- if $dataObj -}}
+    {{- if reflect.IsSlice $dataObj -}}
+      {{- $list = $dataObj -}}
+    {{- else if reflect.IsMap $dataObj -}}
+      {{- with index $dataObj "data" -}}{{- $list = . -}}{{- end -}}
+      {{- with index $dataObj "config" -}}{{- $config = . -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if $list -}}
+    {{- $target := $config.target | default "_blank" -}}
+    <div class="{{ $baseType }}Container">
+      <div class="card-list">
+        {{- range $item := $list -}}
+          {{- $name := $item.name | default "" -}}
+          {{- $desc := $item.desc | default "" -}}
+          {{- $avatar := $item.avatar | default "" -}}
+          {{- $link := $item.link | default "" -}}
+          {{- $href := $link -}}
+          {{- if hasPrefix $link "/" -}}{{- $href = $link | relURL -}}{{- end -}}
+          {{- if hasPrefix $avatar "/" -}}{{- $avatar = $avatar | relURL -}}{{- end -}}
+          {{- if eq $baseType "cardList" -}}
+            {{- $style := "--randomColor: var(--bodyBg);" -}}
+            {{- with $item.bgColor -}}{{- $style = printf "background-color:%s;--randomColor:%s;" . . -}}{{- end -}}
+            {{- with $item.textColor -}}{{- $style = printf "%scolor:%s;" $style . -}}{{- end -}}
+            {{- if $link -}}
+              <a href="{{ $href | safeURL }}" target="{{ $target }}" rel="noopener" class="card-item row-{{ $row }}" style="{{ $style | safeCSS }}">{{ with $avatar }}<img src="{{ . | safeURL }}" class="no-zoom" alt="">{{ end }}<div><p class="name">{{ $name | safeHTML }}</p><p class="desc">{{ $desc | safeHTML }}</p></div></a>
+            {{- else -}}
+              <span class="card-item row-{{ $row }}" style="{{ $style | safeCSS }}">{{ with $avatar }}<img src="{{ . | safeURL }}" class="no-zoom" alt="">{{ end }}<div><p class="name">{{ $name | safeHTML }}</p><p class="desc">{{ $desc | safeHTML }}</p></div></span>
+            {{- end -}}
+          {{- else -}}
+            {{- $img := $item.img | default "" -}}
+            {{- if hasPrefix $img "/" -}}{{- $img = $img | relURL -}}{{- end -}}
+            {{- $author := $item.author | default "" -}}
+            {{- $imgHeight := $config.imgHeight | default "auto" -}}
+            {{- $objectFit := $config.objectFit | default "cover" -}}
+            {{- $lineClamp := $config.lineClamp | default 1 -}}
+            <div class="card-item row-{{ $row }}">
+              {{- if $link }}<a href="{{ $href | safeURL }}" target="{{ $target }}" rel="noopener">{{ end -}}
+              <div class="box-img" style="height: {{ $imgHeight | safeCSS }}"><img src="{{ $img | safeURL }}" class="no-zoom" alt="" style="object-fit: {{ $objectFit | safeCSS }}"></div>
+              <div class="box-info"><p class="name">{{ $name | safeHTML }}</p>{{ if $desc }}<p class="desc" style="-webkit-line-clamp: {{ $lineClamp }}">{{ $desc | safeHTML }}</p>{{ end }}</div>
+              {{- if or $avatar $author }}<div class="box-footer">{{ with $avatar }}<img src="{{ . | safeURL }}" class="no-zoom" alt="">{{ end }}{{ with $author }}<span>{{ . | safeHTML }}</span>{{ end }}</div>{{ end -}}
+              {{- if $link }}</a>{{ end -}}
+            </div>
+          {{- end -}}
+        {{- end -}}
+      </div>
+    </div>
+  {{- else -}}
+    {{- /* 解析不出列表时退回普通渲染, 页面不至于空白 */ -}}
+    <div class="custom-block {{ $baseType }}">
+      {{- with $title }}<p class="custom-block-title">{{ . }}</p>{{ end -}}
+      {{- /* typographer 会把 HTML 注释结束符 --> 变成 &ndash;&gt;, 这里还原以便注释正常闭合 */ -}}{{- $body := .Inner | markdownify -}}{{- $body = replaceRE "&ndash;&gt;" "-->" $body | safeHTML -}}
+      {{- $body -}}
+    </div>
+  {{- end -}}
+{{- else if eq $baseType "details" -}}
+  {{- /* 原版 details 容器: <details class="custom-block details"><summary>标题</summary>… */ -}}
+  {{- /* typographer 会把 HTML 注释结束符 --> 变成 &ndash;&gt;, 这里还原以便注释正常闭合 */ -}}{{- $body := .Inner | markdownify -}}{{- $body = replaceRE "&ndash;&gt;" "-->" $body | safeHTML -}}
+  <details class="custom-block details">
+    <summary>{{ $title | default "点击查看" }}</summary>
+    {{- $body -}}
+  </details>
+{{- else if eq $baseType "theorem" -}}
+  {{- /* typographer 会把 HTML 注释结束符 --> 变成 &ndash;&gt;, 这里还原以便注释正常闭合 */ -}}{{- $body := .Inner | markdownify -}}{{- $body = replaceRE "&ndash;&gt;" "-->" $body | safeHTML -}}
+  <div class="custom-block theorem">
+    {{- with $title }}<p class="title">{{ . }}</p>{{ end -}}
+    {{- $body -}}
+  </div>
+{{- else if eq $baseType "center" -}}
+  {{- /* typographer 会把 HTML 注释结束符 --> 变成 &ndash;&gt;, 这里还原以便注释正常闭合 */ -}}{{- $body := .Inner | markdownify -}}{{- $body = replaceRE "&ndash;&gt;" "-->" $body | safeHTML -}}
+  <div class="center-container">{{- $body -}}</div>
+{{- else if eq $baseType "right" -}}
+  {{- /* typographer 会把 HTML 注释结束符 --> 变成 &ndash;&gt;, 这里还原以便注释正常闭合 */ -}}{{- $body := .Inner | markdownify -}}{{- $body = replaceRE "&ndash;&gt;" "-->" $body | safeHTML -}}
+  <div class="custom-block right">{{- $body -}}</div>
+{{- else if eq $baseType "demo" -}}
+  {{- /* typographer 会把 HTML 注释结束符 --> 变成 &ndash;&gt;, 这里还原以便注释正常闭合 */ -}}{{- $body := .Inner | markdownify -}}{{- $body = replaceRE "&ndash;&gt;" "-->" $body | safeHTML -}}
+  <div class="custom-block demo-block">
+    <p class="custom-block-title">示例{{ with $title }} · {{ . }}{{ end }}</p>
+    <div class="demo-block-code">{{- $body -}}</div>
+  </div>
 {{- else -}}
-<div class="custom-block {{ $type }}">
-  {{- with $title }}<p class="custom-block-title">{{ . }}</p>{{ end }}
-  <div class="custom-block-content">{{ $body }}</div>
-</div>
+  {{- /* tip / note / warning / danger 及未知类型: vuepress-plugin-container 结构 */ -}}
+  {{- /* typographer 会把 HTML 注释结束符 --> 变成 &ndash;&gt;, 这里还原以便注释正常闭合 */ -}}{{- $body := .Inner | markdownify -}}{{- $body = replaceRE "&ndash;&gt;" "-->" $body | safeHTML -}}
+  {{- $defaultTitles := dict "tip" "提示" "note" "笔记" "warning" "注意" "danger" "警告" -}}
+  {{- $blockTitle := $title -}}
+  {{- if not $blockTitle -}}{{- $blockTitle = index $defaultTitles $baseType | default "" -}}{{- end -}}
+  <div class="custom-block {{ $baseType }}">
+    {{- with $blockTitle }}<p class="custom-block-title">{{ . }}</p>{{ end -}}
+    {{- $body -}}
+  </div>
 {{- end -}}

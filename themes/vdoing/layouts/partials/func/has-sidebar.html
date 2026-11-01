@@ -1,10 +1,23 @@
-{{- /* 判断当前页面是否显示左侧边栏 */ -}}
+{{- /* 判断当前页面是否显示左侧边栏 (对应原 Layout.vue shouldShowSidebar) */ -}}
 {{- $show := true -}}
 {{- if .IsHome }}{{ $show = false }}{{ end -}}
-{{- if eq .Params.sidebar false }}{{ $show = false }}{{ end -}}
 {{- if eq .Kind "home" }}{{ $show = false }}{{ end -}}
 {{- if eq .Kind "section" }}{{ $show = false }}{{ end -}}
 {{- if eq .Kind "taxonomy" }}{{ $show = false }}{{ end -}}
 {{- if eq .Kind "term" }}{{ $show = false }}{{ end -}}
 {{- if eq .Kind "404" }}{{ $show = false }}{{ end -}}
+{{- if eq .Params.sidebar false }}{{ $show = false }}{{ end -}}
+{{- if eq .Params.showSidebar false }}{{ $show = false }}{{ end -}}
+{{- if eq $show true -}}
+  {{- if eq .Params.sidebar "auto" -}}
+    {{- /* 碎片化文章: 侧边栏显示本页大纲, 始终显示 */ -}}
+  {{- else -}}
+    {{- $section := .FirstSection -}}
+    {{- if or (not $section) (eq $section.Kind "home") -}}
+      {{- $show = false -}}
+    {{- else if eq (len $section.RegularPagesRecursive) 0 -}}
+      {{- $show = false -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 {{- return $show -}}

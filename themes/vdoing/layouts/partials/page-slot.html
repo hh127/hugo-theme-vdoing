@@ -1,0 +1,25 @@
+{{- /* 页面顶部 / 底部自定义 html 模块 (原 Page.vue 的 pageT / pageB slot, 数据在 data/htmlModules.yaml)
+     调用: {{ partial "page-slot.html" (dict "page" . "key" "pageT") }}
+     规则: pageTshowMode / pageBshowMode = article(仅文章页) | custom(仅自定义页) | 未设置(全部) */ -}}
+{{- $page := . -}}
+{{- $key := "pageT" -}}
+{{- if reflect.IsMap . -}}
+  {{- $page = .page -}}
+  {{- with .key }}{{ $key = . }}{{ end -}}
+{{- end -}}
+
+{{- $modules := hugo.Data.htmlModules -}}
+{{- with $modules -}}
+  {{- $html := index . $key -}}
+  {{- $showMode := index . (printf "%sshowMode" $key) | default "" -}}
+  {{- $isArticle := ne $page.Params.article false -}}
+  {{- $show := true -}}
+  {{- if eq $showMode "article" -}}
+    {{- $show = $isArticle -}}
+  {{- else if eq $showMode "custom" -}}
+    {{- $show = not $isArticle -}}
+  {{- end -}}
+  {{- if and $html $show -}}
+<div class="page-slot {{ if eq $key "pageT" }}page-slot-top{{ else }}page-slot-bottom{{ end }}">{{ $html | safeHTML }}</div>
+  {{- end -}}
+{{- end -}}

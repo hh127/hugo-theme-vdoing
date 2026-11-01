@@ -1,4 +1,5 @@
 {{ define "main" }}
+{{- /* 文章集合: 置顶优先 + 日期倒序 (原主题 $sortPosts) */ -}}
 {{- $sticky := slice -}}
 {{- $normal := slice -}}
 {{- range site.RegularPages -}}
@@ -11,49 +12,124 @@
   {{- end -}}
 {{- end -}}
 {{- $posts := slice -}}
-{{- range sort $sticky "Params.sticky" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
+{{- range sort $sticky "Params.sticky" "asc" }}{{ $posts = $posts | append . }}{{ end -}}
 {{- range sort $normal "Date" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
 {{- $perPage := site.Params.postPageSize | default 10 -}}
-{{- $paginator := .Paginate $posts $perPage -}}
-{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
+{{- $postList := .Params.postList | default "detailed" -}}
+{{- $paginator := false -}}
+{{- if eq $postList "detailed" }}{{ $paginator = .Paginate $posts $perPage }}{{ end -}}
+{{- $pageNumber := 1 -}}
+{{- if $paginator }}{{ $pageNumber = $paginator.PageNumber }}{{ end -}}
+
+{{- /* banner 背景 (原 Home.vue bannerBgStyle) */ -}}
+{{- $bannerBg := .Params.bannerBg | default "auto" -}}
+{{- $hasBodyBg := false -}}
+{{- with site.Params.bodyBgImg }}{{ if . }}{{ $hasBodyBg = true }}{{ end }}{{ end -}}
+{{- $bannerStyle := "" -}}
+{{- if or (not $bannerBg) (eq $bannerBg "auto") -}}
+  {{- if not $hasBodyBg -}}
+    {{- $bannerStyle = "background: rgb(40,40,45) url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAjCAYAAAAe2bNZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABOSURBVFhH7c6xCQAgDAVRR9A6E4hLu4uLiWJ7tSnuQcIvr2TRYsw3/zOGGEOMIcYQY4gxxBhiDDGGGEOMIcYQY4gxxBhiDLkx52W4Gn1tuslCtHJvL54AAAAASUVORK5CYII=)" -}}
+  {{- end -}}
+{{- else if eq $bannerBg "none" -}}
+  {{- if not $hasBodyBg -}}
+    {{- $bannerStyle = "background: var(--mainBg);color: var(--textColor)" -}}
+  {{- end -}}
+{{- else if in $bannerBg "background:" -}}
+  {{- $bannerStyle = $bannerBg -}}
+{{- else if in $bannerBg "." -}}
+  {{- $bannerStyle = printf "background: url(%s) center center / cover no-repeat" ($bannerBg | relURL) -}}
+{{- end -}}
 
 <div class="home-wrapper">
-  <div class="banner">
-    <div class="banner-content">
+  <!-- banner 块 s -->
+  <div class="banner{{ if gt $pageNumber 1 }} hide-banner{{ end }}"{{ with $bannerStyle }} style="{{ . | safeCSS }}"{{ end }}>
+    <div class="banner-conent"{{ if and (not .Params.features) (not .Params.heroImage) }} style="padding-top: 7rem"{{ end }}>
       <header class="hero">
-        <h1>{{ .Params.heroText | default site.Title }}</h1>
-        <p class="description">{{ .Params.tagline | default site.Params.description }}</p>
+        {{- with .Params.heroImage }}
+        <img src="{{ . | relURL }}" alt="{{ $.Params.heroAlt }}">
+        {{- end }}
+        {{- with .Params.heroText }}
+        <h1 id="main-title">{{ . }}</h1>
+        {{- end }}
+        {{- with .Params.tagline }}
+        <p class="description">{{ . }}</p>
+        {{- end }}
+        {{- if and .Params.actionText .Params.actionLink }}
+        <p class="action"><a class="action-button" href="{{ .Params.actionLink | relURL }}">{{ .Params.actionText }}</a></p>
+        {{- end }}
       </header>
+
+      {{- /* PC 端 features 块 s */ -}}
       {{- with .Params.features }}
       <div class="features">
         {{- range . }}
-        {{- $f := . }}
         <div class="feature">
-          <a href="{{ $f.link | default "#" | relURL }}">
-            {{- with $f.imgUrl }}<img class="feature-img" src="{{ . | relURL }}" alt="{{ $f.title }}">{{ end }}
-            <h2>{{ $f.title }}</h2>
-            <p>{{ $f.details }}</p>
+          <a{{ if .link }} href="{{ .link | relURL }}"{{ else }} href="javascript:;"{{ end }}>
+            {{- with .imgUrl }}<img class="feature-img" src="{{ . | relURL }}" alt="{{ $.Title }}">{{ end }}
+            <h2>{{ .title }}</h2>
+            <p>{{ .details }}</p>
           </a>
         </div>
         {{- end }}
       </div>
       {{- end }}
+      {{- /* PC 端 features 块 e */ -}}
     </div>
+
+    {{- /* 移动端 features 滑动块 s */ -}}
+    {{- with .Params.features }}
+    <div class="slide-banner">
+      <div class="banner-wrapper">
+        <div class="slide-banner-scroll">
+          <div class="slide-banner-wrapper">
+            {{- range . }}
+            <div class="slide-item">
+              <a{{ if .link }} href="{{ .link | relURL }}"{{ else }} href="javascript:;"{{ end }}>
+                {{- with .imgUrl }}<img class="feature-img" src="{{ . | relURL }}" alt="{{ $.Title }}">{{ end }}
+                <h2>{{ .title }}</h2>
+                <p>{{ .details }}</p>
+              </a>
+            </div>
+            {{- end }}
+          </div>
+        </div>
+        <div class="docs-wrapper">
+          {{- range $i, $f := . }}
+          <span class="doc{{ if eq $i 0 }} active{{ end }}"></span>
+          {{- end }}
+        </div>
+      </div>
+    </div>
+    {{- end }}
+    {{- /* 移动端 features 滑动块 e */ -}}
   </div>
+  <!-- banner 块 e -->
 
   <div class="main-wrapper">
     <div class="main-left">
-      {{ partial "post-list.html" (dict "pages" $paginator.Pages) }}
-      {{ partial "pagination.html" . }}
+      {{- if eq $postList "simple" }}
+      {{ partial "update-article.html" (dict "page" . "length" (.Params.simplePostListLength | default 10) "class" "card-box") }}
+      {{- else if eq $postList "detailed" }}
+      {{ partial "post-list.html" (dict "pages" $paginator.Pages "page" .) }}
+      {{ partial "pagination.html" (dict "paginator" $paginator) }}
+      {{- end }}
       {{- with .Content }}
-      <div class="theme-vdoing-content card-box home-content">{{ . }}</div>
+      <div class="theme-vdoing-content custom card-box home-content">{{ . }}</div>
       {{- end }}
     </div>
-    <aside class="main-right">
-      {{ partial "blogger-bar.html" . }}
-      {{ partial "categories-bar.html" . }}
-      {{ partial "tags-bar.html" . }}
-    </aside>
+
+    {{- if ne .Params.hideRightBar true }}
+    <div class="main-right">
+      {{- if site.Params.blogger }}{{ partial "blogger-bar.html" . }}{{ end }}
+      {{- if ne site.Params.category false }}{{ partial "categories-bar.html" (dict "page" . "length" 10) }}{{ end }}
+      {{- if ne site.Params.tag false }}{{ partial "tags-bar.html" (dict "page" . "length" 30) }}{{ end }}
+      {{- with hugo.Data.htmlModules }}
+      {{- with .homeSidebarB }}
+      <div class="custom-html-box card-box">{{ . | safeHTML }}</div>
+      {{- end }}
+      {{- end }}
+    </div>
+    {{- end }}
   </div>
 </div>
 {{ end }}

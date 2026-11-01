@@ -1,16 +1,26 @@
 {{ define "main" }}
-{{ partial "sidebar.html" (dict "page" . "hasTree" false) }}
-<div class="page-wrapper no-sidebar">
-  <div class="page-content">
-    <main class="article-wrapper">
-      <article class="theme-vdoing-content article card-box">
-        <header class="article-header">
-          <h1 class="article-title">{{ .Title }}</h1>
-          <p class="article-desc">共 {{ len .Pages }} 篇</p>
-        </header>
-        {{ partial "post-list.html" (dict "pages" .Pages.ByWeight) }}
-      </article>
-    </main>
+{{- /* 章节列表页 (原主题中由侧边栏承载, Hugo 保留一个简单的文章列表兜底) */ -}}
+{{- $posts := slice -}}
+{{- range .Pages.ByWeight -}}
+  {{- if ne .Params.article false }}{{ $posts = $posts | append . }}{{ end -}}
+{{- end -}}
+{{- $paginator := .Paginate $posts (site.Params.postPageSize | default 10) -}}
+{{- $badges := slice -}}
+{{- range (site.Params.titleBadgeIcons | default (slice "img/title-badge/1.png" "img/title-badge/2.png" "img/title-badge/3.png")) -}}
+  {{- $badges = $badges | append (. | relURL) -}}
+{{- end -}}
+<div class="custom-page list-page">
+  <div class="theme-vdoing-wrapper">
+    <h1>
+      {{- if ne site.Params.titleBadge false }}<img src="{{ index (shuffle $badges) 0 }}" alt="">{{ end -}}
+      {{ .Title }}
+    </h1>
+    <div class="count">共 <i>{{ len $posts }}</i> 篇</div>
+    {{ partial "post-list.html" (dict "pages" $paginator.Pages "page" .) }}
+    {{ partial "pagination.html" (dict "paginator" $paginator) }}
+    {{- with .Content }}
+    <div class="theme-vdoing-content">{{ . }}</div>
+    {{- end }}
   </div>
 </div>
 {{ end }}

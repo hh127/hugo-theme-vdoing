@@ -1,0 +1,11 @@
+{{- /*
+  Badge 徽章 (原 global-components/Badge.vue 的等价写法)
+  用法: {{< badge text="新" type="tip" >}} 或 {{< badge type="warning" >}}内容{{< /badge >}}
+  type: tip(默认) | error | warning/warn/yellow | green
+  vertical: top(默认) / middle / bottom …
+*/ -}}
+{{- $text := .Get "text" -}}
+{{- if not $text -}}{{- $text = .Inner | plainify | trim " \r\n\t" -}}{{- end -}}
+{{- $type := .Get "type" | default "tip" -}}
+{{- $vertical := .Get "vertical" | default "top" -}}
+<span class="badge {{ $type }}" style="vertical-align: {{ $vertical }}">{{ $text | safeHTML }}</span>

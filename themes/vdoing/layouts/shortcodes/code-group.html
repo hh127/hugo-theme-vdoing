@@ -1,0 +1,19 @@
+{{- /*
+  代码标签页容器 (原 global-components/CodeGroup.vue 的等价写法)
+  用法:
+    {{< code-group >}}
+      {{< code-block title="YARN" active="true" >}}
+      yarn add vuepress-theme-vdoing
+      {{< /code-block >}}
+      {{< code-block title="NPM" >}}
+      npm i vuepress-theme-vdoing
+      {{< /code-block >}}
+    {{< /code-group >}}
+  标签按钮由 assets/js/code.js 依据子项 data-title 生成并处理切换
+*/ -}}
+<div class="theme-code-group">
+  <div class="theme-code-group__nav">
+    <ul class="theme-code-group__ul"></ul>
+  </div>
+  {{ .Inner }}
+</div>
