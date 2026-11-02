@@ -1,9 +1,13 @@
 {{ define "main" }}
-{{- /* 全部文章按时间倒序 (原 $sortPostsByDate) */ -}}
+{{- /* 全部文章按时间倒序 (原 $sortPostsByDate, 归档不置顶)
+   渐进加载 (原 ArchivesPage.vue: perPage=80 + 滚动到底加载):
+   - 服务端仍输出全部条目 (SEO 友好), 首屏之后的条目先加 hidden, 由 archives.js 滚动/点击「加载更多」显示
+   - <noscript> 里用一条 style 取消 hidden, 无 JS 时也能看到全部条目 */ -}}
 {{- $posts := slice -}}
 {{- range site.RegularPages.ByDate.Reverse -}}
   {{- if ne .Params.article false }}{{ $posts = $posts | append . }}{{ end -}}
 {{- end -}}
+{{- $pageSize := site.Params.archivePageSize | default 80 -}}
 {{- /* 按年份分组, 保持时间倒序 */ -}}
 {{- $years := slice -}}
 {{- $byYear := dict -}}
@@ -20,31 +24,38 @@
 {{- range (site.Params.titleBadgeIcons | default (slice "img/title-badge/1.png" "img/title-badge/2.png" "img/title-badge/3.png")) -}}
   {{- $badges = $badges | append (. | relURL) -}}
 {{- end -}}
-<div class="custom-page archives-page">
+{{- $idx := 0 -}}
+<div class="custom-page archives-page" data-archives="1" data-page-size="{{ $pageSize }}">
   <div class="theme-vdoing-wrapper">
     <h1>
       {{- if ne site.Params.titleBadge false }}<img src="{{ index (shuffle $badges) 0 }}" alt="">{{ end -}}
       {{ .Title }}
     </h1>
     <div class="count">总共 <i>{{ len $posts }}</i> 篇文章</div>
-    <ul>
+    <ul id="archive-list">
       {{- range $years }}
       {{- $year := . }}
       {{- $postsOfYear := index $byYear $year }}
-      <li class="year">
+      {{- $yearStart := $idx }}
+      <li class="year" data-year="{{ $year }}"{{ if ge $yearStart $pageSize }} hidden{{ end }}>
         <h2>{{ $year }}<span><i>{{ len $postsOfYear }}</i> 篇</span></h2>
       </li>
       {{- range $postsOfYear }}
-      <li>
+      <li class="archive-item" data-year="{{ $year }}"{{ if ge $idx $pageSize }} hidden{{ end }}>
         <a href="{{ .RelPermalink }}">
           <span class="date">{{ .Date.Format "01-02" }}</span>
           {{ .Title }}
           {{- with .Params.titleTag }}<span class="title-tag">{{ . }}</span>{{ end }}
         </a>
       </li>
+      {{- $idx = add $idx 1 }}
       {{- end }}
       {{- end }}
     </ul>
+    <noscript><style>.archives-page #archive-list .archive-item[hidden],.archives-page #archive-list .year[hidden]{display:list-item}</style></noscript>
+    {{- if gt (len $posts) $pageSize }}
+    <div class="loadmore" id="archive-loadmore" role="button" tabindex="0">加载更多</div>
+    {{- end }}
   </div>
 </div>
 {{ end }}

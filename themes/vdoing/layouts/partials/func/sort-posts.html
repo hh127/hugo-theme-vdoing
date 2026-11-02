@@ -1,0 +1,34 @@
+{{- /* 统一文章排序 (原主题 util/postData.js sortPosts)
+   规则: sticky(置顶)优先且按 sticky 数值升序 (1 在最前), 同 sticky 值内按日期倒序;
+         非置顶文章一律按日期倒序 (compareDate)。
+   调用: {{ $posts := partial "func/sort-posts.html" site.RegularPages }}
+   返回: 排序后的页面集合 (过滤掉 frontmatter article: false 的非文章页)
+   说明: 置顶/日期双字段排序用一个不可比较的复合 key 完成 ("%06d|%020d" = sticky 升序,
+         负 Unix 时间戳升序 = 日期倒序), 避免依赖 sort 的稳定性。
+   首页分页、index.json、原生 term 页、分类/标签栏统一复用本 partial。 */ -}}
+{{- $pages := . -}}
+{{- $sticky := slice -}}
+{{- $normal := slice -}}
+{{- range $pages -}}
+  {{- if ne .Params.article false -}}
+    {{- if .Params.sticky -}}
+      {{- $sticky = $sticky | append . -}}
+    {{- else -}}
+      {{- $normal = $normal | append . -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $posts := slice -}}
+{{- /* 置顶: sticky 升序, 同值按日期倒序 */ -}}
+{{- $keyed := slice -}}
+{{- range $sticky -}}
+  {{- $keyed = $keyed | append (dict "key" (printf "%06d|%020d" (int .Params.sticky) (sub 0 .Date.Unix)) "page" .) -}}
+{{- end -}}
+{{- range (sort $keyed "key" "asc") -}}
+  {{- $posts = $posts | append .page -}}
+{{- end -}}
+{{- /* 非置顶: 日期倒序 */ -}}
+{{- range (sort $normal "Date" "desc") -}}
+  {{- $posts = $posts | append . -}}
+{{- end -}}
+{{- return $posts -}}

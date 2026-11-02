@@ -1,7 +1,9 @@
 {{- /* 详细版文章列表 (原 PostList.vue)
    参数: dict "pages" (集合) "page" (当前页面, 可选)
-   data-* 属性供 pages.js 在分类/标签页做前端过滤与分页
-   摘要只用纯文本, 避免截断后的 HTML 破坏 DOM 结构 */ -}}
+   data-* 属性供 pages.js 在分类/标签页做前端过滤兜底
+   摘要: 原版用 v-html 渲染 excerpt, 这里用 .Summary (HTML) 以保留图片/富文本;
+         只有没写 <!-- more --> 的文章才退回纯文本截断, 避免截断后的 HTML 破坏 DOM 结构。
+         .excerpt img 限高 280px 见 assets/scss/_lists.scss */ -}}
 {{- $pages := .pages -}}
 <div class="post-list">
   {{- range $pages }}
@@ -10,8 +12,22 @@
   {{- range $p.Params.categories }}{{ with . }}{{ $cats = $cats | append . }}{{ end }}{{ end }}
   {{- $tags := slice }}
   {{- range $p.Params.tags }}{{ with . }}{{ $tags = $tags | append . }}{{ end }}{{ end }}
-  {{- $excerpt := $p.Summary | plainify | htmlUnescape | strings.TrimSpace }}
-  {{- if not $excerpt }}{{ $excerpt = $p.Content | plainify | htmlUnescape | strings.TrimSpace }}{{ end }}
+  {{- /* 有 <!-- more --> 时用 HTML 摘要; 否则回落纯文本截断 */ -}}
+  {{- $raw := $p.RawContent -}}
+  {{- $hasMore := or (strings.Contains $raw "<!--more-->") (strings.Contains $raw "<!-- more -->") (strings.Contains $raw "<!--more -->") (strings.Contains $raw "<!-- more-->") -}}
+  {{- $excerpt := "" -}}
+  {{- if $hasMore }}{{ $excerpt = $p.Summary }}{{ end -}}
+  {{- /* 摘要 HTML 标签必须配平: <!-- more --> 若落在 demo/容器标签内部会截出半截标签,
+         直接把列表 DOM 撑坏 (实测 /pages/42b66999cc27dc25/), 这种情况退回纯文本 */ -}}
+  {{- if $excerpt -}}
+    {{- range (slice "div" "p" "ul" "ol" "li" "h2" "h3" "h4" "h5" "h6" "pre" "blockquote" "table" "span" "a" "strong" "em" "code" "details" "summary" "iframe") -}}
+      {{- if ne (len (findRE (printf "<%s[ >]" .) $excerpt)) (len (findRE (printf "</%s>" .) $excerpt)) }}{{ $excerpt = "" }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if not (strings.TrimSpace ($excerpt | plainify)) -}}
+    {{- $excerpt = $p.Summary | plainify | htmlUnescape | strings.TrimSpace | truncate 220 -}}
+    {{- if not $excerpt }}{{ $excerpt = $p.Content | plainify | htmlUnescape | strings.TrimSpace | truncate 220 }}{{ end -}}
+  {{- end -}}
   <div class="post card-box{{ if $p.Params.sticky }} iconfont icon-zhiding{{ end }}" data-permalink="{{ $p.RelPermalink }}" data-date="{{ $p.Date.Format "2006-01-02" }}"{{ with $cats }} data-categories="{{ delimit . "|" }}"{{ end }}{{ with $tags }} data-tags="{{ delimit . "|" }}"{{ end }}>
     <div class="title-wrapper">
       <h2>
@@ -21,7 +37,7 @@
     </div>
     {{- with $excerpt }}
     <div class="excerpt-wrapper">
-      <div class="excerpt">{{ . | truncate 220 }}</div>
+      <div class="excerpt">{{ . | safeHTML }}</div>
       <a class="readmore iconfont icon-jiantou-you" href="{{ $p.RelPermalink }}">阅读全文</a>
     </div>
     {{- end }}

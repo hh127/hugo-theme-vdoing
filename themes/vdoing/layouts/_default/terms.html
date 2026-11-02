@@ -1,20 +1,18 @@
 {{ define "main" }}
 {{- /* 分类页 / 标签页 (原 CategoriesPage.vue / TagsPage.vue)
-   无参数显示全部文章; /categories/?category=xxx 、/tags/?tag=xxx 由 pages.js 前端过滤 + 分页 */ -}}
+   原版是 SPA 前端过滤; Hugo 版策略:
+   - 服务端只渲染第一页 (site.Params.postPageSize) 条: 无 JS / 爬虫看到的是有限、有意义的内容,
+     页面体积从 ~260KB 降到首页量级 (原审计 2.4)
+   - <noscript> 给出提示 + 原生 term 页链接, 无 JS 时仍可导航
+   - rel=canonical 指向原生 term 页: 由 head.html 统一在 <head> 输出自引用, 带过滤时由 pages.js 改写
+   - ?category=x / ?tag=x / &p=N 的过滤与分页由 pages.js 用 index.json 数据前端重建列表 */ -}}
 {{- $plural := "categories" -}}
 {{- with .Data.Plural }}{{ $plural = . }}{{ end -}}
 {{- $isTag := eq $plural "tags" -}}
-{{- $sticky := slice -}}
-{{- $normal := slice -}}
-{{- range site.RegularPages -}}
-  {{- if ne .Params.article false -}}
-    {{- if .Params.sticky }}{{ $sticky = $sticky | append . }}{{ else }}{{ $normal = $normal | append . }}{{ end -}}
-  {{- end -}}
-{{- end -}}
-{{- $posts := slice -}}
-{{- range sort $sticky "Params.sticky" "asc" }}{{ $posts = $posts | append . }}{{ end -}}
-{{- range sort $normal "Date" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
-<div class="custom-page {{ if $isTag }}tags-page{{ else }}categories-page{{ end }}" data-taxonomy="{{ $plural }}" data-per-page="{{ site.Params.postPageSize | default 10 }}">
+{{- $posts := partial "func/sort-posts.html" site.RegularPages -}}
+{{- $perPage := site.Params.postPageSize | default 10 -}}
+{{- $firstPage := first $perPage $posts -}}
+<div class="custom-page {{ if $isTag }}tags-page{{ else }}categories-page{{ end }}" data-taxonomy="{{ $plural }}" data-per-page="{{ $perPage }}" data-total="{{ len $posts }}" data-show-category="{{ if ne site.Params.category false }}1{{ else }}0{{ end }}" data-show-tag="{{ if ne site.Params.tag false }}1{{ else }}0{{ end }}">
   <div class="main-wrapper">
     <div class="main-left">
       {{- if $isTag }}
@@ -22,7 +20,17 @@
       {{- else }}
       {{ partial "categories-bar.html" (dict "page" . "length" "all") }}
       {{- end }}
-      {{ partial "post-list.html" (dict "pages" $posts "page" .) }}
+      <noscript>
+        <div class="post-list-noscript card-box">
+          <p>分类筛选与分页需要启用 JavaScript。你仍然可以直接访问具体的{{ if $isTag }}标签{{ else }}分类{{ end }}页面：</p>
+          <ul>
+            {{- range .Data.Terms.Alphabetical }}
+            <li><a href="{{ .Page.RelPermalink }}">{{ .Term }}<span>{{ .Count }}</span></a></li>
+            {{- end }}
+          </ul>
+        </div>
+      </noscript>
+      {{ partial "post-list.html" (dict "pages" $firstPage "page" .) }}
       <div class="pagination" data-pagination hidden></div>
     </div>
     <div class="main-right">

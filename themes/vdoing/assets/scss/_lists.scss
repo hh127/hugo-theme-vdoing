@@ -695,3 +695,139 @@
     margin: -1px 0 0 0;
   }
 }
+
+// ---------------------------------------------------------
+//  列表切换过渡 (原 PostList.vue 的 <transition-group name="post">)
+//  JS (pages.js) 重建列表时给 .post 加 .post-enter 再于下一帧移除,
+//  配合 .post 上的 transition 形成淡入 + 左移的进入动画。
+// ---------------------------------------------------------
+.post-list .post {
+  transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s;
+}
+
+// ---------------------------------------------------------
+//  分类/标签页无 JS 提示 (<noscript>, terms.html)
+// ---------------------------------------------------------
+.post-list-noscript {
+  padding: 1rem 1.5rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+
+  p {
+    margin: 0;
+    opacity: 0.85;
+  }
+
+  ul {
+    margin: 0.6rem 0 0;
+    padding-left: 1.2rem;
+  }
+
+  li {
+    list-style: disc;
+  }
+
+  a {
+    color: $accentColor;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  span {
+    margin-left: 0.3rem;
+    font-size: 0.8rem;
+    opacity: 0.6;
+  }
+}
+
+// ---------------------------------------------------------
+//  归档页「加载更多」(原 ArchivesPage.vue li 滚动加载)
+// ---------------------------------------------------------
+.archives-page {
+  .loadmore {
+    margin: 1.5rem auto 2rem;
+    padding: 0.55rem 1rem;
+    width: 12rem;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0.75;
+    font-size: 0.9rem;
+    border: 1px dashed var(--borderColor);
+    border-radius: 0.3rem;
+    transition: opacity 0.2s, border-color 0.2s, color 0.2s;
+    user-select: none;
+
+    &:hover,
+    &:focus-visible {
+      opacity: 1;
+      color: $accentColor;
+      border-color: $accentColor;
+      outline: none;
+    }
+  }
+}
+
+// ---------------------------------------------------------
+//  站内搜索结果面板补充样式 (基础外观在 _navbar.scss 的 .navbar .search-box)
+//  新增: 命中正文片段 / 命中标题小节列表 / 第三方搜索项 / 键盘选中态
+// ---------------------------------------------------------
+.navbar .search-box .search-results {
+  .search-result-item {
+    &.active {
+      background: rgba(150, 150, 150, 0.12);
+    }
+
+    .search-result-snippet {
+      padding: 0 0.9rem 0.4rem;
+      margin-top: -0.15rem;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      opacity: 0.75;
+      word-break: break-word;
+
+      em {
+        color: $accentColor;
+        font-style: normal;
+      }
+    }
+
+    .search-result-headers {
+      padding: 0 0.9rem 0.45rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+
+      a {
+        display: inline-block;
+        padding: 0.05rem 0.45rem;
+        font-size: 0.78rem;
+        line-height: 1.35rem;
+        border-radius: 0.7rem;
+        background: rgba(150, 150, 150, 0.14);
+        color: var(--textColor);
+        text-decoration: none;
+
+        &:hover,
+        &.active {
+          color: $accentColor;
+          background: rgba(150, 150, 150, 0.22);
+        }
+
+        .search-result-header-level {
+          margin-right: 0.25rem;
+          font-size: 0.7rem;
+          opacity: 0.6;
+        }
+      }
+    }
+
+    &.search-result-thirdparty {
+      border-top: 1px solid var(--borderColor);
+    }
+  }
+}
+

@@ -1,6 +1,9 @@
 {{- /* 热门标签栏 (原 TagsBar.vue)
    用法: {{ partial "tags-bar.html" (dict "page" . "length" 30 "tag" "") }}
-   length 为 "all" 时显示全部标签; 每个标签随机取一个主题配色 */ -}}
+   length 为 "all" 时显示全部标签; 无标签时不输出空卡片。
+   排序: 与分类栏一致, 按 $sortPosts 遍历时「标签首次出现」的顺序。
+   配色: 原版每次加载随机取色 (TagsBar.vue getTagStyle), 这里构建期打乱调色板按序取色,
+         避免固定轮转带来的规律性 (每次构建结果不同, 等价原版随机观感)。 */ -}}
 {{- $page := . -}}
 {{- $length := "all" -}}
 {{- $active := "" -}}
@@ -9,27 +12,26 @@
   {{- with .length }}{{ $length = . }}{{ end -}}
   {{- with .tag }}{{ $active = . }}{{ end -}}
 {{- end -}}
-{{- $posts := slice -}}
-{{- range site.RegularPages -}}
-  {{- if ne .Params.article false }}{{ $posts = $posts | append . }}{{ end -}}
-{{- end -}}
+{{- $posts := partial "func/sort-posts.html" site.RegularPages -}}
 {{- $counts := dict -}}
+{{- $order := slice -}}
 {{- range $posts -}}
   {{- range .Params.tags -}}
     {{- with . -}}
+      {{- if not (index $counts .) }}{{ $order = $order | append . }}{{ end -}}
       {{- $n := index $counts . | default 0 -}}
       {{- $counts = merge $counts (dict . (add $n 1)) -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
 {{- $items := slice -}}
-{{- range $k, $v := $counts -}}
-  {{- $items = $items | append (dict "key" (printf "%06d|%s" $v $k) "name" $k "count" $v) -}}
+{{- range $order -}}
+  {{- $items = $items | append (dict "name" . "count" (index $counts .)) -}}
 {{- end -}}
-{{- $items = sort $items "key" "desc" -}}
 {{- $shown := $items -}}
 {{- if ne (printf "%v" $length) "all" }}{{ $shown = first (int $length) $items }}{{ end -}}
-{{- $colors := slice "#11a8cd" "#F8B26A" "#67CC86" "#E15B64" "#F47E60" "#849B87" -}}
+{{- $colors := shuffle (slice "#11a8cd" "#F8B26A" "#67CC86" "#E15B64" "#F47E60" "#849B87") -}}
+{{- if $items -}}
 <div class="tags-wrapper card-box">
   <a class="title iconfont icon-biaoqian1" href="{{ "tags/" | relURL }}" title="全部标签">{{ if eq (printf "%v" $length) "all" }}全部标签{{ else }}热门标签{{ end }}</a>
   <div class="tags">
@@ -42,3 +44,4 @@
     {{- end }}
   </div>
 </div>
+{{- end -}}

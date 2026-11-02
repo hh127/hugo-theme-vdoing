@@ -146,6 +146,18 @@
         height: 300px;
         white-space: nowrap;
         transition: transform 0.4s ease;
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+
+        &:active {
+          cursor: grabbing;
+        }
+
+        // 首尾克隆项 (无缝循环用): 不参与点击/交互
+        .slide-item.slide-clone {
+          pointer-events: none;
+        }
 
         .slide-item {
           display: inline-block;

@@ -1,16 +1,14 @@
 {{ define "main" }}
 {{- /* 分类/标签 term 页 (Hugo 自动生成, 作为原版 query URL 的兜底)
-   服务端直接渲染该 term 下的文章, 前端只管分页 (?p=N) */ -}}
+   服务端直接渲染该 term 下的文章 (SEO/无 JS 可读), 前端只管分页 (?p=N)
+   排序复用 func/sort-posts.html: 与首页 / index.json / 分类标签栏一致 (置顶优先, 再按时间倒序) */ -}}
 {{- $plural := "categories" -}}
 {{- with .Data.Plural }}{{ $plural = . }}{{ end -}}
 {{- $isTag := eq $plural "tags" -}}
 {{- $term := "" -}}
 {{- with .Data.Term }}{{ $term = . }}{{ end -}}
-{{- $posts := slice -}}
-{{- range .Pages.ByDate.Reverse -}}
-  {{- if ne .Params.article false }}{{ $posts = $posts | append . }}{{ end -}}
-{{- end -}}
-<div class="custom-page {{ if $isTag }}tags-page{{ else }}categories-page{{ end }}" data-taxonomy="{{ $plural }}" data-taxonomy-value="{{ $term }}" data-per-page="{{ site.Params.postPageSize | default 10 }}">
+{{- $posts := partial "func/sort-posts.html" .Pages -}}
+<div class="custom-page {{ if $isTag }}tags-page{{ else }}categories-page{{ end }}" data-taxonomy="{{ $plural }}" data-taxonomy-value="{{ $term }}" data-per-page="{{ site.Params.postPageSize | default 10 }}" data-show-category="{{ if ne site.Params.category false }}1{{ else }}0{{ end }}" data-show-tag="{{ if ne site.Params.tag false }}1{{ else }}0{{ end }}">
   <div class="main-wrapper">
     <div class="main-left">
       {{- if $isTag }}

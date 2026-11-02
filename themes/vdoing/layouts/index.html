@@ -1,19 +1,6 @@
 {{ define "main" }}
-{{- /* 文章集合: 置顶优先 + 日期倒序 (原主题 $sortPosts) */ -}}
-{{- $sticky := slice -}}
-{{- $normal := slice -}}
-{{- range site.RegularPages -}}
-  {{- if ne .Params.article false -}}
-    {{- if .Params.sticky -}}
-      {{- $sticky = $sticky | append . -}}
-    {{- else -}}
-      {{- $normal = $normal | append . -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-{{- $posts := slice -}}
-{{- range sort $sticky "Params.sticky" "asc" }}{{ $posts = $posts | append . }}{{ end -}}
-{{- range sort $normal "Date" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
+{{- /* 文章集合: 置顶优先 + 日期倒序 (原主题 $sortPosts, 与 index.json / term 页共用同一排序 partial) */ -}}
+{{- $posts := partial "func/sort-posts.html" site.RegularPages -}}
 {{- $perPage := site.Params.postPageSize | default 10 -}}
 {{- $postList := .Params.postList | default "detailed" -}}
 {{- $paginator := false -}}

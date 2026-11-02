@@ -1,6 +1,8 @@
 {{- /* 文章分类栏 (原 CategoriesBar.vue)
    用法: {{ partial "categories-bar.html" (dict "page" . "length" 10 "category" "") }}
-   length 为 "all" 时显示全部分类 */ -}}
+   length 为 "all" 时显示全部分类; 无分类时不输出空卡片。
+   排序: 原版按 $sortPosts 遍历时「分类首次出现」的顺序 (util/postData.js groupPosts +
+         categoriesAndTags 的 for-in 插入序), 不是按文章数降序。 */ -}}
 {{- $page := . -}}
 {{- $length := "all" -}}
 {{- $active := "" -}}
@@ -9,26 +11,25 @@
   {{- with .length }}{{ $length = . }}{{ end -}}
   {{- with .category }}{{ $active = . }}{{ end -}}
 {{- end -}}
-{{- $posts := slice -}}
-{{- range site.RegularPages -}}
-  {{- if ne .Params.article false }}{{ $posts = $posts | append . }}{{ end -}}
-{{- end -}}
+{{- $posts := partial "func/sort-posts.html" site.RegularPages -}}
 {{- $counts := dict -}}
+{{- $order := slice -}}
 {{- range $posts -}}
   {{- range .Params.categories -}}
     {{- with . -}}
+      {{- if not (index $counts .) }}{{ $order = $order | append . }}{{ end -}}
       {{- $n := index $counts . | default 0 -}}
       {{- $counts = merge $counts (dict . (add $n 1)) -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
 {{- $items := slice -}}
-{{- range $k, $v := $counts -}}
-  {{- $items = $items | append (dict "key" (printf "%06d|%s" $v $k) "name" $k "count" $v) -}}
+{{- range $order -}}
+  {{- $items = $items | append (dict "name" . "count" (index $counts .)) -}}
 {{- end -}}
-{{- $items = sort $items "key" "desc" -}}
 {{- $shown := $items -}}
 {{- if ne (printf "%v" $length) "all" }}{{ $shown = first (int $length) $items }}{{ end -}}
+{{- if $items -}}
 <div class="categories-wrapper card-box">
   <a class="title iconfont icon-wenjianjia" href="{{ "categories/" | relURL }}" title="全部分类">{{ if eq (printf "%v" $length) "all" }}全部分类{{ else }}文章分类{{ end }}</a>
   <div class="categories">
@@ -40,3 +41,4 @@
     {{- end }}
   </div>
 </div>
+{{- end -}}

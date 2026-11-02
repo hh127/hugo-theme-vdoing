@@ -1,20 +1,64 @@
-{{- /* 站内搜索 / 分类标签页前端过滤的数据源, 排序与原版 $sortPosts 一致(置顶优先, 然后时间倒序) */ -}}
-{{- $sticky := slice -}}
-{{- $normal := slice -}}
-{{- range site.RegularPages -}}
-  {{- if ne .Params.article false -}}
-    {{- if .Params.sticky -}}
-      {{- $sticky = $sticky | append . -}}
-    {{- else -}}
-      {{- $normal = $normal | append . -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-{{- $posts := slice -}}
-{{- range sort $sticky "Params.sticky" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
-{{- range sort $normal "Date" "desc" }}{{ $posts = $posts | append . }}{{ end -}}
+{{- /* 站内搜索 / 分类标签页前端过滤的数据源
+   排序: 与首页、term 页共用 func/sort-posts.html (置顶优先, 再按时间倒序)
+   字段: title/permalink/date/categories/tags/titleTag/sticky/author/authorLink
+         excerpt (HTML 摘要, 供分类标签页前端重建列表卡片)
+         content (全文正文, 规范化空白, 供搜索)
+         headers (h2~h6 标题与锚点, 供搜索结果定位到小节) */ -}}
+{{- $posts := partial "func/sort-posts.html" site.RegularPages -}}
 {{- $pages := slice -}}
 {{- range $posts -}}
+  {{- /* 正文: 全文索引 (不截断到 1500 字), 压缩空白便于前端做片段匹配 */ -}}
+  {{- $content := .Plain | htmlUnescape | replaceRE "\\s+" " " | strings.TrimSpace -}}
+  {{- /* 摘要: 有 <!-- more --> 时用 HTML 摘要 (保留图片/富文本), 否则纯文本截断 */ -}}
+  {{- $raw := .RawContent -}}
+  {{- $hasMore := or (strings.Contains $raw "<!--more-->") (strings.Contains $raw "<!-- more -->") (strings.Contains $raw "<!--more -->") (strings.Contains $raw "<!-- more-->") -}}
+  {{- $excerpt := "" -}}
+  {{- if $hasMore }}{{ $excerpt = .Summary }}{{ end -}}
+  {{- /* 摘要 HTML 标签配平检查 (同 post-list.html): 不配平则退回纯文本, 避免前端重建卡片时破坏 DOM */ -}}
+  {{- if $excerpt -}}
+    {{- range (slice "div" "p" "ul" "ol" "li" "h2" "h3" "h4" "h5" "h6" "pre" "blockquote" "table" "span" "a" "strong" "em" "code" "details" "summary" "iframe") -}}
+      {{- if ne (len (findRE (printf "<%s[ >]" .) $excerpt)) (len (findRE (printf "</%s>" .) $excerpt)) }}{{ $excerpt = "" }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if not (strings.TrimSpace ($excerpt | plainify)) -}}
+    {{- $excerpt = .Summary | plainify | htmlUnescape | strings.TrimSpace | truncate 220 -}}
+    {{- if not $excerpt }}{{ $excerpt = $content | truncate 220 }}{{ end -}}
+  {{- end -}}
+  {{- /* 作者信息 (与原 post-meta.html 规则一致) */ -}}
+  {{- $author := "" -}}
+  {{- $authorLink := "" -}}
+  {{- with .Params.author -}}
+    {{- if reflect.IsMap . -}}
+      {{- with .name }}{{ $author = . }}{{ end -}}
+      {{- with .link }}{{ $authorLink = . }}{{ end -}}
+    {{- else -}}
+      {{- $author = . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if not $author -}}
+    {{- with site.Params.author }}{{ $author = . }}{{ end -}}
+    {{- with site.Params.authorLink }}{{ $authorLink = . }}{{ end -}}
+  {{- end -}}
+  {{- /* 标题锚点: .Fragments.Headings 递归展开 h2~h6 (Hugo 最多嵌套 6 层) */ -}}
+  {{- $headers := slice -}}
+  {{- range .Fragments.Headings -}}
+    {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+    {{- range .Headings -}}
+      {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+      {{- range .Headings -}}
+        {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+        {{- range .Headings -}}
+          {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+          {{- range .Headings -}}
+            {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+            {{- range .Headings -}}
+              {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
   {{- $pages = $pages | append (dict
     "title" .Title
     "permalink" .RelPermalink
@@ -23,7 +67,11 @@
     "tags" (.Params.tags | default slice)
     "titleTag" (.Params.titleTag | default "")
     "sticky" (.Params.sticky | default 0)
-    "content" (.Plain | truncate 1500)
+    "author" $author
+    "authorLink" $authorLink
+    "excerpt" $excerpt
+    "content" $content
+    "headers" $headers
   ) -}}
 {{- end -}}
 {{- $pages | jsonify -}}

@@ -1,8 +1,43 @@
-{{- /* 站内搜索 (VuePress SearchBox 的替代实现, 数据来自首页 index.json) */ -}}
+{{- /* 站内搜索 (VuePress SearchBox 的替代实现, 数据来自首页 index.json)
+   配置契约:
+     site.Params.search               false 时整个搜索框不渲染 (原 themeConfig.search)
+     site.Params.searchPlaceholder    输入框占位符 (原 themeConfig.searchPlaceholder)
+     site.Params.searchMaxSuggestions 最大建议条数 (head.html 已注入 window.__SEARCH_MAX__)
+     [[params.thirdpartySearch]]      第三方搜索外链: name + link, link 中 {query} 为关键词占位符
+     [params.algolia]                 appId/apiKey/indexName 均非空时启用 Algolia REST 检索
+   注: Hugo 会把配置 key 小写化, 所以子表里读到的是 appid/apikey/indexname。 */ -}}
+{{- $enabled := true -}}
+{{- if eq site.Params.search false }}{{ $enabled = false }}{{ end -}}
+{{- if $enabled -}}
+{{- $placeholder := site.Params.searchPlaceholder | default "搜索" -}}
+{{- $thirdparty := slice -}}
+{{- range site.Params.thirdpartySearch -}}
+  {{- $tpName := .name -}}
+  {{- $tpLink := .link -}}
+  {{- if and $tpName $tpLink -}}
+    {{- $thirdparty = $thirdparty | append (dict "name" $tpName "link" $tpLink) -}}
+  {{- end -}}
+{{- end -}}
+{{- $algolia := dict -}}
+{{- with site.Params.algolia -}}
+  {{- $appId := or .appid .appId -}}
+  {{- $apiKey := or .apikey .apiKey -}}
+  {{- $indexName := or .indexname .indexName -}}
+  {{- if and $appId $apiKey $indexName -}}
+    {{- $algolia = dict "appId" $appId "apiKey" $apiKey "indexName" $indexName -}}
+  {{- end -}}
+{{- end -}}
 <div class="search-box" id="search-box" role="search">
-  <button type="button" class="search-toggle" id="search-toggle" title="搜索" aria-label="搜索">
+  <button type="button" class="search-toggle" id="search-toggle" title="搜索 (Ctrl/⌘+K)" aria-label="搜索" aria-expanded="false">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
   </button>
-  <input type="text" id="search-input" class="search-input" placeholder="搜索" autocomplete="off" aria-label="搜索">
-  <ul class="search-results" id="search-results"></ul>
+  <input type="text" id="search-input" class="search-input" placeholder="{{ $placeholder }}" autocomplete="off" aria-label="{{ $placeholder }}" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results">
+  <ul class="search-results" id="search-results" role="listbox"></ul>
 </div>
+{{- if $algolia }}
+<script>window.__ALGOLIA__ = {{ $algolia | jsonify | safeJS }};</script>
+{{- end }}
+{{- if $thirdparty }}
+<script>window.__THIRDPARTY_SEARCH__ = {{ $thirdparty | jsonify | safeJS }};</script>
+{{- end }}
+{{- end -}}
