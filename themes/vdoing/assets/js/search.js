@@ -1,4 +1,6 @@
-/* 站内搜索: 读取首页输出的 index.json 做纯前端检索 (原主题 @vuepress/search 的替代实现)
+/* 站内搜索: 读取首页输出的 search-index.json 做纯前端检索 (原主题 @vuepress/search 的替代实现)
+   说明: 全文索引约 2.9MB, 只在用户首次输入关键词时才拉取一次 (输入前只显示加载提示);
+         列表/分类标签页用的轻索引 /index.json 不会在这里加载。
    能力:
    - 标题 / h2~h6 小节标题 / 全文正文三处匹配, 多关键词空格分词 (全部命中)
    - 结果输出正文命中片段并高亮关键词; 命中标题时链接直达 #anchor
@@ -23,6 +25,7 @@
 
   var indexData = null;
   var loadingIndex = false;
+  var indexError = false;
   var indexCallbacks = [];
   var searchTimer = null;
   var activeIndex = -1;
@@ -30,13 +33,13 @@
   var requestSeq = 0;
   var lastKeyword = '';
 
-  /* ---------- 索引加载 ---------- */
+  /* ---------- 索引加载 (全文索引仅在首次搜索时拉取) ---------- */
   function loadIndex(cb) {
     if (indexData) { if (cb) cb(indexData); return; }
     if (cb) indexCallbacks.push(cb);
     if (loadingIndex) return;
     loadingIndex = true;
-    var url = (window.__BASE__ || '/') + 'index.json';
+    var url = (window.__BASE__ || '/') + 'search-index.json';
     fetch(url)
       .then(function (r) { return r.json(); })
       .then(function (data) {
@@ -47,6 +50,7 @@
       .catch(function () {
         loadingIndex = false;
         indexData = [];
+        indexError = true;
         flushIndexCallbacks();
       });
   }
@@ -278,9 +282,7 @@
     box.classList.add('open');
     setExpanded(true);
     if (input) input.focus();
-    loadIndex(function () {
-      if (input.value.trim()) doSearch(input.value);
-    });
+    /* 全文索引不在聚焦时加载: 只有真正输入关键词才拉取 (见 doSearch) */
   }
 
   function closeBox() {
@@ -326,8 +328,18 @@
       searchAlgolia(keyword, function (hits) { render(keyword, hits, seq); });
       return;
     }
+    if (!indexData && !loadingIndex) {
+      results.innerHTML = '<li class="search-loading">正在加载搜索索引…</li>';
+      setExpanded(true);
+    }
     loadIndex(function () {
       if (seq !== requestSeq) return;
+      if (indexError) {
+        currentItems = [];
+        results.innerHTML = '<li class="search-empty">搜索索引加载失败，请刷新重试</li>';
+        setExpanded(true);
+        return;
+      }
       render(keyword, searchLocal(keyword), seq);
     });
   }
@@ -342,7 +354,6 @@
 
   input.addEventListener('focus', function () {
     box.classList.add('open');
-    loadIndex(function () {});
     if (input.value.trim() && !currentItems.length) doSearch(input.value);
   });
 

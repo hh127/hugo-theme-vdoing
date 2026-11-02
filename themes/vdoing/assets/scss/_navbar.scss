@@ -194,6 +194,12 @@ $navbar-horizontal-padding: 1.5rem;
       padding: 0.6rem 0.9rem;
       opacity: 0.7;
     }
+
+    /* 全文索引首次加载提示 (索引约 2.9MB, 按需拉取) */
+    .search-loading {
+      padding: 0.6rem 0.9rem;
+      opacity: 0.7;
+    }
   }
 
   &.open .search-results:not(:empty),

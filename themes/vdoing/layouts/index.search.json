@@ -1,0 +1,39 @@
+{{- /* 全文搜索索引 /search-index.json (输出格式 SEARCH)
+   只在用户首次输入关键词时由 search.js 按需拉取 (约 2.9MB / gzip ~900KB),
+   列表与分类标签页用轻索引 /index.json, 不会下载全站正文。
+   字段: title/permalink/date/sticky/content/headers(h2~h6 标题与锚点) */ -}}
+{{- $posts := partial "func/sort-posts.html" site.RegularPages -}}
+{{- $pages := slice -}}
+{{- range $posts -}}
+  {{- /* 正文: 全文索引 (不截断到 1500 字), 压缩空白便于前端做片段匹配 */ -}}
+  {{- $content := .Plain | htmlUnescape | replaceRE "\\s+" " " | strings.TrimSpace -}}
+  {{- /* 标题锚点: .Fragments.Headings 递归展开 h2~h6 (Hugo 最多嵌套 6 层) */ -}}
+  {{- $headers := slice -}}
+  {{- range .Fragments.Headings -}}
+    {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+    {{- range .Headings -}}
+      {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+      {{- range .Headings -}}
+        {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+        {{- range .Headings -}}
+          {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+          {{- range .Headings -}}
+            {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+            {{- range .Headings -}}
+              {{- if in (slice 2 3 4 5 6) .Level }}{{ $headers = $headers | append (dict "level" .Level "title" .Title "anchor" .ID) }}{{ end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $pages = $pages | append (dict
+    "title" .Title
+    "permalink" .RelPermalink
+    "date" (.Date.Format "2006-01-02")
+    "sticky" (.Params.sticky | default 0)
+    "content" $content
+    "headers" $headers
+  ) -}}
+{{- end -}}
+{{- $pages | jsonify -}}

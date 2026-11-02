@@ -56,7 +56,7 @@
 - 首页 banner：网格纹背景、`bannerBg`（auto / none / 图片 / 自定义 CSS）、heroImage / heroText / tagline / actionButton、features 卡片 + 移动端轮播（首尾克隆无缝循环、100px 拖动阈值、鼠标拖拽、惯性、自动播放）；
 - 首页文章列表：`postList: detailed | simple | none`、`sticky` 置顶、`postPageSize` 分页、`hideRightBar`、右侧博主卡 / 分类 / 标签 / `homeSidebarB`；**摘要保留图片与富文本**（`.Summary`，图片限高 280px）；
 - 归档页：年份 sticky 分组、总数 / 年度篇数、日期 + 标题 + `titleTag` + 标题徽标，**首屏 80 条 + 滚动/点击加载更多**（无 JS 时全量可见）；
-- 分类 / 标签页：原版 URL 行为 `/categories/?category=xxx`、`/tags/?tag=xxx`（`index.json` 前端过滤 + 分页；服务端只渲染首屏，页面体积 -85%，带 `<noscript>` 与 `rel=canonical` 降级），分类按文章首次出现顺序、标签随机配色，term 页置顶排序与首页一致；
+- 分类 / 标签页：原版 URL 行为 `/categories/?category=xxx`、`/tags/?tag=xxx`（轻索引 `index.json` 前端过滤 + 分页；服务端只渲染首屏，页面体积 -85%，带 `<noscript>` 与 `rel=canonical` 降级），分类按文章首次出现顺序、标签按名称哈希稳定配色，term 页置顶排序与首页一致；
 - 目录页：`column-wrapper`（图片 + 标题 + 描述）+ 原版编号大纲 `1. / 1-1. / 1-1-1.`，`#锚点` 与面包屑联动，并渲染「编辑 / 上次更新 / 上下篇」；`catalogue:` 配置错误构建时 `WARN`；
 - 404：大号 404 + **每次加载随机文案**（`data-msgs` + JS）+ 返回首页。
 
@@ -69,7 +69,7 @@
 
 **其他**
 
-- 站内搜索（`index.json` 本地过滤）：索引全部正文 + h2~h6 小节标题，结果带命中片段高亮、可直达小节锚点，支持 ↑↓/Enter/Esc、`searchMaxSuggestions`、`search: false`、`searchPlaceholder`、第三方搜索外链（`[[params.thirdpartySearch]]`）与可选 Algolia（`[params.algolia]`）；
+- 站内搜索（轻/重索引分离）：列表用 `/index.json`（约 210KB，gzip 45KB），全文检索用 `/search-index.json`（约 2.8MB，gzip 873KB，**首次输入关键词才拉取**）；索引全部正文 + h2~h6 小节标题，结果带命中片段高亮、可直达小节锚点，支持 ↑↓/Enter/Esc、`searchMaxSuggestions`、`search: false`、`searchPlaceholder`、第三方搜索外链（`[[params.thirdpartySearch]]`）与可选 Algolia（`[params.algolia]`）；
 - 主题模式三套配色 + `auto` 跟随系统，`localStorage` 记忆，`?mode=dark` 直接指定；
 - 百度统计 / 百度自动推送 / 百度站长验证 meta、OpenGraph、Twitter Card、canonical、RSS、robots.txt、sitemap.xml；
 - 自定义 `<head>` 注入点与自定义样式（`head` / `customCss` / `customStyleFile`，对应原 VuePress `head` 与 `.vuepress/styles`）；
@@ -250,25 +250,29 @@ gitalk 的 js/css 已随仓库放在 `static/gitalk/`，断网也可加载；若
 
 ### 站内搜索
 
-构建时首页额外输出 `index.json`（标题、链接、日期、分类、标签、正文全文、h2~h6 小节标题与锚点、HTML 摘要），
-前端输入时做本地过滤，不依赖任何第三方服务：结果带命中片段高亮、可直达小节锚点，支持 ↑↓/Enter/Esc，
-`/` 或 `Ctrl/⌘ + K` 唤起。分类/标签页也复用该文件做过滤与分页。
+构建时首页额外输出两个 JSON：
+
+- `/index.json`（轻索引，约 210KB / gzip 45KB）：标题、链接、日期、分类、标签、HTML 摘要 —— 供分类/标签页过滤分页与列表重建；
+- `/search-index.json`（全文索引，约 2.8MB / gzip 873KB）：正文全文 + h2~h6 小节标题与锚点 —— 只在用户**首次输入关键词**时才拉取一次，不搜索的访客不会下载。
+
+前端本地过滤，不依赖任何第三方服务：结果带命中片段高亮、可直达小节锚点，支持 ↑↓/Enter/Esc，
+`/` 或 `Ctrl/⌘ + K` 唤起；可选 Algolia（`[params.algolia]`，失败自动回退本地索引）。
 
 ---
 
 ## 与 VuePress 版的差异
 
-**已对齐**：导航（含外链）/ 侧边栏（含当前页标题子项、层级、折叠）/ 首页 banner 与文章列表（含富文本摘要、轮播）/ 文章页（面包屑、徽标、编辑链接四平台、上次更新、右侧大纲、上下篇、最近更新栏）/ 归档（渐进加载）/ 分类 / 标签（前端过滤 + 无 JS 降级）/ 目录页 / 404 运行时随机文案 / 代码块与自定义容器 / CodeGroup / demo 预览 / gitalk 评论（含本地依赖）/ 图片放大缩放拖拽手势 / 三套主题模式 / body 背景图 / 自定义 HTML 模块 / 百度统计 / 站内搜索（小节定位、键盘导航）/ 平滑滚动开关 / 自定义 head 与样式注入。
+**已对齐**：导航（含外链）/ 侧边栏（含当前页标题子项、层级、折叠）/ 首页 banner 与文章列表（含富文本摘要、轮播）/ 文章页（面包屑、徽标、编辑链接四平台、上次更新、右侧大纲、上下篇、最近更新栏）/ 归档（渐进加载）/ 分类 / 标签（前端过滤 + 无 JS 降级）/ 目录页 / 404 运行时随机文案 / 代码块与自定义容器 / CodeGroup / demo 预览 / gitalk 评论（含本地依赖）/ 图片放大缩放拖拽手势 / 三套主题模式 / body 背景图 / 自定义 HTML 模块 / 百度统计 / 站内搜索（轻/重索引分离、小节定位、键盘导航）/ 平滑滚动开关 / 自定义 head 与样式注入 / 旧 VuePress 锚点深链兼容。
 
 **有意不同 / 已知限制**：
 
 - 分类、标签页为「服务端渲染首屏 + 前端 query 过滤分页」：无 JS 时只有首屏 10 条 + 原生 term 页链接（原版是纯 SPA，无 JS 时整页空白）；
 - `demo` 容器的 Vue SFC 实时预览与 CodePen/JSFiddle 外链为有意替代：纯静态站无运行时编译，Vue demo 给出降级说明、可查看源码，HTML demo 仍可实时预览；
 - 未接入 `nprogress` 进度条与 SPA 路由能力（无刷新路由、链接预取、滚动位置恢复）——多页架构使然；
-- Algolia 为可选能力（需自备凭据），默认使用本地 `index.json`；`index.json` 约 2.9MB（gzip ≈ 886KB），按需拉取；
-- 标签配色为构建期随机（原版运行时随机），每次构建 HTML 会有变化；
+- Algolia 为可选能力（需自备凭据），默认使用本地索引：轻索引 `/index.json`（约 210KB / gzip 45KB）供列表过滤，全文 `/search-index.json`（约 2.8MB / gzip 873KB）仅在首次输入关键词时拉取；
+- 标签配色改为按标签名哈希稳定取色（原版每次加载随机；静态构建无法在运行时随机，这里保证同一标签跨构建颜色固定、不同标签分布随机）；
 - `hl_lines` 行高亮语法改为 Hugo 的 `{hl_lines=[..]}`（原版 ` ```js{1,3}`）；行号仍为内联渲染（原版独立列，视觉差异、功能等价）；
-- 锚点算法为 Hugo `anchorize`（VuePress slugify 的旧深链可能对不上，站内链接已校验 0 missing）；
+- 锚点算法本身是 Hugo `anchorize`（与原版 VuePress slugify 不同），已内置 `assets/js/anchor-compat.js`：旧 `#slug` 深链找不到 id 时按 VuePress 规则重新匹配标题并跳转、同时把 hash 换成新 id（best-effort，站内链接已校验 0 missing）；
 - 中文文件名的「上次更新」需 `git config core.quotepath false` 才能取到 git 时间，否则回落 frontmatter 日期。
 
 完整的逐项对比、证据（两侧 `file:line`）、优先级与修复记录见

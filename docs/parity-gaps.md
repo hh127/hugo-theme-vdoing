@@ -38,13 +38,13 @@
 
 **仍需注意的已知限制**（非缺陷，取舍或环境相关）：
 
-1. `index.json` 全文索引约 2.96MB（gzip ≈ 886KB），仅在搜索聚焦/分类页过滤时按需拉取；后续可拆「列表轻索引」进一步减小。
-2. 标签配色为构建期随机（原版运行时随机），每次构建 HTML 会变化。
+1. 索引已拆分为两级：`/index.json` 轻索引（210KB / gzip 45KB，列表与分类标签过滤用）与 `/search-index.json` 全文索引（2.77MB / gzip 873KB，**仅首次输入关键词时拉取**）。不搜索的访客不会下载全文索引。
+2. 标签配色改为按标签名 `hash.FNV32a` 稳定取色：同一标签跨构建颜色固定、不同标签分布随机（原版运行时随机，静态构建无法等价，这是取舍；已验证两次构建产物完全一致）。
 3. Algolia 需自备 `appId/apiKey/indexName` 且站点未启用；thirdparty-search 默认未配置。
 4. Vue SFC 实时预览与 CodePen/JSFiddle 为有意替代（纯静态站无运行时编译）。
 5. Hugo 的 git 集成在 `core.quotepath=true` 时对中文文件名返回 nil：中文文章显示 git 时间需 `git config core.quotepath false`，否则按 `lastUpdatedFallbackToDate` 回落 frontmatter date。
 6. 无 JS 时分类/标签页只有首屏 10 条 + noscript 原生 term 页链接（分页/过滤需 JS）。
-7. 锚点算法（VuePress slugify vs Hugo anchorize）与 `hl_lines` 语法差异仍存疑/未使用，见第 6 节。
+7. 锚点算法仍是 Hugo `anchorize`，已加 `assets/js/anchor-compat.js` 运行时兼容：旧 VuePress slug 深链匹配不到 id 时按 VuePress slugify 重新匹配标题并滚动，同时把 hash 换成新 id（best-effort，非逐字节等价）；`hl_lines` 语法差异内容未使用，见第 6 节。
 
 ---
 

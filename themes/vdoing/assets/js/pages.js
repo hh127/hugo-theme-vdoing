@@ -23,7 +23,7 @@
   var lockedValue = root.getAttribute('data-taxonomy-value') || '';
   var showCategory = root.getAttribute('data-show-category') !== '0';
   var showTag = root.getAttribute('data-show-tag') !== '0';
-  /* 服务端渲染时已知的文章总数: 默认视图(无过滤/第 1 页)可以只靠它出分页条, 不必拉 3MB 的 index.json */
+  /* 服务端渲染时已知的文章总数: 默认视图(无过滤/第 1 页)可以只靠它出分页条, 不必先拉轻索引 index.json (210KB) */
   var serverTotal = parseInt(root.getAttribute('data-total'), 10) || 0;
   var BASE = window.__BASE__ || '/';
 
@@ -360,7 +360,7 @@
     highlightBars(state.filter);
     if (!state.filter && state.page === 1 && serverTotal > 0) {
       /* 默认视图(无过滤第 1 页): 服务端第一页已就绪, 只需用总数生成分页条,
-         避免为了分页条去拉一次 ~3MB 的 index.json */
+         避免为了分页条去拉一次轻索引 index.json (210KB; 全文索引另由 search.js 按需加载) */
       state.total = serverTotal;
       renderPager(clampPage(state.total));
     } else {

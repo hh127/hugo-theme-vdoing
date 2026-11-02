@@ -40,9 +40,11 @@ summaryLength = 80        # 列表摘要长度
 [frontmatter]
   lastmod = [":git", "lastmod", "date"]
 
-# 首页额外输出 index.json 供前端搜索/分类标签页过滤使用
+# 首页额外输出两个 JSON:
+#   index.json       轻索引 (列表渲染/分类标签过滤: 标题/链接/日期/分类/标签/摘要, 约 150KB)
+#   search-index.json 全文搜索索引 (正文 + h2~h6 锚点, 首次输入关键词时才按需拉取)
 [outputs]
-  home = ["HTML", "JSON", "RSS"]
+  home = ["HTML", "JSON", "RSS", "SEARCH"]
   section = ["HTML"]
   taxonomy = ["HTML"]
   term = ["HTML"]
@@ -50,6 +52,12 @@ summaryLength = 80        # 列表摘要长度
 [outputFormats.JSON]
   mediaType = "application/json"
   baseName = "index"
+  isPlainText = true
+  notAlternative = true
+
+[outputFormats.SEARCH]
+  mediaType = "application/json"
+  baseName = "search-index"
   isPlainText = true
   notAlternative = true
 

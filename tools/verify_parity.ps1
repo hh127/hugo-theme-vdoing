@@ -100,15 +100,22 @@ $cg = Read-Page $Destination "pages\8481d1\index.html"
 Check "code-group page no raw tags" ($cg -notmatch '<code-group|<code-block')
 Check "code-group page has tab DOM" ($cg -match 'code-group') ""
 
-Write-Host "==> P1 search index" -ForegroundColor Cyan
+Write-Host "==> P1 search index (light list index + lazy full-text index)" -ForegroundColor Cyan
 $indexJson = Read-Page $Destination "index.json"
-Check "index.json exists" ($indexJson.Length -gt 0) ("size={0:N0}KB" -f ($indexJson.Length / 1KB))
-Check "index.json has headers field" ($indexJson -match '"headers"')
+$searchJson = Read-Page $Destination "search-index.json"
+Check "light index.json exists" ($indexJson.Length -gt 0) ("size={0:N0}KB" -f ($indexJson.Length / 1KB))
+Check "light index.json size" ($indexJson.Length -lt 400KB) ("size={0:N0}KB" -f ($indexJson.Length / 1KB))
+Check "light index.json has no full text" ($indexJson -cnotmatch '"content"\s*:')
+Check "search-index.json exists" ($searchJson.Length -gt 0) ("size={0:N0}KB" -f ($searchJson.Length / 1KB))
+Check "search-index.json has content" ($searchJson -cmatch '"content"\s*:')
+Check "search-index.json has headers field" ($searchJson -match '"headers"')
 try {
-  $arr = $indexJson | ConvertFrom-Json
-  Check "index.json entry count" ($arr.Count -ge 200) "count=$($arr.Count)"
-  $withHeaders = @($arr | Where-Object { $_.headers -and $_.headers.Count -gt 0 }).Count
-  Check "index.json headers non-empty" ($withHeaders -gt 100) "withHeaders=$withHeaders"
+  $light = $indexJson | ConvertFrom-Json
+  $full = $searchJson | ConvertFrom-Json
+  Check "light index entries" ($light.Count -ge 200) "count=$($light.Count)"
+  Check "full index entries" ($full.Count -ge 200) "count=$($full.Count)"
+  $withHeaders = @($full | Where-Object { $_.headers -and $_.headers.Count -gt 0 }).Count
+  Check "full index headers non-empty" ($withHeaders -gt 100) "withHeaders=$withHeaders"
 } catch { Check "index.json parses" $false $_.Exception.Message }
 
 Write-Host "==> P1 categories/tags page size + no-js fallback" -ForegroundColor Cyan
@@ -145,6 +152,11 @@ Check "zoom.js touch gestures" ($zoomJs -match 'touchstart|touchmove')
 $searchJs = Get-Content -LiteralPath "themes/vdoing/assets/js/search.js" -Raw
 Check "search.js keyboard nav" (($searchJs -match 'ArrowDown') -and ($searchJs -match 'ArrowUp') -and ($searchJs -match 'Enter'))
 Check "search.js headers anchors" ($searchJs -match 'headers')
+Check "search.js lazy full-text index" (($searchJs -match 'search-index\.json') -and ($searchJs -match 'search-loading'))
+$anchorJs = Get-Content -LiteralPath "themes/vdoing/assets/js/anchor-compat.js" -Raw
+Check "anchor compat (VuePress slugify)" (($anchorJs -match 'vpSlug') -and ($anchorJs -match 'hashchange'))
+$tagsBarHtml = Get-Content -LiteralPath "themes/vdoing/layouts/partials/tags-bar.html" -Raw
+Check "tag colors stable (fnv32a)" ($tagsBarHtml -match 'fnv32a')
 $sidebarTree = Get-Content -LiteralPath "themes/vdoing/layouts/partials/sidebar-tree.html" -Raw
 Check "sidebar displayAllHeaders" ($sidebarTree -match 'displayAllHeaders')
 $tocJs = Get-Content -LiteralPath "themes/vdoing/assets/js/toc-scroll.js" -Raw

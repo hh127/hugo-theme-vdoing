@@ -2,8 +2,9 @@
    用法: {{ partial "tags-bar.html" (dict "page" . "length" 30 "tag" "") }}
    length 为 "all" 时显示全部标签; 无标签时不输出空卡片。
    排序: 与分类栏一致, 按 $sortPosts 遍历时「标签首次出现」的顺序。
-   配色: 原版每次加载随机取色 (TagsBar.vue getTagStyle), 这里构建期打乱调色板按序取色,
-         避免固定轮转带来的规律性 (每次构建结果不同, 等价原版随机观感)。 */ -}}
+   配色: 原版每次加载随机取色 (TagsBar.vue getTagStyle); 静态构建无法在运行时随机,
+         这里按标签名 fnv32a 哈希从调色板稳定取色 —— 不同标签颜色分布随机, 同一标签每次构建颜色固定
+         (避免脏 HTML 缓存, 也保留原版「一个标签一个颜色」的观感)。 */ -}}
 {{- $page := . -}}
 {{- $length := "all" -}}
 {{- $active := "" -}}
@@ -30,13 +31,13 @@
 {{- end -}}
 {{- $shown := $items -}}
 {{- if ne (printf "%v" $length) "all" }}{{ $shown = first (int $length) $items }}{{ end -}}
-{{- $colors := shuffle (slice "#11a8cd" "#F8B26A" "#67CC86" "#E15B64" "#F47E60" "#849B87") -}}
+{{- $palette := slice "#11a8cd" "#F8B26A" "#67CC86" "#E15B64" "#F47E60" "#849B87" -}}
 {{- if $items -}}
 <div class="tags-wrapper card-box">
   <a class="title iconfont icon-biaoqian1" href="{{ "tags/" | relURL }}" title="全部标签">{{ if eq (printf "%v" $length) "all" }}全部标签{{ else }}热门标签{{ end }}</a>
   <div class="tags">
-    {{- range $i, $t := $shown }}
-    {{- $c := index $colors (mod $i (len $colors)) }}
+    {{- range $t := $shown }}
+    {{- $c := index $palette (mod (int (hash.FNV32a $t.name)) (len $palette)) }}
     <a href="{{ printf "tags/?tag=%s" ($t.name | urlquery) | relURL }}" style="background: {{ $c }};--randomColor:{{ $c }};"{{ if eq $t.name $active }} class="active"{{ end }}>{{ $t.name }}</a><span></span>
     {{- end }}
     {{- if and (ne (printf "%v" $length) "all") (lt (len $shown) (len $items)) }}
