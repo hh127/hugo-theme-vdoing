@@ -154,7 +154,9 @@
     }
   }
 
-  // ---------- demo 容器 (原 vuepress-plugin-demo-block 简化版) ----------
+  // ---------- demo 容器 (原 vuepress-plugin-demo-block) ----------
+  // block.html 输出: head(标题 + 预览/代码 tabs) + body(preview + code)
+  // 交互: data-demo-mode=preview|code 由 code.js 切换; horizontal 纯 CSS 并排
   .custom-block.demo-block {
     margin: 1rem 0;
     border: 1px solid var(--borderColor);
@@ -162,13 +164,65 @@
     overflow: hidden;
     background-color: var(--mainBg);
 
-    > .custom-block-title {
-      margin: 0;
+    .demo-block-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
       padding: 0.6rem 1rem;
       background-color: var(--customBlockBg);
       border-bottom: 1px solid var(--borderColor);
+    }
+
+    > .custom-block-title,
+    .demo-block-head .custom-block-title {
+      margin: 0;
       color: var(--textColor);
       font-weight: 600;
+    }
+
+    .demo-block-tabs {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 0.25rem;
+    }
+
+    .demo-block-tab {
+      padding: 0.15rem 0.6rem;
+      border: 1px solid transparent;
+      border-radius: 3px;
+      background: transparent;
+      color: var(--textColor);
+      font-family: inherit;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: color 0.2s, border-color 0.2s, opacity 0.2s;
+
+      &:hover {
+        color: $accentColor;
+        opacity: 1;
+      }
+
+      &.demo-block-tab--active {
+        color: $accentColor;
+        border-color: $accentColor;
+        opacity: 1;
+      }
+    }
+
+    .demo-block-body {
+      display: block;
+    }
+
+    // 预览 / 代码 互斥显示 (默认预览在 block.html 里给定)
+    &[data-demo-mode='code'] .demo-block-preview {
+      display: none;
+    }
+
+    &[data-demo-mode='preview'] .demo-block-code {
+      display: none;
     }
 
     .demo-block-preview {
@@ -183,6 +237,14 @@
         border: 0;
         background: #fff;
       }
+
+      // Vue <template> demo 的降级说明 / noscript 提示
+      .demo-block-vue-tip {
+        margin: 0.75rem 0.5rem;
+        color: #666;
+        font-size: 0.85rem;
+        line-height: 1.6;
+      }
     }
 
     .demo-block-code {
@@ -190,6 +252,43 @@
 
       .highlight {
         margin: 0.85rem 0;
+      }
+    }
+
+    // horizontal 横向模式: 预览与代码并排 (原 demo-block settings.horizontal)
+    // 并排时不需要切换 tab, 两块内容同时可见
+    &[data-demo-horizontal='true'] {
+      .demo-block-tabs {
+        display: none;
+      }
+
+      .demo-block-body {
+        display: flex;
+        align-items: stretch;
+      }
+
+      .demo-block-preview,
+      .demo-block-code {
+        display: block;
+        flex: 1 1 50%;
+        min-width: 0;
+      }
+
+      .demo-block-preview {
+        border-bottom: 0;
+        border-right: 1px solid var(--borderColor);
+      }
+    }
+
+    // 窄屏: horizontal 退化为上下堆叠, 仍同时可见
+    @media (max-width: $MQMobile) {
+      &[data-demo-horizontal='true'] .demo-block-body {
+        display: block;
+      }
+
+      &[data-demo-horizontal='true'] .demo-block-preview {
+        border-right: 0;
+        border-bottom: 1px solid var(--borderColor);
       }
     }
   }

@@ -1,13 +1,23 @@
 {{- /* 导航菜单 (对应原版 NavLinks.vue / NavLink.vue / DropdownLink.vue), 支持三层嵌套 */ -}}
 {{- /* 参数: dict "items" <菜单数组> "depth" <层级> "page" <当前页> "mode" <links|dropdown> */ -}}
 {{- /*       "class" <额外类名> "repo" <仓库> "repoLabel" <仓库文字> */ -}}
+{{- /* 与原版一致的行为:                                                     */ -}}
+{{- /*   · NavLink.vue:9-19  http(s)/协议相对 -> target=_blank rel=noopener noreferrer + 外链图标 */ -}}
+{{- /*                       mailto:/tel: 只加 .external 类, 不加 target/rel       */ -}}
+{{- /*   · NavLinks.vue:4     nav 与 repo 都为空时不输出空 <nav>                */ -}}
+{{- /*   · NavLinks.vue:89-116 repo 缺省按域名推断 GitHub/GitLab/Bitbucket/Source */ -}}
 {{- $items := .items -}}
 {{- $page := .page -}}
 {{- $depth := .depth | default 1 -}}
 {{- $mode := .mode | default "links" -}}
 {{- $cur := "" -}}
 {{- with $page }}{{ $cur = .RelPermalink }}{{ end -}}
+{{- /* 外链图标: 与 VuePress OutboundLink 一致的内联 SVG, 由 _navbar.scss 控制尺寸 */ -}}
+{{- $extIcon := `<svg class="external-link-icon" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" viewBox="0 0 100 100" width="15" height="15"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path><polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.7,22.9"></polygon></svg>` -}}
 {{- if eq $mode "links" -}}
+{{- $hasItems := false -}}
+{{- with $items }}{{ if gt (len .) 0 }}{{ $hasItems = true }}{{ end }}{{ end -}}
+{{- if or $hasItems .repo -}}
 <nav class="nav-links{{ with .class }} {{ . }}{{ end }}">
   {{- range $items -}}
     {{- $item := . -}}
@@ -34,7 +44,17 @@
     {{- partial "nav.html" (dict "items" $children "depth" (add $depth 1) "page" $page "mode" "dropdown" "text" $item.text "link" $item.link "open" $active) }}
     {{- else }}
     {{- with $item.link }}
-    <a class="nav-link{{ if $active }} active{{ end }}" href="{{ . | relURL }}">{{ $item.text }}</a>
+    {{- $href := . -}}
+    {{- $external := false -}}
+    {{- $newTab := false -}}
+    {{- if or (hasPrefix $href "http://") (hasPrefix $href "https://") (hasPrefix $href "//") -}}
+      {{- $external = true -}}{{- $newTab = true -}}
+    {{- else if or (hasPrefix $href "mailto:") (hasPrefix $href "tel:") -}}
+      {{- $external = true -}}
+    {{- else -}}
+      {{- $href = $href | relURL -}}
+    {{- end }}
+    <a class="nav-link{{ if $external }} external{{ end }}{{ if $active }} active{{ end }}" href="{{ $href | safeURL }}"{{ if $newTab }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ $item.text }}{{ if $external }}{{ $extIcon | safeHTML }}{{ end }}</a>
     {{- else }}
     <span class="nav-link">{{ $item.text }}</span>
     {{- end }}
@@ -42,9 +62,22 @@
   </div>
   {{- end }}
   {{- with .repo }}
-  <a class="repo-link" href="{{ if hasPrefix . "http" }}{{ . }}{{ else }}https://github.com/{{ . }}{{ end }}" target="_blank" rel="noopener noreferrer">{{ with $.repoLabel }}{{ . }}{{ else }}GitHub{{ end }}</a>
+  {{- $repoHref := . -}}
+  {{- if not (hasPrefix . "http") }}{{ $repoHref = printf "https://github.com/%s" . }}{{ end }}
+  {{- /* repoLabel 缺省: 按域名推断平台 (原版 NavLinks.vue:99-115) */ -}}
+  {{- $repoLabel := $.repoLabel | default "" -}}
+  {{- if not $repoLabel -}}
+    {{- $repoHost := "" -}}
+    {{- with urls.Parse $repoHref }}{{ $repoHost = lower .Host }}{{ end -}}
+    {{- $repoLabel = "Source" -}}
+    {{- range $platform := slice "GitHub" "GitLab" "Bitbucket" -}}
+      {{- if in $repoHost (lower $platform) }}{{ $repoLabel = $platform }}{{ end -}}
+    {{- end -}}
+  {{- end }}
+  <a class="repo-link" href="{{ $repoHref | safeURL }}" target="_blank" rel="noopener noreferrer">{{ $repoLabel }}{{ $extIcon | safeHTML }}</a>
   {{- end }}
 </nav>
+{{- end -}}
 {{- else if eq $mode "dropdown" -}}
 {{- $active := .open | default false -}}
 <div class="dropdown-wrapper{{ if $active }} active{{ end }}">
@@ -87,18 +120,58 @@
                   {{- with $leaf.link -}}
                     {{- if eq . "/" }}{{ $leafActive = eq $cur "/" }}{{ else }}{{ $leafActive = hasPrefix $cur . }}{{ end -}}
                   {{- end }}
-                <li class="dropdown-subitem"><a class="nav-link{{ if $leafActive }} active{{ end }}" href="{{ $leaf.link | relURL }}">{{ $leaf.text }}</a></li>
+                {{- with $leaf.link }}
+                {{- $leafHref := . -}}
+                {{- $leafExternal := false -}}
+                {{- $leafNewTab := false -}}
+                {{- if or (hasPrefix $leafHref "http://") (hasPrefix $leafHref "https://") (hasPrefix $leafHref "//") -}}
+                  {{- $leafExternal = true -}}{{- $leafNewTab = true -}}
+                {{- else if or (hasPrefix $leafHref "mailto:") (hasPrefix $leafHref "tel:") -}}
+                  {{- $leafExternal = true -}}
+                {{- else -}}
+                  {{- $leafHref = $leafHref | relURL -}}
+                {{- end }}
+                <li class="dropdown-subitem"><a class="nav-link{{ if $leafExternal }} external{{ end }}{{ if $leafActive }} active{{ end }}" href="{{ $leafHref | safeURL }}"{{ if $leafNewTab }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ $leaf.text }}{{ if $leafExternal }}{{ $extIcon | safeHTML }}{{ end }}</a></li>
+                {{- else }}
+                <li class="dropdown-subitem"><span class="nav-link">{{ $leaf.text }}</span></li>
+                {{- end }}
                 {{- end -}}
               </ul>
             </li>
             {{- else }}
-            <li class="dropdown-subitem"><a class="nav-link{{ if $subActive }} active{{ end }}" href="{{ $sub.link | relURL }}">{{ $sub.text }}</a></li>
+            {{- with $sub.link }}
+            {{- $subHref := . -}}
+            {{- $subExternal := false -}}
+            {{- $subNewTab := false -}}
+            {{- if or (hasPrefix $subHref "http://") (hasPrefix $subHref "https://") (hasPrefix $subHref "//") -}}
+              {{- $subExternal = true -}}{{- $subNewTab = true -}}
+            {{- else if or (hasPrefix $subHref "mailto:") (hasPrefix $subHref "tel:") -}}
+              {{- $subExternal = true -}}
+            {{- else -}}
+              {{- $subHref = $subHref | relURL -}}
+            {{- end }}
+            <li class="dropdown-subitem"><a class="nav-link{{ if $subExternal }} external{{ end }}{{ if $subActive }} active{{ end }}" href="{{ $subHref | safeURL }}"{{ if $subNewTab }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ $sub.text }}{{ if $subExternal }}{{ $extIcon | safeHTML }}{{ end }}</a></li>
+            {{- end -}}
             {{- end -}}
           {{- end -}}
         </ul>
       </li>
       {{- else }}
-      <li class="dropdown-item"><a class="nav-link{{ if $childActive }} active{{ end }}" href="{{ $item.link | relURL }}">{{ $item.text }}</a></li>
+      {{- with $item.link }}
+      {{- $itemHref := . -}}
+      {{- $itemExternal := false -}}
+      {{- $itemNewTab := false -}}
+      {{- if or (hasPrefix $itemHref "http://") (hasPrefix $itemHref "https://") (hasPrefix $itemHref "//") -}}
+        {{- $itemExternal = true -}}{{- $itemNewTab = true -}}
+      {{- else if or (hasPrefix $itemHref "mailto:") (hasPrefix $itemHref "tel:") -}}
+        {{- $itemExternal = true -}}
+      {{- else -}}
+        {{- $itemHref = $itemHref | relURL -}}
+      {{- end }}
+      <li class="dropdown-item"><a class="nav-link{{ if $itemExternal }} external{{ end }}{{ if $childActive }} active{{ end }}" href="{{ $itemHref | safeURL }}"{{ if $itemNewTab }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ $item.text }}{{ if $itemExternal }}{{ $extIcon | safeHTML }}{{ end }}</a></li>
+      {{- else }}
+      <li class="dropdown-item"><span class="nav-link">{{ $item.text }}</span></li>
+      {{- end }}
       {{- end -}}
     {{- end -}}
   </ul>

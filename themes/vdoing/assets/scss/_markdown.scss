@@ -466,41 +466,8 @@
     }
   }
 
-  // ---------- 图片放大遮罩 (原 vuepress-plugin-zooming) ----------
-  .zooming-overlay {
-    position: fixed;
-    z-index: 9999;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    box-sizing: border-box;
-    cursor: zoom-out;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-
-    &.zooming-overlay--active {
-      opacity: 1;
-    }
-
-    img {
-      max-width: 92vw;
-      max-height: 90vh;
-      box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
-      border-radius: 2px;
-      cursor: default;
-      transform: scale(0.92);
-      transition: transform 0.3s ease;
-    }
-
-    &.zooming-overlay--active img {
-      transform: scale(1);
-    }
-  }
+  // 图片放大遮罩样式统一放在 _shell.scss (根选择器, 因为遮罩挂在 body 上);
+  // 这里不再保留嵌在 .theme-vdoing-content 下的旧规则 —— 那个作用域永远匹配不到 body 上的 overlay。
 }
 
 // ---------- 卡片列表响应式 ----------

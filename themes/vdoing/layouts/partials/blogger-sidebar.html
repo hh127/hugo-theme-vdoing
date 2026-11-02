@@ -1,13 +1,20 @@
 {{- /* 侧边栏顶部博主信息 (移动端显示, 对应原版 Sidebar.vue 的 .blogger) */ -}}
+{{- /* 原版语义 (Sidebar.vue:8-18): 有 blogger.social 才显示社交图标, 否则显示 slogan;
+      这里不再回退到站点级 params.social —— 博主卡只属于博主自己的社交入口, 与页脚图标区分 */ -}}
 {{- with site.Params.blogger -}}
-{{- $blogger := . }}
+{{- $blogger := . -}}
 <div class="blogger">
   <img src="{{ .avatar }}" alt="{{ .name }}">
   <div class="blogger-info">
     {{- with .name }}<h3>{{ . }}</h3>{{ end }}
     {{- $icons := slice -}}
-    {{- with .social }}{{ with .icons }}{{ $icons = . }}{{ end }}{{ end -}}
-    {{- if not $icons }}{{ with site.Params.social }}{{ $icons = . }}{{ end }}{{ end -}}
+    {{- with .social -}}
+      {{- if reflect.IsSlice . -}}
+        {{- $icons = . -}}
+      {{- else -}}
+        {{- with .icons }}{{ $icons = . }}{{ end -}}
+      {{- end -}}
+    {{- end -}}
     {{- if $icons }}
     <div class="icons">
       {{- range $icons }}

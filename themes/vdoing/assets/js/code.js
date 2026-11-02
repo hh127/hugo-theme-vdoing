@@ -188,48 +188,99 @@
     }
   }
 
-  // ---------- 4. demo 容器 iframe 预览 ----------
+  // ---------- 4. demo 容器: 预览 / 代码 切换 + iframe 预览 ----------
+  // 原 vuepress-plugin-demo-block 的能力对应:
+  //   · 预览 / 代码 切换 (默认预览) -> 由 block.html 输出 data-demo-mode + tab 按钮, 这里接管点击
+  //   · horizontal 横向模式 -> 纯 CSS (data-demo-horizontal="true")
+  //   · 纯 HTML demo -> 注入 sandbox iframe (srcdoc)
+  //   · Vue <template> demo -> 静态站无运行时编译, 服务端已输出降级说明, 这里不注入 iframe
+  //   · CodePen / JSFiddle -> 纯静态无法可靠生成, 有意不实现 (不伪造)
+  var DEMO_DOC_STYLE =
+    'body{margin:12px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#333;}';
+
+  function buildDemoDoc(html) {
+    var doc = html;
+    if (!/<html[\s>]/i.test(doc)) {
+      doc =
+        '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' +
+        DEMO_DOC_STYLE +
+        '</style></head><body>' +
+        doc +
+        '</body></html>';
+    } else if (!/^\s*<!DOCTYPE/i.test(doc)) {
+      doc = '<!DOCTYPE html>' + doc;
+    }
+    return doc;
+  }
+
+  function demoCodeText(block) {
+    var code = block.querySelector('.demo-block-code code');
+    if (!code) return null;
+    var lang = (code.getAttribute('data-lang') || '').toLowerCase();
+    // 只预览 html demo (与旧实现一致); 语言未知时允许尝试
+    if (lang && lang !== 'html') return null;
+    var html = stripLineNumbers(code);
+    if (!html) return null;
+    // vue 单文件模板 demo 无法在普通 iframe 里跑
+    if (/<template[\s>]/i.test(html)) return null;
+    if (!/<[a-z!/]/i.test(html)) return null;
+    return html;
+  }
+
+  function ensureDemoPreview(block) {
+    var codeWrap = block.querySelector('.demo-block-code');
+    var pane = block.querySelector('.demo-block-preview');
+    if (!pane) {
+      // 兼容旧标记: 没有预览容器时按原逻辑插到代码前面
+      if (!codeWrap) return;
+      var html0 = demoCodeText(block);
+      if (html0 === null) return;
+      pane = document.createElement('div');
+      pane.className = 'demo-block-preview';
+      block.insertBefore(pane, codeWrap);
+    }
+    if (pane.querySelector('iframe')) return;
+    if (pane.querySelector('.demo-block-vue-tip')) return; // 服务端降级说明, 不伪造预览
+    var html = demoCodeText(block);
+    if (html === null) return;
+
+    var iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts allow-modals');
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('scrolling', 'auto');
+    iframe.setAttribute('title', 'demo preview');
+    iframe.srcdoc = buildDemoDoc(html);
+    pane.appendChild(iframe);
+  }
+
+  function setDemoMode(block, mode) {
+    if (mode !== 'preview' && mode !== 'code') return;
+    block.setAttribute('data-demo-mode', mode);
+    var tabs = block.querySelectorAll('[data-demo-tab]');
+    for (var i = 0; i < tabs.length; i++) {
+      var active = tabs[i].getAttribute('data-demo-tab') === mode;
+      if (active) tabs[i].classList.add('demo-block-tab--active');
+      else tabs[i].classList.remove('demo-block-tab--active');
+      tabs[i].setAttribute('aria-selected', active ? 'true' : 'false');
+    }
+    if (mode === 'preview') ensureDemoPreview(block);
+  }
+
   function initDemoBlocks() {
     var demos = document.querySelectorAll('.theme-vdoing-content .demo-block');
     for (var i = 0; i < demos.length; i++) {
       (function (block) {
-        if (block.querySelector('.demo-block-preview')) return;
-        var body = block.querySelector('.demo-block-code');
-        if (!body) return;
-        var code = body.querySelector('code');
-        if (!code) return;
-
-        var lang = (code.getAttribute('data-lang') || '').toLowerCase();
-        if (lang && lang !== 'html') return; // 只预览 html demo
-
-        var html = stripLineNumbers(code);
-        // vue 单文件模板 demo 无法在普通 iframe 里跑, 跳过
-        if (!html || /<template[\s>]/i.test(html)) return;
-        if (!/<[a-z!/]/i.test(html)) return;
-
-        var doc = html;
-        if (!/<html[\s>]/i.test(doc)) {
-          doc =
-            '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-            '<style>body{margin:12px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#333;}</style>' +
-            '</head><body>' +
-            doc +
-            '</body></html>';
-        } else if (!/^\s*<!DOCTYPE/i.test(doc)) {
-          doc = '<!DOCTYPE html>' + doc;
+        var tabs = block.querySelectorAll('[data-demo-tab]');
+        for (var t = 0; t < tabs.length; t++) {
+          (function (tab) {
+            tab.addEventListener('click', function (e) {
+              if (e) e.preventDefault();
+              setDemoMode(block, tab.getAttribute('data-demo-tab'));
+            });
+          })(tabs[t]);
         }
-
-        var wrap = document.createElement('div');
-        wrap.className = 'demo-block-preview';
-        var iframe = document.createElement('iframe');
-        iframe.setAttribute('sandbox', 'allow-scripts allow-modals');
-        iframe.setAttribute('frameborder', '0');
-        iframe.setAttribute('scrolling', 'auto');
-        iframe.setAttribute('title', 'demo preview');
-        iframe.srcdoc = doc;
-        wrap.appendChild(iframe);
-        // 原版顺序: 标题 / 预览 / 代码
-        block.insertBefore(wrap, body);
+        // 默认预览: 首次渲染时注入 iframe
+        if (block.getAttribute('data-demo-mode') === 'preview') ensureDemoPreview(block);
       })(demos[i]);
     }
   }

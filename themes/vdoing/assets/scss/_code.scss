@@ -172,10 +172,12 @@
       }
 
       // operator / entity / url / css string
+      // code-theme.styl:99-106 还给这几类加了半透明白底
       .o,
       .ow,
       .ni {
         color: #9a6e3a;
+        background: hsla(0, 0%, 100%, 0.5);
       }
 
       // atrule / attr-value / keyword
@@ -315,6 +317,7 @@
       .ow,
       .ni {
         color: #67cdcc;
+        background: none;
       }
 
       .gi {
@@ -356,6 +359,187 @@
 
     .highlight .copy-button {
       display: none;
+    }
+  }
+}
+
+// =========================================================
+//  Prism token 别名 (对照 legacy/vdoing/styles/code-theme.styl:2-274)
+//  Hugo/chroma 输出的 class 是 .o / .nf / .nt 这类短名, 上面已逐类映射;
+//  部分迁移内容保留了 Prism 渲染的 HTML (<span class="token operator">),
+//  这里补 Prism 类名本身, 浅色/深色两套都覆盖, 避免这类代码块没有配色。
+// =========================================================
+.theme-mode-light {
+  .theme-vdoing-content .token {
+    &.comment,
+    &.prolog,
+    &.doctype,
+    &.cdata {
+      color: slategray;
+    }
+
+    &.punctuation {
+      color: #999;
+    }
+
+    &.namespace {
+      opacity: 0.7;
+    }
+
+    // property / tag / boolean / number / constant / symbol / deleted
+    &.property,
+    &.tag,
+    &.boolean,
+    &.number,
+    &.constant,
+    &.symbol,
+    &.deleted {
+      color: #905;
+    }
+
+    // selector / attr-name / string / char / builtin / inserted
+    &.selector,
+    &.attr-name,
+    &.string,
+    &.char,
+    &.builtin,
+    &.inserted {
+      color: #690;
+    }
+
+    // operator / entity / url + css string: code-theme.styl:99-106 有半透明白底
+    &.operator,
+    &.entity,
+    &.url {
+      color: #9a6e3a;
+      background: hsla(0, 0%, 100%, 0.5);
+    }
+
+    // atrule / attr-value / keyword
+    &.atrule,
+    &.attr-value,
+    &.keyword {
+      color: #07a;
+    }
+
+    // function / class-name
+    &.function,
+    &.class-name {
+      color: #dd4a68;
+    }
+
+    // regex / important / variable
+    &.regex,
+    &.important,
+    &.variable {
+      color: #e90;
+    }
+
+    &.important,
+    &.bold {
+      font-weight: bold;
+    }
+
+    &.italic {
+      font-style: italic;
+    }
+
+    &.entity {
+      cursor: help;
+    }
+  }
+
+  .theme-vdoing-content .language-css .token.string,
+  .theme-vdoing-content .style .token.string {
+    color: #9a6e3a;
+    background: hsla(0, 0%, 100%, 0.5);
+  }
+}
+
+.theme-mode-dark,
+.theme-mode-read {
+  .theme-vdoing-content .token {
+    &.comment,
+    &.block-comment,
+    &.prolog,
+    &.doctype,
+    &.cdata {
+      color: #999;
+    }
+
+    &.punctuation {
+      color: #ccc;
+    }
+
+    // tag / attr-name / namespace / deleted
+    &.tag,
+    &.attr-name,
+    &.namespace,
+    &.deleted {
+      color: #e2777a;
+    }
+
+    // code-theme.styl:213-215 的 function-name (审计点名缺失项)
+    &.function-name {
+      color: #6196cc;
+    }
+
+    // boolean / number / function
+    &.boolean,
+    &.number,
+    &.function {
+      color: #f08d49;
+    }
+
+    // property / class-name / constant / symbol
+    &.property,
+    &.class-name,
+    &.constant,
+    &.symbol {
+      color: #f8c555;
+    }
+
+    // selector / important / atrule / keyword / builtin
+    &.selector,
+    &.important,
+    &.atrule,
+    &.keyword,
+    &.builtin {
+      color: #cc99cd;
+    }
+
+    // string / char / attr-value / regex / variable
+    &.string,
+    &.char,
+    &.attr-value,
+    &.regex,
+    &.variable {
+      color: #7ec699;
+    }
+
+    // operator / entity / url
+    &.operator,
+    &.entity,
+    &.url {
+      color: #67cdcc;
+      background: none;
+    }
+
+    &.important,
+    &.bold {
+      font-weight: bold;
+    }
+
+    &.italic {
+      font-style: italic;
+    }
+
+    &.entity {
+      cursor: help;
+    }
+
+    &.inserted {
+      color: green;
     }
   }
 }

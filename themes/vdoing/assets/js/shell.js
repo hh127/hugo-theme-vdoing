@@ -10,6 +10,7 @@
   var MOBILE = 719; // 原版 config.styl $MQMobile
   var NAVBAR_HEIGHT = 58;
   var STORE_MODE = 'vdoing-mode';
+  var STORE_MODE_LEGACY = 'mode'; // 原版 Layout.vue 使用的 localStorage 键名
   var MODES = ['auto', 'light', 'dark', 'read'];
 
   function $(sel, root) {
@@ -51,6 +52,19 @@
     try { localStorage.setItem(STORE_MODE, mode); } catch (e) {}
   }
 
+  // 老用户偏好迁移: 原版 Layout.vue 用 localStorage 'mode' 存主题模式,
+  // 本主题改成 'vdoing-mode'; 首次访问时把旧值搬过来并清掉旧键, 避免偏好丢失
+  function migrateLegacyStore() {
+    try {
+      var legacy = localStorage.getItem(STORE_MODE_LEGACY);
+      if (legacy === null) return;
+      if (MODES.indexOf(legacy) > -1 && !localStorage.getItem(STORE_MODE)) {
+        localStorage.setItem(STORE_MODE, legacy);
+      }
+      localStorage.removeItem(STORE_MODE_LEGACY);
+    } catch (e) {}
+  }
+
   function currentPref() {
     var stored = readStore();
     if (stored && MODES.indexOf(stored) > -1) return stored;
@@ -83,6 +97,7 @@
   }
 
   (function initMode() {
+    migrateLegacyStore();
     var pref = currentPref();
     // 支持 ?mode=dark 之类的手动指定 (便于分享/截图)
     var fromUrl = /[?&]mode=(auto|light|dark|read)(?:&|$)/.exec(window.location.search);
@@ -260,10 +275,8 @@
     var top = getScrollTop();
     scrollTicking = false;
 
-    if (goTop) {
-      if (top > 100) goTop.style.display = '';
-      else goTop.style.display = 'none';
-    }
+    // 返回顶部按钮: 用 .show 做淡入淡出 (原版 Buttons.vue 的 <transition name="fade">)
+    if (goTop) goTop.classList.toggle('show', top > 100);
 
     if (container) {
       if (!sidebarIsOpen()) {
@@ -288,7 +301,7 @@
     goTop.addEventListener('click', function () {
       if (container) container.classList.remove('hide-navbar');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      goTop.style.display = 'none';
+      goTop.classList.remove('show');
     });
   }
 
@@ -320,11 +333,7 @@
   function getCommentButtonState() {
     setTimeout(function () {
       var el = getCommentEl();
-      if (!el) {
-        if (goComment) goComment.style.display = 'none';
-        return;
-      }
-      if (goComment) goComment.style.display = '';
+      if (goComment) goComment.classList.toggle('show', !!el);
     }, 500);
   }
 
@@ -403,7 +412,37 @@
   });
 
   /* =========================================================
-   *  10. 窗口尺寸变化: 切到小屏时收起侧边栏
+   *  10. navbar 链接区最大宽度自适应 (原版 Navbar.vue:56-69)
+   *      .links 是绝对定位在右侧的, 菜单很长时会压住左侧站名;
+   *      这里按 "navbar 宽度 - 左右内边距 - 站名宽度" 限制其最大宽度
+   * ========================================================= */
+  var navbarEl = $('.navbar');
+  var linksEl = navbarEl ? $('.links', navbarEl) : null;
+  var siteNameEl = navbarEl ? $('.site-name', navbarEl) : null;
+
+  function updateLinksWrapWidth() {
+    if (!navbarEl || !linksEl) return;
+    // 移动端站名/菜单是另一套布局 (can-hide), 不限制
+    if (isMobile()) {
+      linksEl.style.maxWidth = '';
+      return;
+    }
+    var cs = window.getComputedStyle ? window.getComputedStyle(navbarEl) : null;
+    var pad = 0;
+    if (cs) {
+      pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    }
+    var nameWidth = siteNameEl ? siteNameEl.offsetWidth : 0;
+    var max = navbarEl.offsetWidth - pad - nameWidth;
+    linksEl.style.maxWidth = max > 0 ? max + 'px' : '';
+  }
+
+  updateLinksWrapWidth();
+  window.addEventListener('resize', updateLinksWrapWidth);
+  window.addEventListener('load', updateLinksWrapWidth);
+
+  /* =========================================================
+   *  11. 窗口尺寸变化: 切到小屏时收起侧边栏
    * ========================================================= */
   var wasMobile = isMobile();
   window.addEventListener('resize', function () {

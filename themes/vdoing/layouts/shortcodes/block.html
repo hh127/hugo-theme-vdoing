@@ -122,9 +122,44 @@
   <div class="custom-block right">{{- $body -}}</div>
 {{- else if eq $baseType "demo" -}}
   {{- /* typographer 会把 HTML 注释结束符 --> 变成 &ndash;&gt;, 这里还原以便注释正常闭合 */ -}}{{- $body := .Inner | markdownify -}}{{- $body = replaceRE "&ndash;&gt;" "-->" $body | safeHTML -}}
-  <div class="custom-block demo-block">
-    <p class="custom-block-title">示例{{ with $title }} · {{ . }}{{ end }}</p>
-    <div class="demo-block-code">{{- $body -}}</div>
+  {{- /* demo 容器 (原 vuepress-plugin-demo-block):
+         参数: title (标题), horizontal (预览与代码并排)
+         能力对照见 docs/parity-gaps.md 2.3:
+           · 纯 HTML demo -> 前端注入 iframe 预览 (code.js)
+           · Vue <template> demo -> 静态站无法运行时编译, 输出明确的降级说明
+           · CodePen / JSFiddle 外链 -> 纯静态下无法可靠生成, 有意替代 (不伪造) */ -}}
+  {{- $inner := printf "%s" .Inner -}}
+  {{- $isVue := in $inner "<template" -}}
+  {{- $hasHtml := and (not $isVue) (gt (len (findRE `<[a-zA-Z!/]` $inner)) 0) -}}
+  {{- $hasPreview := or $hasHtml $isVue -}}
+  {{- $horizontal := false -}}
+  {{- if isset .Params "horizontal" -}}
+    {{- $hv := lower (printf "%v" (.Get "horizontal")) -}}
+    {{- if and (ne $hv "false") (ne $hv "0") (ne $hv "no") -}}{{- $horizontal = true -}}{{- end -}}
+  {{- end -}}
+  <!-- demo 容器: CodePen / JSFiddle 外链在纯静态实现中不生成 (有意替代, 见 docs/parity-gaps.md 2.3) -->
+  <div class="custom-block demo-block" data-demo-mode="{{ if $hasPreview }}preview{{ else }}code{{ end }}" data-demo-has-preview="{{ if $hasPreview }}true{{ else }}false{{ end }}" data-demo-horizontal="{{ if $horizontal }}true{{ else }}false{{ end }}">
+    <div class="demo-block-head">
+      <p class="custom-block-title">示例{{ with $title }} · {{ . }}{{ end }}</p>
+      {{- if $hasPreview }}
+      <div class="demo-block-tabs" role="tablist" aria-label="demo 切换">
+        <button type="button" class="demo-block-tab demo-block-tab--active" data-demo-tab="preview" role="tab" aria-selected="true">预览</button>
+        <button type="button" class="demo-block-tab" data-demo-tab="code" role="tab" aria-selected="false">代码</button>
+      </div>
+      {{- end }}
+    </div>
+    <div class="demo-block-body">
+      {{- if $hasPreview }}
+      <div class="demo-block-preview" role="tabpanel" aria-label="预览">
+        {{- if $isVue }}
+        <p class="demo-block-vue-tip">Vue 实时预览已由静态版替代，可直接查看源码（点击「代码」）。</p>
+        {{- else }}
+        <noscript><p class="demo-block-vue-tip">预览需要 JavaScript，可查看下方代码。</p></noscript>
+        {{- end }}
+      </div>
+      {{- end }}
+      <div class="demo-block-code" role="tabpanel" aria-label="代码">{{- $body -}}</div>
+    </div>
   </div>
 {{- else -}}
   {{- /* tip / note / warning / danger 及未知类型: vuepress-plugin-container 结构 */ -}}

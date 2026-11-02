@@ -13,7 +13,8 @@
 
   <a class="home-link" href="{{ "/" | relURL }}">
     {{- with site.Params.logo }}<img class="logo" src="{{ . | relURL }}" alt="{{ site.Title }}">{{ end -}}
-    {{- with site.Title }}<span class="site-name can-hide">{{ . }}</span>{{ end -}}
+    {{- /* 原版 Navbar.vue:19 —— 只有配了 logo 时站名才加 can-hide (移动端隐藏); 无 logo 时要显示站名 */ -}}
+    {{- with site.Title }}<span class="site-name{{ if site.Params.logo }} can-hide{{ end }}">{{ . }}</span>{{ end -}}
   </a>
 
   <div class="links">

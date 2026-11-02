@@ -43,6 +43,21 @@
       }
     }
 
+    // 返回顶部 / 去评论: 淡入淡出 (原版 Buttons.vue 的 <transition name="fade">)
+    // 用 opacity + visibility 代替 display:none, 既能过渡, 也不会让主题按钮跳动
+    &.can-fade {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.3s ease, visibility 0.3s ease, background 0.5s, box-shadow 0.5s;
+
+      &.show {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+    }
+
     @media (any-hover: hover) {
       &:hover {
         background: $accentColor;
@@ -52,11 +67,20 @@
           color: #fff;
         }
       }
+
+      // 桌面端悬浮也展开主题选择框 (移动端由 shell.js 的 .open 控制)
+      &:hover .select-box {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: scale(1) translateX(0);
+      }
     }
 
     // 主题模式选择框 (悬浮 / 点击展开)
+    // 原版 <transition name="mode">: opacity 0 + scale(.8), 以按钮处为原点"扇出"
     .select-box {
-      display: none;
+      display: block;
       margin: 0;
       padding: 0.8rem 0;
       position: absolute;
@@ -68,6 +92,12 @@
       border-radius: 6px;
       box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
       text-align: left;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.8) translateX(6px);
+      transform-origin: 100% 100%;
+      transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
 
       li {
         list-style: none;
@@ -88,9 +118,11 @@
       }
     }
 
-    &.open .select-box,
-    &:hover .select-box {
-      display: block;
+    &.open .select-box {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: scale(1) translateX(0);
     }
   }
 }

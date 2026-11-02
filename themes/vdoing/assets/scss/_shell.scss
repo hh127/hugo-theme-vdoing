@@ -25,6 +25,12 @@
     .sidebar-button {
       top: 1rem;
     }
+
+    // 原版 index.styl:294-301 —— 没有 navbar 时, 正文标题不再需要为固定导航预留顶部空间
+    .theme-vdoing-content:not(.custom) > :is(h1, h2, h3, h4, h5, h6) {
+      margin-top: 1.5rem;
+      padding-top: 0;
+    }
   }
 }
 
@@ -355,5 +361,64 @@
 
   &.page-slot-bottom {
     margin-top: 1rem;
+  }
+}
+
+// ---------------------------------------------------------
+//  图片放大遮罩 (原 vuepress-plugin-zooming, 交互见 assets/js/zoom.js)
+//  注意: 遮罩是 document.body 的直接子元素, 不能挂在 .theme-vdoing-content 下,
+//        因此这里用根选择器定义 (_markdown.scss 里同名规则嵌在 .theme-vdoing-content 下, 不会命中)
+//  支持: 滚轮缩放 0.5~4x / 双击缩放复位 / 鼠标拖拽 / 触摸双指缩放
+// ---------------------------------------------------------
+.zooming-overlay {
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  cursor: zoom-out;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  // 触摸手势由 zoom.js 自行处理, 避免浏览器默认缩放/滚动
+  touch-action: none;
+
+  &.zooming-overlay--active {
+    opacity: 1;
+  }
+
+  img {
+    max-width: 92vw;
+    max-height: 90vh;
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+    border-radius: 2px;
+    cursor: default;
+    transform-origin: center center;
+    transform: scale(0.92);
+    transition: transform 0.3s ease;
+    user-select: none;
+    -webkit-user-drag: none;
+    will-change: transform;
+  }
+
+  &.zooming-overlay--active img {
+    transform: scale(1);
+  }
+
+  // 放大后可拖拽
+  &.zooming-overlay--zoomed,
+  &.zooming-overlay--zoomed img {
+    cursor: grab;
+  }
+
+  &.zooming-overlay--dragging,
+  &.zooming-overlay--dragging img {
+    cursor: grabbing;
   }
 }

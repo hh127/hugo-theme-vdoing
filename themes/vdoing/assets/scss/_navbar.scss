@@ -242,6 +242,15 @@ $navbar-horizontal-padding: 1.5rem;
   }
 }
 
+// 外链图标 (原 NavLink.vue:9-19 的 <OutboundLink/>, 内联 SVG 由 nav.html 输出)
+// 尺寸/对齐刻意与 page-edit.html 的外链图标保持一致 (同一枚 VuePress SVG, 15x15 + 垂直居中 + 左间距 0.2rem)
+.external-link-icon {
+  width: 15px;
+  height: 15px;
+  margin-left: 0.2rem;
+  vertical-align: middle;
+}
+
 // ---------------------------------------------------------
 //  下拉菜单 (原版 DropdownLink.vue)
 // ---------------------------------------------------------
@@ -458,9 +467,12 @@ $navbar-horizontal-padding: 1.5rem;
       }
 
       .nav-dropdown {
-        display: none;
-        transition: height 0.1s ease-out;
+        // 原版 DropdownTransition.vue: 展开/收起做高度过渡。
+        // 纯 CSS 用 max-height 实现, JS 只负责切 .open (见 shell.js)
+        display: block;
+        max-height: 0;
         overflow: hidden;
+        transition: max-height 0.3s ease-out;
         padding-left: 0;
 
         .dropdown-item {
@@ -486,7 +498,8 @@ $navbar-horizontal-padding: 1.5rem;
       }
 
       &.open .nav-dropdown {
-        display: block;
+        max-height: 70vh;
+        overflow-y: auto;
       }
     }
   }
