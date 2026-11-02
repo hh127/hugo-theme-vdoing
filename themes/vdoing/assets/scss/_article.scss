@@ -170,6 +170,11 @@
   }
 }
 
+// 左侧边栏只有一项时的侧边栏显示规则 (原 only-sidebarItem, 原版 Page.vue:198-217)
+// C10: page-classes.html 现在会同时输出 only-sidebarItem + have-rightmenu (不再互斥),
+//      下面两条以 .only-sidebarItem:not(.have-rightmenu) / .only-sidebarItem.have-rightmenu
+//      两种组合分别覆盖, 选择器无需改动。
+// 注意: _shell.scss:129-168 有一份等价规则 (shell 区域, 由 Stream D 维护), 两处需保持一致。
 // 左侧边栏只有一项且没有右侧边栏时
 .theme-container.only-sidebarItem:not(.have-rightmenu) {
   .sidebar,

@@ -4,7 +4,16 @@
    按 section 树递归输出原版的编号大纲: 1. / 1-1. / 1-1-1. */ -}}
 {{- $catalogue := .Params.catalogue | default "" -}}
 {{- $sec := false -}}
-{{- with $catalogue }}{{ $sec = site.GetPage (printf "/%s" .) }}{{ end -}}
+{{- $where := .RelPermalink -}}
+{{- with .File }}{{ $where = .Path }}{{ end -}}
+{{- if $catalogue -}}
+  {{- $sec = site.GetPage (printf "/%s" $catalogue) -}}
+  {{- if not $sec -}}
+    {{- warnf "目录页 %s: catalogue 参数 %q 找不到对应 section (应为 content 下的顶层/子目录名, 例如 catalogue: \"前端\")" $where $catalogue -}}
+  {{- end -}}
+{{- else -}}
+  {{- warnf "目录页 %s: 缺少 catalogue 参数 (layout: catalogue 时需要 catalogue: \"目录名\" 指向 content 下的 section)" $where -}}
+{{- end -}}
 <div class="custom-page catalogue-page">
   <div class="theme-vdoing-wrapper">
     <div class="theme-vdoing-content">
@@ -56,6 +65,10 @@
   <div class="catalogue-body">{{ . }}</div>
   {{- end }}
     </div>
+    {{- /* C8: 目录页同样渲染「编辑 / 上次更新」与「上一篇 / 下一篇」(原 Page.vue:31-40 对 pageComponent 页也渲染)。
+           editLink: false 的目录页按原版 PageEdit.vue:52-54 只隐藏编辑链接, 仍保留 tags / 上次更新。 */}}
+    {{ partial "page-edit.html" . }}
+    {{ partial "page-nav.html" . }}
   </div>
 </div>
 {{ end }}

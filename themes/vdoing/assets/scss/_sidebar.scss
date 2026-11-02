@@ -154,6 +154,13 @@
     display: none;
   }
 
+  // C5: [params.sidebar].collapsable=false 时分组不可折叠, 子项常显
+  // (原 SidebarGroup.vue v-if="open || !collapsable"; 模板同时不输出 .arrow)
+  // 放在上一条之后: 同特异性下后写的声明生效, 防止 JS 点击 toggle .open 时把子项收起
+  &:not(.collapsable) > .sidebar-group-items {
+    display: block;
+  }
+
   &.is-sub-group {
     padding-left: 0;
 

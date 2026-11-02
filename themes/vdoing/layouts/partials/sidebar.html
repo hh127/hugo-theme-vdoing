@@ -5,7 +5,7 @@
 {{- /* 只在 baseof.html 里调用一次; 不要用 Page.Store 防重: hugo server 增量重建会复用 Page,
        Store 里的标记会保留, 导致热更新后侧边栏消失 */ -}}
 {{- $hasTree := partial "func/has-sidebar.html" $page }}
-<aside class="sidebar" data-hover-trigger="{{ if eq site.Params.sidebarHoverTriggerOpen false }}0{{ else }}1{{ end }}">
+<aside class="sidebar" data-hover-trigger="{{ if eq site.Params.sidebarHoverTriggerOpen false }}0{{ else }}1{{ end }}" data-smooth-scroll="{{ if eq site.Params.smoothScroll true }}1{{ else }}0{{ end }}">
   {{- partial "blogger-sidebar.html" $page -}}
 
   {{- /* 移动端顶部导航 (原版 Sidebar 内 <NavLinks/>) */}}

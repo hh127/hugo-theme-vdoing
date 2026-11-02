@@ -1,8 +1,0 @@
-{{- /* 递归列出某个章节下所有文章链接 */ -}}
-{{- range .Pages.ByWeight }}
-  {{- if eq .Kind "section" }}
-    {{ partial "catalogue-links.html" . }}
-  {{- else }}
-    <li class="catalogue-link"><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
-  {{- end }}
-{{- end }}

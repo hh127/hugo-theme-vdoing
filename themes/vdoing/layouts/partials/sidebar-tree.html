@@ -1,34 +1,108 @@
-{{- /* 结构化侧边栏树 (对应原版 SidebarLinks / SidebarGroup / SidebarLink): 按 weight 递归渲染 */ -}}
-{{- /* 只展开当前页所在的一条分支 (原版 openGroupIndex 行为), 其余分支由 JS 点击展开 */ -}}
+{{- /* 结构化侧边栏树 (对应原版 SidebarLinks / SidebarGroup / SidebarLink): 按 weight 递归渲染
+   - C1 当前页在树中展开本页 h2~h6 标题子项 (原 SidebarLink.vue:46-50,71-80), 复用 sidebar-toc.html
+   - C2 [params.sidebar].displayAllHeaders=true 时所有页都展开标题子项 (原 SidebarLink.vue:43-48)
+   - C3 标题层级优先级: frontmatter sidebarDepth > 分组 _index.md sidebarDepth > [params.sidebar].depth > params.sidebarDepth
+   - C4 depth=0 且当前页不在任何分组分支内时, 默认展开第一个分组 (原 SidebarLinks.vue:34-38)
+   - C5 [params.sidebar].collapsable=false 时分组不可折叠 (原 SidebarGroup.vue:48, index.js:29-31)
+   - C11 侧边栏外链 type: external 不适用: 本主题侧边栏由 Hugo content 树自动生成, 没有可承载
+        外链的 sidebar 数据结构; 如需外链请用 nav (data/nav.yaml) 或 html 模块插槽, 不强行改树结构 */ -}}
 {{- $page := .page -}}
 {{- $section := .section -}}
 {{- $depth := .depth | default 0 -}}
-{{- $sub := ne $depth 0 }}
+{{- $sub := ne $depth 0 -}}
+{{- $pages := $section.Pages.ByWeight -}}
+
+{{- /* ---------- 站点级配置 ---------- */ -}}
+{{- $sidebarCfg := site.Params.sidebar -}}
+{{- $collapsable := true -}}
+{{- if and $sidebarCfg (isset $sidebarCfg "collapsable") -}}
+  {{- $collapsable = $sidebarCfg.collapsable -}}
+{{- end -}}
+{{- $displayAllHeaders := false -}}
+{{- if and $sidebarCfg (isset $sidebarCfg "displayallheaders") -}}
+  {{- $displayAllHeaders = $sidebarCfg.displayAllHeaders -}}
+{{- end -}}
+{{- $siteDepth := 1 -}}
+{{- $hasSiteDepth := false -}}
+{{- if and $sidebarCfg (isset $sidebarCfg "depth") -}}
+  {{- $siteDepth = $sidebarCfg.depth -}}
+  {{- $hasSiteDepth = true -}}
+{{- end -}}
+{{- if not $hasSiteDepth -}}
+  {{- if isset site.Params "sidebardepth" }}{{ $siteDepth = site.Params.sidebarDepth }}{{ end -}}
+{{- end -}}
+
+{{- /* ---------- C3 分组级 sidebarDepth: 当前 section 的 _index.md 覆盖上级分组 ---------- */ -}}
+{{- $groupDepth := 0 -}}
+{{- $hasGroupDepth := false -}}
+{{- if .hasGroupDepth -}}
+  {{- $hasGroupDepth = true -}}
+  {{- $groupDepth = .groupDepth -}}
+{{- end -}}
+{{- if isset $section.Params "sidebardepth" -}}
+  {{- $groupDepth = $section.Params.sidebarDepth -}}
+  {{- $hasGroupDepth = true -}}
+{{- end -}}
+
+{{- /* 本层页面标题子项的最大层级 (页面 frontmatter 最高优先, 原版对每个 SidebarLink 都用当前页 frontmatter) */ -}}
+{{- $maxDepth := $siteDepth -}}
+{{- if $hasGroupDepth }}{{ $maxDepth = $groupDepth }}{{ end -}}
+{{- if isset $page.Params "sidebardepth" }}{{ $maxDepth = $page.Params.sidebarDepth }}{{ end -}}
+
+{{- /* ---------- C4 当前页是否落在某个分组分支内 ---------- */ -}}
+{{- $hasActiveGroup := false -}}
+{{- $firstItem := false -}}
+{{- if gt (len $pages) 0 }}{{ $firstItem = index $pages 0 }}{{ end -}}
+{{- range $pages -}}
+  {{- if and (eq .Kind "section") (or (eq $page .) ($page.IsDescendant .)) -}}
+    {{- $hasActiveGroup = true -}}
+  {{- end -}}
+{{- end -}}
+{{- /* 原版 openGroupIndex 默认为 0, 即“第一个条目”是分组时默认展开; 有活跃分支时由 refreshIndex 覆盖 */ -}}
+{{- $openFirstGroup := false -}}
+{{- if and (eq $depth 0) (not $hasActiveGroup) $firstItem (eq $firstItem.Kind "section") -}}
+  {{- $openFirstGroup = true -}}
+{{- end -}}
+
 <ul class="{{ if $sub }}sidebar-links sidebar-group-items{{ else }}sidebar-links{{ end }}">
-  {{- range $section.Pages.ByWeight }}
+  {{- range $pages }}
   {{- $item := . }}
   {{- if eq $item.Kind "section" }}
-  {{- $open := or (eq $page $item) ($page.IsDescendant $item) }}
+  {{- $open := or (eq $page $item) ($page.IsDescendant $item) (and $openFirstGroup (eq $firstItem $item)) -}}
   {{- $clickable := gt (len $item.OutputFormats) 0 }}
   <li>
-    <section class="sidebar-group collapsable{{ if $sub }} is-sub-group{{ end }} depth-{{ $depth }}{{ if $open }} open{{ end }}">
+    <section class="sidebar-group{{ if $collapsable }} collapsable{{ end }}{{ if $sub }} is-sub-group{{ end }} depth-{{ $depth }}{{ if or $open (not $collapsable) }} open{{ end }}">
       {{- if $clickable }}
       <a class="sidebar-heading clickable{{ if $open }} open{{ end }}{{ if eq $page $item }} active{{ end }}" href="{{ $item.RelPermalink }}">
         <span>{{ $item.LinkTitle }}</span>
+        {{- if $collapsable }}
         <span class="arrow {{ if $open }}down{{ else }}right{{ end }}"></span>
+        {{- end }}
       </a>
       {{- else }}
       <p class="sidebar-heading{{ if $open }} open{{ end }}">
         <span>{{ $item.LinkTitle }}</span>
+        {{- if $collapsable }}
         <span class="arrow {{ if $open }}down{{ else }}right{{ end }}"></span>
+        {{- end }}
       </p>
       {{- end }}
-      {{- partial "sidebar-tree.html" (dict "section" $item "page" $page "depth" (add $depth 1)) }}
+      {{- partial "sidebar-tree.html" (dict "section" $item "page" $page "depth" (add $depth 1) "groupDepth" $groupDepth "hasGroupDepth" $hasGroupDepth) }}
     </section>
   </li>
   {{- else if ne $item.Params.article false }}
+  {{- /* C1/C2: 当前页 (或 displayAllHeaders) 展开本页标题子项 */ -}}
+  {{- $showHeaders := or (eq $page $item) $displayAllHeaders -}}
   <li>
     <a class="sidebar-link{{ if eq $page $item }} active{{ end }}" href="{{ $item.RelPermalink }}">{{ $item.LinkTitle }}</a>
+    {{- if $showHeaders }}
+      {{- $roots := slice -}}
+      {{- with $item.Fragments }}{{ $roots = .Headings }}{{ end -}}
+      {{- if and (eq (len $roots) 1) (eq (index $roots 0).ID "") -}}
+        {{- $roots = (index $roots 0).Headings -}}
+      {{- end -}}
+      {{- with $roots }}{{ partial "sidebar-toc.html" (dict "page" $item "headings" . "depth" 1 "maxDepth" $maxDepth) }}{{ end -}}
+    {{- end }}
   </li>
   {{- end }}
   {{- end }}
