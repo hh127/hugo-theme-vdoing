@@ -4,7 +4,8 @@
 {{- $page := . -}}
 {{- if reflect.IsMap . }}{{ $page = .page }}{{ end -}}
 
-{{- /* 仅文章页 (article !== false) 且 frontmatter comment !== false */ -}}
-{{- if and (ne $page.Params.article false) (ne $page.Params.comment false) }}
+{{- /* 仅文章页 (article !== false) 且 frontmatter comment !== false, 且评论已启用 (gitalk.enable) */ -}}
+{{- if and (ne $page.Params.article false) (ne $page.Params.comment false) site.Params.gitalk site.Params.gitalk.enable }}
+<p class="comment-status" id="comment-status">评论加载中…</p>
 <div id="vuepress-plugin-comment" class="comment"></div>
 {{- end -}}

@@ -3,7 +3,7 @@
 {{- $page := . -}}
 {{- if reflect.IsMap . }}{{ $page = .page }}{{ end -}}
 
-{{- /* ---------- 编辑链接 ---------- */ -}}
+{{- /* ---------- 编辑链接 (原 PageEdit.vue:51-73,84-134) ---------- */ -}}
 {{- $showEdit := site.Params.editLinks | default false -}}
 {{- if isset $page.Params "editlink" }}{{ $showEdit = $page.Params.editLink }}{{ end -}}
 {{- $editLink := "" -}}
@@ -17,14 +17,18 @@
       {{- $base = printf "https://github.com/%s" $docsRepo -}}
     {{- end -}}
     {{- $base = strings.TrimSuffix "/" $base -}}
+    {{- $dir := cond (ne $docsDir "") (printf "%s/" $docsDir) "" -}}
     {{- $path := strings.TrimPrefix "/" (replace .Path "\\" "/") -}}
-    {{- if in $base "gitlab.com" -}}
-      {{- $editLink = printf "%s/-/edit/%s/%s%s" $base $branch (cond (ne $docsDir "") (printf "%s/" $docsDir) "") $path -}}
+    {{- if in $base "bitbucket.org" -}}
+      {{- /* A8: Bitbucket 分支 (原 PageEdit.vue:86-97) */ -}}
+      {{- $editLink = printf "%s/src/%s/%s%s?mode=edit&spa=0&at=%s&fileviewer=file-view-default" $base $branch $dir $path $branch -}}
+    {{- else if in $base "gitlab.com" -}}
+      {{- $editLink = printf "%s/-/edit/%s/%s%s" $base $branch $dir $path -}}
     {{- else if in $base "gitee.com" -}}
       {{- $giteeBase := replace $base "gitee.com" "gitee.com/-/ide/project" -}}
-      {{- $editLink = printf "%s/edit/%s/-/%s%s" $giteeBase $branch (cond (ne $docsDir "") (printf "%s/" $docsDir) "") $path -}}
+      {{- $editLink = printf "%s/edit/%s/-/%s%s" $giteeBase $branch $dir $path -}}
     {{- else -}}
-      {{- $editLink = printf "%s/edit/%s/%s%s" $base $branch (cond (ne $docsDir "") (printf "%s/" $docsDir) "") $path -}}
+      {{- $editLink = printf "%s/edit/%s/%s%s" $base $branch $dir $path -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -33,15 +37,35 @@
 {{- $tags := slice -}}
 {{- if ne site.Params.tag false }}{{ with $page.Params.tags }}{{ $tags = . }}{{ end }}{{ end -}}
 
-{{- /* ---------- 上次更新 ---------- */ -}}
+{{- /* ---------- 上次更新 (原 @vuepress/last-updated: 只认 git 时间) ----------
+     A8: 优先 .GitInfo.AuthorDate;
+     仅当 site.Params.lastUpdatedFallbackToDate = true 时回落到 .Lastmod;
+     否则没有 git 信息就不显示 (原版语义: 无 git 信息 → 不渲染 lastUpdated)。 */ -}}
 {{- $lastUpdated := site.Params.lastUpdated | default "上次更新" -}}
-{{- $showUpdated := and (ne site.Params.lastUpdated false) (not $page.Lastmod.IsZero) -}}
+{{- $showUpdated := ne site.Params.lastUpdated false -}}
+{{- $updatedTime := false -}}
+{{- if $showUpdated -}}
+  {{- with $page.GitInfo -}}
+    {{- if not .AuthorDate.IsZero }}{{ $updatedTime = .AuthorDate }}{{ end -}}
+  {{- end -}}
+  {{- if not $updatedTime -}}
+    {{- if eq site.Params.lastUpdatedFallbackToDate true -}}
+      {{- if not $page.Lastmod.IsZero }}{{ $updatedTime = $page.Lastmod }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $showUpdated = $updatedTime -}}
 
 {{- if or $editLink $tags $showUpdated }}
 <div class="page-edit">
   {{- with $editLink }}
   <div class="edit-link">
     <a href="{{ . }}" target="_blank" rel="noopener noreferrer">{{ site.Params.editLinkText | default "编辑" }}</a>
+    {{- /* A8: 外链图标 (原 PageEdit.vue:3-8 <OutboundLink />, 用 VuePress 同款内联 SVG) */}}
+    <svg class="icon outbound" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" style="vertical-align:middle;margin-left:0.2rem">
+      <path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path>
+      <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.7,22.9"></polygon>
+    </svg>
   </div>
   {{- end }}
   {{- with $tags }}
@@ -52,7 +76,7 @@
   {{- if $showUpdated }}
   <div class="last-updated">
     <span class="prefix">{{ if eq $lastUpdated true }}上次更新{{ else }}{{ $lastUpdated }}{{ end }}:</span>
-    <span class="time">{{ $page.Lastmod.Format "2006/01/02, 15:04:05" }}</span>
+    <span class="time">{{ $updatedTime.Format "2006/01/02, 15:04:05" }}</span>
   </div>
   {{- end }}
 </div>

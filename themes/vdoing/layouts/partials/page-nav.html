@@ -1,27 +1,69 @@
 {{- /* 上一篇 / 下一篇 + 页面中部左右固定快捷翻页 (原 PageNav.vue)
-     调用: {{ partial "page-nav.html" . }} */ -}}
+     调用: {{ partial "page-nav.html" . }}
+
+     A3 修复: 原实现先用 .PrevInSection/.NextInSection, 缺一个时再用
+     FirstSection.RegularPagesRecursive.ByWeight 兜底 —— 两套顺序混用, 导致
+     「上一篇 == 下一篇」(同一 URL, 24/213 页)。
+     现在只用单一有序集合 (同 section 按 weight 的扁平列表, 等价原版 sidebarItems 顺序),
+     取 i-1 / i+1; 并支持 site.Params.prevLinks/nextLinks 与 frontmatter prev/next 覆盖
+     (原 PageNav.vue:108-143: false = 隐藏, 字符串 = 按链接找页)。 */ -}}
 {{- $page := . -}}
 {{- if reflect.IsMap . }}{{ $page = .page }}{{ end -}}
+
+{{- /* ---------- 1. 单一有序集合: 当前页所在 section 的按权重扁平列表 ---------- */ -}}
+{{- $flat := slice -}}
+{{- with $page.FirstSection -}}
+  {{- $seen := slice -}}
+  {{- range .RegularPagesRecursive.ByWeight -}}
+    {{- /* 按 RelPermalink 去重, 防止同一页面进入集合两次 */ -}}
+    {{- if not (in $seen .RelPermalink) -}}
+      {{- $seen = $seen | append .RelPermalink -}}
+      {{- $flat = $flat | append . -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $idx := -1 -}}
+{{- range $i, $p := $flat -}}
+  {{- if eq $p.RelPermalink $page.RelPermalink }}{{ $idx = $i }}{{ end -}}
+{{- end -}}
 
 {{- $prev := false -}}
 {{- $next := false -}}
 {{- /* 侧边栏关闭 (sidebar: false) 的页面原版没有翻页数据 */ -}}
-{{- if ne $page.Params.sidebar false -}}
-  {{- $prev = $page.PrevInSection -}}
-  {{- $next = $page.NextInSection -}}
-  {{- /* 同级没有时退化为整个 section(FirstSection) 的权重顺序 */ -}}
-  {{- if or (not $prev) (not $next) -}}
-    {{- $flat := slice -}}
-    {{- with $page.FirstSection }}{{ $flat = .RegularPagesRecursive.ByWeight }}{{ end -}}
-    {{- $idx := -1 -}}
-    {{- range $i, $p := $flat -}}
-      {{- if eq $p.RelPermalink $page.RelPermalink }}{{ $idx = $i }}{{ end -}}
-    {{- end -}}
-    {{- if ge $idx 0 -}}
-      {{- if and (not $prev) (gt $idx 0) }}{{ $prev = index $flat (sub $idx 1) }}{{ end -}}
-      {{- if and (not $next) (lt $idx (sub (len $flat) 1)) }}{{ $next = index $flat (add $idx 1) }}{{ end -}}
+{{- if and (ne $page.Params.sidebar false) (ge $idx 0) -}}
+  {{- if gt $idx 0 }}{{ $prev = index $flat (sub $idx 1) }}{{ end -}}
+  {{- if lt $idx (sub (len $flat) 1) }}{{ $next = index $flat (add $idx 1) }}{{ end -}}
+{{- end -}}
+
+{{- /* ---------- 2. 覆盖配置: frontmatter prev/next 优先于 site.Params.prevLinks/nextLinks ---------- */ -}}
+{{- if isset $page.Params "prev" -}}
+  {{- $cfg := $page.Params.prev -}}
+  {{- if eq $cfg false -}}
+    {{- $prev = false -}}
+  {{- else if ne $cfg nil -}}
+    {{- $want := strings.TrimSuffix "/" (printf "%v" $cfg) -}}
+    {{- $prev = false -}}
+    {{- range site.Pages -}}
+      {{- if eq (strings.TrimSuffix "/" .RelPermalink) $want }}{{ $prev = . }}{{ end -}}
     {{- end -}}
   {{- end -}}
+{{- else if eq site.Params.prevLinks false -}}
+  {{- $prev = false -}}
+{{- end -}}
+{{- if isset $page.Params "next" -}}
+  {{- $cfg := $page.Params.next -}}
+  {{- if eq $cfg false -}}
+    {{- $next = false -}}
+  {{- else if ne $cfg nil -}}
+    {{- $want := strings.TrimSuffix "/" (printf "%v" $cfg) -}}
+    {{- $next = false -}}
+    {{- range site.Pages -}}
+      {{- if eq (strings.TrimSuffix "/" .RelPermalink) $want }}{{ $next = . }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- else if eq site.Params.nextLinks false -}}
+  {{- $next = false -}}
 {{- end -}}
 
 <div class="page-nav-wapper">

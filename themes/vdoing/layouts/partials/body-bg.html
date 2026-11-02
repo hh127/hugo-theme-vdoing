@@ -1,7 +1,12 @@
-{{- /* body 背景大图 (对应原版 BodyBgImg.vue): 支持单图 / 多图轮播 (bodyBgImgInterval 秒) */ -}}
+{{- /* body 背景大图 (对应原版 BodyBgImg.vue): 支持单图 / 多图轮播 (bodyBgImgInterval 秒)
+     注意: bodyBgImgOpacity / bodyBgImgInterval 的 0 都是合法值
+           (0 = 完全透明 / 不轮播), 不能用 `| default` 判断, 否则 0 会被当成空值吞掉。
+           原版 BodyBgImg.vue:42-44 用 `!== undefined` 判断, 这里用 isset 等价实现。 */ -}}
 {{- with site.Params.bodyBgImg -}}
-{{- $opacity := site.Params.bodyBgImgOpacity | default 0.5 -}}
-{{- $interval := site.Params.bodyBgImgInterval | default 15 -}}
+{{- $opacity := 0.5 -}}
+{{- if isset site.Params "bodybgimgopacity" }}{{ $opacity = site.Params.bodyBgImgOpacity }}{{ end -}}
+{{- $interval := 15 -}}
+{{- if isset site.Params "bodybgimginterval" }}{{ $interval = site.Params.bodyBgImgInterval }}{{ end -}}
 {{- $imgs := slice -}}
 {{- if reflect.IsSlice . -}}
   {{- range . }}{{ $imgs = $imgs | append . }}{{ end -}}

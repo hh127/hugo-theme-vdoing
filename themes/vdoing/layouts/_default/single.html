@@ -27,6 +27,17 @@
           {{- $icons := site.Params.titleBadgeIcons -}}
           {{- if not $icons -}}
             {{- $icons = slice ("img/title-badge/1.png" | relURL) ("img/title-badge/2.png" | relURL) ("img/title-badge/3.png" | relURL) -}}
+          {{- else -}}
+            {{- /* A9: 自定义图标多数写相对路径, 需要 relURL; 绝对 URL / data: 保持原样 */ -}}
+            {{- $normalized := slice -}}
+            {{- range $icons -}}
+              {{- $u := . -}}
+              {{- if not (or (hasPrefix $u "http://") (hasPrefix $u "https://") (hasPrefix $u "//") (hasPrefix $u "data:")) -}}
+                {{- $u = $u | relURL -}}
+              {{- end -}}
+              {{- $normalized = $normalized | append $u -}}
+            {{- end -}}
+            {{- $icons = $normalized -}}
           {{- end -}}
           {{- $idx := mod (len $page.Content) (len $icons) -}}
           <img src="{{ index $icons $idx }}" data-badges="{{ delimit $icons "," }}" alt="">
@@ -51,6 +62,9 @@
     {{ partial "page-nav.html" $page }}
   </div>
 
+  {{- /* A4: updateBar.showToArticle !== false 时才在文章页渲染「最近更新」栏 (原 Page.vue:72-76) */}}
+  {{- if ne site.Params.updateBar.showToArticle false }}
   {{ partial "update-bar.html" (dict "page" $page "length" 3) }}
+  {{- end }}
 </main>
 {{ end }}

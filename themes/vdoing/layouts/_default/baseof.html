@@ -1,8 +1,10 @@
 {{- /* 有 body 背景大图时强制卡片风格 (原 Layout.vue setBodyClass) */ -}}
 {{- $pageStyle := site.Params.pageStyle | default "card" -}}
+{{- /* pageStyle 只接受 card / line, 非法值回落 card (原 Layout.vue; 与 head.html 保持一致) */ -}}
+{{- if not (in (slice "card" "line") $pageStyle) }}{{ $pageStyle = "card" }}{{ end -}}
 {{- if site.Params.bodyBgImg }}{{ $pageStyle = "card" }}{{ end -}}
 <!DOCTYPE html>
-<html lang="{{ site.Language.Lang }}" class="theme-mode-light theme-style-{{ $pageStyle }}">
+<html lang="{{ site.Language.Lang }}" class="theme-mode-light theme-style-{{ $pageStyle }}" data-smooth-scroll="{{ if site.Params.smoothScroll }}1{{ else }}0{{ end }}">
 <head>
   {{ partial "head.html" . }}
 </head>

@@ -1,6 +1,13 @@
 // =========================================================
 //  gitalk 评论区皮肤 (原 legacy/docs/.vuepress/styles/index.styl 评论区部分)
 // =========================================================
+.comment-status {
+  margin: 1rem 0;
+  font-size: 0.85rem;
+  color: var(--textColor);
+  opacity: 0.6;
+}
+
 .gt-container {
   .gt-ico-tip {
     &::after {
