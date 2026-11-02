@@ -21,7 +21,7 @@ Write-Host "==> hugo build" -ForegroundColor Cyan
 $configArgs = @()
 if ($UseQA) { $configArgs = @("--config", "hugo.toml,tools/qa.toml") }
 $cacheDir = Join-Path (Get-Location) ".tmp/cache-verify"
-$buildOut = & hugo @configArgs --minify --destination $Destination --cacheDir $cacheDir --noBuildLock --logLevel warn 2>&1
+$buildOut = & hugo @configArgs --minify --cleanDestinationDir --destination $Destination --cacheDir $cacheDir --noBuildLock --logLevel warn 2>&1
 if ($LASTEXITCODE -ne 0) { Write-Host ($buildOut | Out-String) -ForegroundColor Red; $fail++ }
 else { Write-Host ($buildOut | Select-Object -Last 10 | Out-String) }
 

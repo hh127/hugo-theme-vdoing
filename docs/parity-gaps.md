@@ -12,6 +12,42 @@
 
 ---
 
+## 0.5 修复进展（2026-11-02 第二轮：P0~P3 已落地）
+
+> 本节记录上面审计项的落地情况；未列出的项见第 5 节「有意替代」与第 6 节「存疑」。
+> 验收方式：`powershell -File tools/verify_parity.ps1 -Toggles`（54 项断言全 PASS）、
+> `powershell -File tools/verify.ps1`（构建 + 站内链接 0 missing + 12 张截图）、逐项 CDP/构建产物核对。
+
+| 审计项 | 状态 | 落地说明 |
+| --- | --- | --- |
+| 1.1 gitalk 配置键 | ✅ | `head.html` 用 `dict` 显式输出 camelCase（clientID/clientSecret/pagerDirection/distractionFreeMode）；`gitalk.js` 双兼容小写键；gitalk 资源已本地化到 `static/gitalk/`；补 loading/失败提示 |
+| 2.1 上/下一篇重复 | ✅ | `page-nav.html` 只用单一有序集合（`FirstSection.RegularPagesRecursive.ByWeight` 索引 i±1）；全站扫描 prev==next 由 **24 处 → 0**；支持 `prevLinks`/`nextLinks` 与 frontmatter `prev`/`next` 覆盖 |
+| 2.2 code-group 残留标签 | ✅ | 内容已转短代码（`content/前端/JavaScript文章/三级目录/四级文件.md`）；`tools/migrate_content.py` 新增原始标签→短代码规则 |
+| 2.3 demo 容器 | ✅ | `block.html` + `code.js`：预览/代码切换、`horizontal` 并排、Vue `<template>` demo 明确降级说明；CodePen/JSFiddle 为有意替代 |
+| 2.4 分类/标签全量渲染 | ✅ | `terms.html` 只渲染首屏 `postPageSize` 条 + `<noscript>` 原生 term 链接 + `rel=canonical`；`/categories/` 309KB→47KB、`/tags/` 304KB→39KB；`pages.js` 前端过滤/分页保持 `?category=x&p=N` |
+| 2.5 首页摘要丢富文本 | ✅ | `post-list.html` 改用 `.Summary`（HTML，图片限高 280px），无 `<!-- more -->` 才回落纯文本；带标签配平检查 |
+| 2.6 站内搜索 | ✅ | `index.json` 增加 `headers`（h2~h6，2612 条）与全文；`search.js` 命中片段高亮、锚点直达、↑↓/Enter/Esc、条数上限、无结果文案、`search=false`/`searchPlaceholder`、thirdparty 外链、可选 Algolia REST |
+| 3.1 结构化侧边栏（7 项） | ✅ | 当前页标题子项、`displayAllHeaders`、`sidebarDepth` 优先级（frontmatter > 分组 > 站点）、默认展开第一个分组、`collapsable:false`、`sidebar:auto` 滚动高亮；外链项不适用（侧边栏由 content 树生成） |
+| 3.2 图片放大 | ✅ | `zoom.js`：滚轮缩放 0.5~4x（锚点跟随鼠标）、双击缩放/复位、拖拽平移、双指手势、关闭重置；`bgColor` 键兼容；遮罩样式改到根选择器 |
+| 3.3 配置空转（6 项） | ✅ | `updateBar.showToArticle`、`smoothScroll`（JS 三路统一 + `html[data-smooth-scroll]` 原生 CSS）、`search`/`searchPlaceholder`、`categoryText`/`extendFrontmatter`（迁移脚本 CLI + archetype）、`bodyBgImgOpacity/Interval=0`、`pageStyle` 非法值回落 card |
+| 3.4 首页/列表/归档（8 项） | ✅ | 轮播首尾克隆无缝循环/100px 阈值/鼠标拖拽/惯性；分类按首次出现顺序、标签 shuffle 配色；统一排序 partial（首页/index.json/term 页）；归档 80 条 + 加载更多；`?p=N` 老链接重定向；空卡片判断；列表过渡动画 |
+| 3.5 文章页细节（14 项） | ✅ | 404 文案改运行时随机（`data-msgs` + `404.js`）；Bitbucket 编辑链接；外链图标；上次更新取 `GitInfo.AuthorDate`（新增 `lastUpdatedFallbackToDate` 开关）；目录页补 page-edit/page-nav；catalogue 配错 warnf；删除 `catalogue-links.html` 死代码；`titleBadgeIcons` relURL；Prism token 补齐；gitalk 本地化；`hl_lines` 语法差异仅文档说明（内容未使用）；`update-article` 过滤不适用（Hugo 无 pageComponent/home:true 页） |
+| 3.6 导航/外壳细节（10 项） | ✅ | nav 外链 target/rel/图标、`repoLabel` 平台推断、logo 时站名 can-hide、`no-navbar` 间距、navbar 宽度自适应、返回顶部/主题框/下拉动画、localStorage 旧键 `mode` 迁移、`only-sidebarItem` 死代码、blogger 回退 slogan、空 nav 不输出 |
+| 4.1 配置项 | ✅ | `search`/`searchPlaceholder`、`[[params.thirdpartySearch]]`、`[params.algolia]`、`[params.sidebar]`、`head`/`customCss`/`customStyleFile` 注入点、`prevLinks`/`nextLinks`、`lastUpdatedFallbackToDate`、`categoryText` 全部接线 |
+| 4.2 插件层 | ✅ / 不适用 | active-header-links、@vuepress/search、smooth-scroll、demo-block、zooming、gitalk 已补齐；nprogress 与 SPA 能力不适用（MPA 架构）；one-click-copy 固定参数与原版一致 |
+
+**仍需注意的已知限制**（非缺陷，取舍或环境相关）：
+
+1. `index.json` 全文索引约 2.96MB（gzip ≈ 886KB），仅在搜索聚焦/分类页过滤时按需拉取；后续可拆「列表轻索引」进一步减小。
+2. 标签配色为构建期随机（原版运行时随机），每次构建 HTML 会变化。
+3. Algolia 需自备 `appId/apiKey/indexName` 且站点未启用；thirdparty-search 默认未配置。
+4. Vue SFC 实时预览与 CodePen/JSFiddle 为有意替代（纯静态站无运行时编译）。
+5. Hugo 的 git 集成在 `core.quotepath=true` 时对中文文件名返回 nil：中文文章显示 git 时间需 `git config core.quotepath false`，否则按 `lastUpdatedFallbackToDate` 回落 frontmatter date。
+6. 无 JS 时分类/标签页只有首屏 10 条 + noscript 原生 term 页链接（分页/过滤需 JS）。
+7. 锚点算法（VuePress slugify vs Hugo anchorize）与 `hl_lines` 语法差异仍存疑/未使用，见第 6 节。
+
+---
+
 ## 0. 总体结论
 
 **已经对齐的部分**（不再逐条列，见文末「已对齐概览」）：页面骨架、导航/侧边栏/页脚/按钮组、首页 banner 与文章列表、
