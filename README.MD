@@ -231,13 +231,16 @@ article: false
 
 **已对齐**：导航 / 侧边栏 / 首页 banner 与文章列表 / 文章页（面包屑、徽标、编辑链接、上次更新、右侧大纲、翻页、最近更新栏）/ 归档 / 分类 / 标签 / 目录页 / 404 / 代码块与自定义容器 / gitalk 评论 / 图片放大 / 三套主题模式 / body 背景图 / 自定义 HTML 模块 / 百度统计等。
 
-**有意不同 / 未实现**：
+**有意不同 / 已知差距**：
 
 - 分类、标签页为「服务端渲染 + 前端 query 过滤分页」，无 JS 时仍可用（原版是纯 SPA 渲染）；
-- 文章列表摘要为纯文本（Hugo 截断 HTML 可能产生未闭合标签，`plainify` 更稳），卡片中不再包含摘要图片；
-- `demo` 容器为简化的「iframe 预览 + 代码块」，不含原 `vuepress-plugin-demo-block` 的 CodePen 外链；
-- 未接入 Algolia 搜索与第三方搜索跳转（`thirdparty-search`）；
-- 原 `vuepress-plugin-nprogress` 的页面加载进度条未实现（Hugo 是多页应用，收益有限）。
+- `demo` 容器为简化的「iframe 预览 + 代码块」，不含原 `vuepress-plugin-demo-block` 的 CodePen 外链与 Vue 实时预览；
+- 未接入 Algolia 搜索、第三方搜索跳转（`thirdparty-search`）与 `nprogress` 进度条；
+- 图片放大只做「点击查看原图」，不含原版 zooming 的缩放 / 拖拽 / 手势；
+- 还有一批 P0~P3 的差距（gitalk 配置键、上/下一篇重复、侧边栏标题子项、`search`/`smoothScroll` 参数空转等）。
+
+完整的逐项对比、证据（两侧 `file:line`）、优先级与修复建议见
+**[docs/parity-gaps.md](docs/parity-gaps.md)**（约 280 个功能点，未实现/部分实现 60 余项）。
 
 ---
 
