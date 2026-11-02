@@ -256,12 +256,15 @@ hugo --minify && python tools/check_links.py
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify.ps1
 
 # 单个页面截图（本地静态服务 + Edge/Chrome headless）
-tools\screenshot.cmd -BuildDir public -Page "/pages/8143cc480faf9a11/" -Port 8899 -Out .tmp/a.png
+# 视口宽度由 CDP Emulation 精确设定（tools/screenshot.cjs）；不要用浏览器 --window-size 截图，
+# 窗口尺寸 ≠ CSS 视口宽度，1279/1280 断点会截出「大纲被裁掉」的假象
+tools\screenshot.cmd -BuildDir public -Page "/pages/8143cc480faf9a11/" -Port 8899 -Out .tmp/a.png -Width 1440 -Height 1000
 ```
 
 > 构建时如需并行/避免构建锁：`hugo --noBuildLock --cacheDir "<绝对路径>/.tmp/cache"`；
 > 无外网环境做截图验收时用 `tools/qa.toml` 覆盖配置关闭 gitalk / 百度统计：`--config hugo.toml,tools/qa.toml`。
-> `docs/parity-plan.md` 记录了与 `legacy/vdoing` 逐组件的对齐方式与文件映射。
+> 截图依赖本机 Edge/Chrome 与 Node（`tools/screenshot.cjs` 走 CDP，无需 npm 依赖）。
+> `docs/parity-plan.md` 记录了与 `legacy/vdoing` 逐组件的对齐方式、文件映射和宽屏布局/截图踩坑记录。
 
 ---
 

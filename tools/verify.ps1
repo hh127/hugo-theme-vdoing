@@ -58,23 +58,12 @@ if (-not $edge) { Write-Host "Chrome/Edge not found" -ForegroundColor Red; exit 
 
 function Capture([string]$page, [string]$name, [int]$w, [int]$h) {
   $out = Join-Path $tmpDir "verify-$name.png"
-  $profile = Join-Path $tmpDir ("edge-prof-" + [guid]::NewGuid().ToString("N").Substring(0, 8))
-  $url = "http://127.0.0.1:$Port" + $page
-  $edgeArgs = @(
-    "--headless=new", "--disable-gpu", "--hide-scrollbars", "--disable-extensions",
-    "--no-first-run", "--no-default-browser-check",
-    "--virtual-time-budget=8000",
-    "--user-data-dir=$profile",
-    "--screenshot=$out",
-    "--window-size=$w,$h",
-    $url
-  )
-  $proc = Start-Process -FilePath $edge -ArgumentList $edgeArgs -PassThru -WindowStyle Hidden
-  if (-not $proc.WaitForExit(45000)) { try { $proc.Kill() } catch {} }
-  Start-Sleep -Milliseconds 200
-  Remove-Item -Recurse -Force $profile -ErrorAction SilentlyContinue
-  if (Test-Path $out) { Write-Host ("  {0,-10} OK" -f $name); return $true }
-  Write-Host ("  {0,-10} FAILED" -f $name) -ForegroundColor Red
+  $shotPs1 = Join-Path (Get-Location) "tools/screenshot.ps1"
+  # 视口宽度由 screenshot.ps1 通过 CDP 精确设定; 不要退回 --window-size 方式
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $shotPs1 `
+    -BuildDir $Destination -Port $Port -Page $page -Out $out -Width $w -Height $h | Out-Null
+  if ($LASTEXITCODE -eq 0 -and (Test-Path $out)) { Write-Host ("  {0,-12} OK" -f $name); return $true }
+  Write-Host ("  {0,-12} FAILED" -f $name) -ForegroundColor Red
   return $false
 }
 
@@ -82,6 +71,7 @@ Write-Host "==> screenshots" -ForegroundColor Cyan
 $shots = @(
   @{ Page = "/"; Name = "home" },
   @{ Page = "/pages/8143cc480faf9a11/"; Name = "article" },
+  @{ Page = "/pages/8143cc480faf9a11/"; Name = "article-1280"; Width = 1280 },
   @{ Page = "/archives/"; Name = "archives" },
   @{ Page = "/web/"; Name = "catalogue" },
   @{ Page = "/friends/"; Name = "friends" },
@@ -91,9 +81,12 @@ $shots = @(
   @{ Page = "/about/"; Name = "about" }
 )
 foreach ($s in $shots) {
-  if (-not (Capture $s.Page $s.Name $Width $Height)) { $fail++ }
+  $w = if ($s.ContainsKey("Width")) { $s.Width } else { $Width }
+  $h = if ($s.ContainsKey("Height")) { $s.Height } else { $Height }
+  if (-not (Capture $s.Page $s.Name $w $h)) { $fail++ }
 }
 if (-not (Capture "/" "mobile" 500 1000)) { $fail++ }
+if (-not (Capture "/pages/8143cc480faf9a11/" "mobile-article" 500 1000)) { $fail++ }
 
 if ($fail -gt 0) { Write-Host "FAILED ($fail)" -ForegroundColor Red; exit 1 }
 Write-Host "OK" -ForegroundColor Green

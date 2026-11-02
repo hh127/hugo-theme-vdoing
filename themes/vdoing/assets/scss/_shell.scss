@@ -61,7 +61,15 @@
 
     &.have-rightmenu {
       .page {
-        padding-right: calc(#{$rightMenuWidth} + 20rem);
+        // 浮动大纲: .right-menu-wrapper 宽 $rightMenuWidth, margin-right: -($rightMenuWidth + 55px),
+        // 即大纲右边界比 .content-wrapper 再溢出 285px; 扣掉 .theme-vdoing-wrapper 自身 2.5rem 右内边距,
+        // 大纲右边界 = 视口右沿 - padding-right + 245px, 与视口右沿的间距 = padding-right - 245px。
+        // 取 padding-right = $rightMenuWidth + 1.75rem (258px) 时:
+        //   正文左间距 = 0.8rem = 12.8px, 大纲右间距 = 258 - 245 = 13px, 两者相等;
+        //   视口更宽、正文 max-width 860 封顶后两侧间距同步增大,
+        //   整个「正文 + 大纲」仍在「侧边栏右沿 ~ 视口右沿」这一区域里居中。
+        // 原版的 padding-right: $rightMenuWidth + 20rem (550px) 会让正文在宽屏下明显左偏。
+        padding-right: calc(#{$rightMenuWidth} + 1.75rem);
       }
     }
 
@@ -231,11 +239,9 @@
   }
 }
 
-@media (min-width: 1520px) {
-  .have-rightmenu .footer {
-    padding-right: calc(#{$rightMenuWidth} + 1.5rem);
-  }
-}
+// 页脚与「正文 + 右侧大纲」整体居中对齐:
+// .footer 左右各 1.5rem 时, 其可用区中心 = (viewport + sidebarWidth) / 2,
+// 与正文 + 大纲整体中心一致, 所以不再为 have-rightmenu 额外加大右内边距。
 
 .no-sidebar .footer {
   width: auto;

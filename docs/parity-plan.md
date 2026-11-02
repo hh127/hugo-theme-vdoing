@@ -132,3 +132,25 @@ assets/js/shell.js
 | _home | components/Home.vue 内 style |
 | _lists | components/PostList.vue, Pagination.vue, BloggerBar.vue, CategoriesBar.vue, TagsBar.vue |
 | _pages | components/ArchivesPage.vue, CategoriesPage.vue, TagsPage.vue, Catalogue.vue, layouts/404.vue |
+
+## 宽屏布局与截图验证（踩坑记录）
+
+1. **文章页 + 右侧大纲的整体居中**：右侧大纲是浮动元素
+   （`.right-menu-wrapper { float: right; margin-right: -(230px + 55px) }`），会比 `.content-wrapper`
+   右边界再溢出 285px。原版用 `.have-rightmenu .page { padding-right: $rightMenuWidth + 20rem }`
+   给这块溢出留空间，副作用是正文在宽屏下明显左偏、右侧大片留白。
+   Hugo 版改为 `padding-right: calc(#{$rightMenuWidth} + 1.75rem)`：正文 `max-width 860px`
+   在 `.page` 内容区里居中，大纲贴住正文右侧，于是「正文 + 大纲」整体在「侧边栏右沿 ~ 视口右沿」
+   这一区域里居中，各断点下正文左间距与大纲右间距相等
+   （1280/1366/1440 为 13px；1520/1920 因正文 max-width 封顶，两侧同时增大）。
+   改动前先用 CDP 量 `.right-menu-wrapper` 右边界与 `innerWidth` 的差值，不要凭截图猜。
+2. **页脚**：不要再给 `have-rightmenu` 的 `.footer` 额外加右内边距。
+   `.sidebar-open .footer { padding-left: $sidebarWidth + 1.5rem }` 已让页脚内容中心等于
+   `(视口宽 + 侧边栏宽) / 2`，与「正文 + 大纲」整体中心一致。
+3. **侧边栏 partial 只在 `baseof.html` 调用一次**，不要用 `Page.Store` 做防重标记：
+   `hugo server` 增量重建会复用同一个 Page 对象，Store 里的标记会残留，导致热更新后侧边栏消失。
+4. **截图必须用 `tools/screenshot.ps1`**（内部 `tools/screenshot.cjs`，通过 CDP
+   `Emulation.setDeviceMetricsOverride` 精确设定视口宽度）。不要用
+   `msedge --headless --screenshot --window-size=1280,1000`：窗口尺寸不等于 CSS 视口宽度，
+   实测 innerWidth 只有 1225~1254，1279/1280 断点会截出「大纲被视口裁掉」的假 bug（已踩过）。
+
