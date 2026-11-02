@@ -63,26 +63,30 @@ summaryLength = 80        # 列表摘要长度
   repoLabel = "GitHub"
 
   # ---------- 布局 ----------
-  pageStyle = "card"            # card 卡片式 | line 线条式
+  pageStyle = "card"            # card 卡片式 | line 线条式 (其他值回落到 card)
   bodyBgImg = []                # body 背景大图, 例如 ["/img/bg.jpeg"]; 非空时固定 card 风格
-  bodyBgImgOpacity = 0.5
-  bodyBgImgInterval = 15
+  bodyBgImgOpacity = 0.5        # 0 也是合法值 (0 = 完全透明)
+  bodyBgImgInterval = 15        # 0 表示不轮播
   contentBgStyle = 0            # 内容区背景纹 1~6, 0 为无
   titleBadge = true             # 文章标题前的随机小图标
   titleBadgeIcons = []          # 自定义图标地址, 默认用主题内置 /img/title-badge/*.png
-  sidebarDepth = 2              # 侧边栏/右侧大纲层级
+  sidebarDepth = 2              # 侧边栏/右侧大纲层级 (站点级默认值, 见 [params.sidebar].depth)
   sidebarOpen = true            # 桌面端默认展开侧边栏
   sidebarHoverTriggerOpen = true# 侧边栏收起时, 鼠标移到左侧边缘可弹出
   rightMenuBar = true           # 右侧文章大纲
   pageButton = true             # 页面中部左右快捷翻页按钮
   defaultMode = "auto"          # auto | light | dark | read
   navbar = true                 # 是否显示顶部导航
-  smoothScroll = false
+  smoothScroll = false          # true 时大纲/锚点点击平滑滚动 (原 themeConfig.smoothScroll)
   iconfontCssFile = ""          # 额外图标库 css
 
   # ---------- 列表与搜索 ----------
   postPageSize = 10
   searchMaxSuggestions = 10
+  search = true                 # false: 隐藏顶部搜索框与搜索能力 (原 themeConfig.search)
+  searchPlaceholder = "搜索文章"  # 搜索框占位符 (原 themeConfig.searchPlaceholder)
+  archivePageSize = 80          # 归档页首屏条数, 其余滚动/点击加载
+  # 第三方搜索跳转见文件末尾 [[params.thirdpartySearch]]; Algolia 见 [params.algolia]
 
   # ---------- 编辑链接 ----------
   editLinks = true
@@ -93,6 +97,10 @@ summaryLength = 80        # 列表摘要长度
 
   # ---------- 上次更新 ----------
   lastUpdated = "上次更新"
+  # 优先取 git 提交时间 (enableGitInfo); 无 git 信息时是否回落到 date 显示
+  # 注意: Hugo 的 git 集成在 core.quotepath=true 时对中文文件名返回 nil,
+  #       中文文章要显示 git 时间可执行 `git config core.quotepath false` (仓库本地配置)
+  lastUpdatedFallbackToDate = true
 
   # ---------- 作者 ----------
   author = "xugaoyi"
@@ -102,7 +110,17 @@ summaryLength = 80        # 列表摘要长度
   category = true
   tag = true
   archive = true
-  categoryText = "随笔"          # 碎片化文章的默认分类
+  categoryText = "随笔"          # 碎片化文章的默认分类 (迁移脚本 tools/migrate_content.py 使用)
+
+  # ---------- 上下篇 ----------
+  prevLinks = true              # false 隐藏「上一篇」链接 (原 themeConfig.prevLinks)
+  nextLinks = true              # false 隐藏「下一篇」链接
+  # 单页覆盖: frontmatter 写 prev: "/pages/xxx/" 或 prev: false (next 同理)
+
+  # ---------- 注入点 (原 VuePress head / .vuepress/styles) ----------
+  head = ""                     # 自定义 <head> HTML 片段, 例如 '<meta name="x" content="y">'
+  customCss = ""                # 自定义 CSS 字符串 (内联到 <head>)
+  customStyleFile = ""          # 额外 CSS 文件路径 (相对站点根, 如 "/css/my.css")
 
   # =======================================================
   #  以下为子表 (TOML 表头之后不能再写普通 key)
@@ -136,6 +154,23 @@ summaryLength = 80        # 列表摘要长度
   [params.updateBar]
     showToArticle = true
     moreArticle = "/archives/"
+
+  # ---------- 侧边栏 (原 themeConfig.sidebar 的结构化参数) ----------
+  [params.sidebar]
+    depth = 2                   # 默认展开层级: frontmatter sidebarDepth > 分组 _index sidebarDepth > 此处
+    collapsable = true          # 分组是否可折叠 (原 collapsable: false)
+    displayAllHeaders = false   # true: 所有页面都展开标题子项 (原 displayAllHeaders)
+
+  # ---------- Algolia 搜索 (可选; 留空则使用本地 index.json 搜索) ----------
+  [params.algolia]
+    appId = ""
+    apiKey = ""
+    indexName = ""
+
+  # 第三方搜索跳转 (可选): 在外部搜索引擎打开当前关键词, {query} 为占位符
+  # [[params.thirdpartySearch]]
+  #   name = "百度"
+  #   link = "https://www.baidu.com/s?wd={query}"
 
   # ---------- 博主信息 (首页右侧 / 移动端侧边栏) ----------
   [params.blogger]
