@@ -18,14 +18,6 @@
 {{- with site.Params.iconfontCssFile }}
 <link rel="stylesheet" href="{{ . }}">
 {{- end }}
-{{- /* gitalk 评论样式: 优先本地化文件 static/gitalk/gitalk.css (A11), 缺失时回落 unpkg CDN */}}
-{{- if and site.Params.gitalk site.Params.gitalk.enable }}
-{{- if os.FileExists "static/gitalk/gitalk.css" }}
-<link rel="stylesheet" href="{{ "gitalk/gitalk.css" | relURL }}">
-{{- else }}
-<link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
-{{- end }}
-{{- end }}
 
 {{- with .OutputFormats.Get "rss" }}
 <link rel="alternate" type="application/rss+xml" href="{{ .RelPermalink }}" title="{{ site.Title }}">
@@ -69,23 +61,6 @@ window.__SEARCH_MAX__ = {{ site.Params.searchMaxSuggestions | default 10 }};
 {{- $zEnable := true }}
 {{- if isset . "enable" }}{{ $zEnable = .enable }}{{ end }}
 window.__ZOOMING__ = {{ dict "enable" $zEnable "bgColor" (.bgcolor | default "rgba(0,0,0,0.6)") "selector" (.selector | default ".theme-vdoing-content img:not(.no-zoom)") | jsonify | safeJS }};
-{{- end }}
-{{- /* A1(P0): 显式输出 camelCase 键。若用 jsonify 直出 params.gitalk,
-      键名会变成 clientid/clientsecret/pagerdirection, gitalk.js 读 cfg.clientID 得 undefined → 评论永不渲染。
-      gitalk.js 同时兼容小写键 (双保险)。 */}}
-{{- if and site.Params.gitalk site.Params.gitalk.enable }}
-{{- $g := site.Params.gitalk }}
-window.__GITALK__ = {{ dict
-  "enable" true
-  "clientID" ($g.clientid | default "")
-  "clientSecret" ($g.clientsecret | default "")
-  "repo" ($g.repo | default "")
-  "owner" ($g.owner | default "")
-  "admin" ($g.admin | default (slice))
-  "pagerDirection" ($g.pagerdirection | default "last")
-  "distractionFreeMode" ($g.distractionfreemode | default false)
-  "labels" ($g.labels | default (slice "Gitalk" "Comment"))
-  | jsonify | safeJS }};
 {{- end }}
 </script>
 

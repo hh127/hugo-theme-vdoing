@@ -134,17 +134,9 @@ summaryLength = 80        # 列表摘要长度
   #  以下为子表 (TOML 表头之后不能再写普通 key)
   # =======================================================
 
-  # ---------- 评论 (gitalk, 原 vuepress-plugin-comment) ----------
-  [params.gitalk]
-    enable = true
-    clientID = "a6e1355287947096b88b"
-    clientSecret = "f0e77d070fabfcd5af95bebb82b2d574d7248d71"
-    repo = "blog-gitalk-comment"
-    owner = "xugaoyi"
-    admin = ["xugaoyi"]
-    pagerDirection = "last"     # first 正序 | last 倒序
-    distractionFreeMode = false
-    labels = ["Gitalk", "Comment"]
+  # ---------- 评论 ----------
+  # 本复刻不提供评论区 (gitalk 相关模板/脚本/静态资源已移除)。
+  # 如需恢复, 可从 git 历史取回 comment.html / assets/js/gitalk.js / static/gitalk/。
 
   # ---------- 百度统计 / 自动推送 / 站长验证 ----------
   [params.baidu]
@@ -175,10 +167,23 @@ summaryLength = 80        # 列表摘要长度
     apiKey = ""
     indexName = ""
 
-  # 第三方搜索跳转 (可选): 在外部搜索引擎打开当前关键词, {query} 为占位符
-  # [[params.thirdpartySearch]]
-  #   name = "百度"
-  #   link = "https://www.baidu.com/s?wd={query}"
+  # 第三方搜索跳转: 原站 5 条已迁移; 支持原版 schema (title + frontUrl + behindUrl)
+  # 也兼容 name + link (link 中 {query} 为关键词占位符)
+  [[params.thirdpartySearch]]
+    title = "在MDN中搜索"
+    frontUrl = "https://developer.mozilla.org/zh-CN/search?q="
+  [[params.thirdpartySearch]]
+    title = "在Runoob中搜索"
+    frontUrl = "https://www.runoob.com/?s="
+  [[params.thirdpartySearch]]
+    title = "在Vue API中搜索"
+    frontUrl = "https://cn.vuejs.org/v2/api/#"
+  [[params.thirdpartySearch]]
+    title = "在Bing中搜索"
+    frontUrl = "https://cn.bing.com/search?q="
+  [[params.thirdpartySearch]]
+    title = "通过百度搜索本站的"
+    frontUrl = "https://www.baidu.com/s?wd=site%3Axugaoyi.com%20"
 
   # ---------- 博主信息 (首页右侧 / 移动端侧边栏) ----------
   [params.blogger]

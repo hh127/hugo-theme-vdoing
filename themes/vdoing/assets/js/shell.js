@@ -306,66 +306,6 @@
   }
 
   /* =========================================================
-   *  6. 去评论 (原版 Buttons.vue scrollToComment)
-   * ========================================================= */
-  var goComment = $('#go-to-comment');
-  var COMMENT_SELECTORS = ['#vuepress-plugin-comment', '#valine-vuepress-comment', '.vssue'];
-  var commentScrollTimer = null;
-  var commentTextarea = null;
-
-  function getCommentEl() {
-    for (var i = 0; i < COMMENT_SELECTORS.length; i++) {
-      var el = $(COMMENT_SELECTORS[i]);
-      if (el) return el;
-    }
-    return null;
-  }
-
-  function focusCommentInput() {
-    if (!commentTextarea) return;
-    try { commentTextarea.focus(); } catch (e) {}
-    commentTextarea.classList.add('yellowBorder');
-    setTimeout(function () {
-      if (commentTextarea) commentTextarea.classList.remove('yellowBorder');
-    }, 500);
-  }
-
-  function getCommentButtonState() {
-    setTimeout(function () {
-      var el = getCommentEl();
-      if (goComment) goComment.classList.toggle('show', !!el);
-    }, 500);
-  }
-
-  if (goComment) {
-    goComment.addEventListener('click', function () {
-      var el = getCommentEl();
-      if (!el) return;
-      var target = el.offsetTop - NAVBAR_HEIGHT;
-      window.scrollTo({ top: target, behavior: 'smooth' });
-      commentTextarea = $('textarea', el) || $('input', el);
-      if (!commentTextarea) return;
-      // 滚动停止后再聚焦, 避免 focus 打断平滑滚动
-      var lastTop = getScrollTop();
-      var tries = 0;
-      var timer = setInterval(function () {
-        tries++;
-        var top = getScrollTop();
-        if (Math.abs(top - lastTop) < 1 || tries > 30) {
-          clearInterval(timer);
-          clearTimeout(commentScrollTimer);
-          commentScrollTimer = setTimeout(focusCommentInput, 60);
-        } else {
-          lastTop = top;
-        }
-      }, 60);
-    });
-  }
-
-  window.addEventListener('load', getCommentButtonState);
-  getCommentButtonState();
-
-  /* =========================================================
    *  7. body 背景大图轮播 (原版 BodyBgImg.vue)
    * ========================================================= */
   var bodyBg = $('#body-bg');

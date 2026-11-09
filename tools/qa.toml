@@ -1,8 +1,5 @@
 # QA 用配置覆盖: 关闭需要外网的集成, 避免无网络环境截图/构建时卡住
 # 用法: hugo --config hugo.toml,tools/qa.toml --destination .tmp/build-qa
-[params.gitalk]
-  enable = false
-
 [params.baidu]
   tongji = ""
   autopush = false

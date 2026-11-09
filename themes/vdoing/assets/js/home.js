@@ -10,10 +10,14 @@
   var redirected = (function redirectLegacyPageParam() {
     var m = /[?&]p=(\d+)/.exec(window.location.search || '');
     if (!m) return false;
-    var page = parseInt(m[1], 10);
-    if (!page || page <= 1) return false;
+    // 只对首页生效: 分类/标签/原生 term 页也用 ?p=N 做前端分页 (见 pages.js 的 pageUrl),
+    // 在子页无条件跳转会把它们的第 2 页及以后劫持到首页分页。
     var base = window.__BASE__ || '/';
     if (base.charAt(base.length - 1) !== '/') base += '/';
+    var path = window.location.pathname;
+    if (path !== base && path !== base + 'index.html') return false;
+    var page = parseInt(m[1], 10);
+    if (!page || page <= 1) return false;
     window.location.replace(base + 'page/' + page + '/');
     return true;
   })();

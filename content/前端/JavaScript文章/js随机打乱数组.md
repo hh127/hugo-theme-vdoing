@@ -28,7 +28,7 @@ function getRandomInt(min, max) { // 获取min到max的一个随机数，包含m
 ```
 
 <!-- ## vue demo
-{{% block type="demo" %}}
+::: demo
 
 ```html
 <template>
@@ -108,6 +108,4 @@ function getRandomInt(min, max) { // 获取min到max的一个随机数，包含m
     }
   </script>
 ```
-{{% /block %}}
-
 {{% /block %}}

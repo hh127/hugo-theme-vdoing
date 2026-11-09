@@ -18,8 +18,8 @@
 现在它是一个 **Hugo 站点 + `themes/vdoing` 主题**：不仅完成了内容迁移，主题的 DOM 结构、样式与交互也按原版 `legacy/vdoing` 逐组件移植并对齐。
 
 - 230 个内容页（其中 214 篇正式文章）全部迁移，**保留原 `/pages/xxx/` 永久链接**，老站外链不失效；
-- 保留原版的全部主题配置项（`pageStyle`、`bodyBgImg`、`contentBgStyle`、`titleBadge`、`rightMenuBar`、`pageButton`、`updateBar`、`htmlModules`、`gitalk`、`baidu`、`zooming`、`sidebar`、`prevLinks/nextLinks` …）；
-- 原版 vendored 的 iconfont 图标库、标题徽标、Prism 浅色/深色代码主题、gitalk 依赖均已本地化，**不依赖任何外部 CDN**（评论/统计按配置可关）。
+- 保留原版的全部主题配置项（`pageStyle`、`bodyBgImg`、`contentBgStyle`、`titleBadge`、`rightMenuBar`、`pageButton`、`updateBar`、`htmlModules`、`baidu`、`zooming`、`sidebar`、`prevLinks/nextLinks` …）；
+- 原版 vendored 的 iconfont 图标库、标题徽标、Prism 浅色/深色代码主题均已本地化，**不依赖任何外部 CDN**（统计按配置可关）；评论区按需求移除。
 
 | 文章页 | 目录页 |
 | --- | --- |
@@ -39,7 +39,7 @@
 - 导航外链 / `mailto:` / `tel:` 自动加 `target/_blank` `rel=noopener noreferrer` 与外链箭头图标；导航区宽度随视口自适应，长菜单不压住站名；
 - 左侧边栏：结构化目录树（按 `weight` 排序、可折叠分组、同时只展开当前分支）、**当前文章在侧边栏展开 h2~h6 标题子项**、`displayAllHeaders`、页面/分组/站点三级 `sidebarDepth`、`collapsable:false`、默认展开第一个分组、`sidebar: auto` 碎片文章显示本页大纲并随滚动高亮、桌面左缘悬停弹出、收起状态记忆、移动端抽屉 + 遮罩 + 右滑手势；
 - 移动端侧边栏博主信息卡（`.blogger`，无 `blogger.social` 时显示 slogan，与原版一致）；
-- 右下角圆形按钮组：返回顶部（淡入淡出）、去评论、主题模式选择框（扇出动画，`auto / light / dark / read` 四项），旧版 `mode` localStorage 键自动迁移到 `vdoing-mode`；
+- 右下角圆形按钮组：返回顶部（淡入淡出）、主题模式选择框（扇出动画，`auto / light / dark / read` 四项），旧版 `mode` localStorage 键自动迁移到 `vdoing-mode`；
 - `bodyBgImg` 背景大图（单图 / 多图轮播 + 透明度，`0` 值合法）、`theme-style-line` 线条风格、footer 社交图标与备案信息；
 - 自定义 HTML 模块（`data/htmlModules.yaml`）：`homeSidebarB` / `sidebarT` / `sidebarB` / `pageT` / `pageB` / `windowLB` / `windowRB`，支持 `*showMode: article|custom`。
 
@@ -49,7 +49,7 @@
 - 标题前随机徽标（`titleBadge`，`titleBadgeIcons` 可自定义且支持相对路径）、`titleTag` 小徽标、`contentBgStyle` 1~6 内容区背景纹；
 - 右侧文章大纲（h2~h6，滚动高亮、点击平滑滚动，`smoothScroll` 开关生效）、中部左右固定快捷翻页按钮 + tooltip、底部上一篇 / 下一篇（**顺序与侧边栏一致，不再出现「上一篇 == 下一篇」**，支持 `prevLinks`/`nextLinks` 总开关与 frontmatter `prev`/`next` 单页覆盖）；
 - 编辑链接（GitHub / GitLab / Gitee / Bitbucket 自动识别，带外链图标，`editLink: false` 可关）、标签列表、最近更新时间（优先 `enableGitInfo` 的 git 提交时间，可用 `lastUpdatedFallbackToDate` 回落到 frontmatter 日期）；
-- 「最近更新」栏（`updateBar.showToArticle` 可关）、gitalk 评论（`comment: false` 可关，含加载中/失败提示）、`pageT` / `pageB` 自定义 HTML 槽位。
+- 「最近更新」栏（`updateBar.showToArticle` 可关）、`pageT` / `pageB` 自定义 HTML 槽位。
 
 **首页 / 列表 / 归档 / 分类 / 标签 / 目录页**
 
@@ -116,8 +116,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify_parity.ps1 -Tog
 │   ├── posts/             # 碎片化文章（原 _posts/，sidebar: auto）
 │   ├── 前端/ 页面/ 技术/ 更多/ 关于/ 收藏夹/
 │   └── 《ES6 教程》笔记/ 《Vue》笔记/ …… （学习笔记专辑）
-├── static/                # 站点图片、favicon、CNAME、备案图标、gitalk 本地依赖
-│   └── gitalk/            # gitalk.min.js + gitalk.css（评论离线可用）
+├── static/                # 站点图片、favicon、CNAME、备案图标
 ├── themes/vdoing/
 │   ├── layouts/           # 模板 / partials / shortcodes / _markup 渲染钩子
 │   ├── assets/scss/       # 样式，按区域拆分为 partial（variables/base/navbar/sidebar/article/…）
@@ -148,12 +147,12 @@ author:
 weight: 1                         # 同级排序，等价于原文件名 "01." 序号
 titleTag: 原创                     # 可选：标题旁小徽标
 sticky: 1                         # 可选：置顶，数字越大越靠前
-comment: false                    # 可选：关闭本页评论
 editLink: false                   # 可选：关闭本页「编辑」链接
 sidebar: auto                     # 可选：左侧边栏改为本页大纲（碎片文章）
 sidebar: false                    # 可选：关闭左侧边栏
 sidebarDepth: 2                   # 可选：本页侧边栏/大纲层级（覆盖分组/站点）
 article: false                    # 可选：自定义页（不进列表 / 归档 / 搜索）
+search: false                     # 可选：本页隐藏顶部搜索框（页面级，原 Navbar 行为）
 prev: false                       # 可选：隐藏「上一篇」（也可写 "/pages/xxx/" 覆盖目标）
 next: false                       # 可选：隐藏「下一篇」（也可写 "/pages/xxx/" 覆盖目标）
 ---
@@ -230,7 +229,6 @@ article: false
 | `[[params.social]]` | 社交图标（`iconClass` 取 iconfont 类名，如 `icon-github`） |
 | `footer.{createYear,copyrightInfo}` | 页脚版权 / 备案信息 |
 | `[params.updateBar]` | 最近更新栏（`showToArticle` / `moreArticle`） |
-| `[params.gitalk]` | gitalk 评论（`enable` / `clientID` / `clientSecret` / `repo` / `owner` / `admin` …） |
 | `[params.baidu]` | 百度统计 / 自动推送 / 站长验证（留空即关闭） |
 | `[params.zooming]` | 图片放大（`enable` / `bgColor` / `selector`） |
 
@@ -242,11 +240,9 @@ article: false
 - 也可以用 URL 直接指定：`/?mode=dark`；
 - 用户的选择保存在 `localStorage`（键 `vdoing-mode`），未选择过时跟随系统；旧版 `mode` 键会自动迁移。
 
-### 评论（gitalk）
+### 评论
 
-在 `[params.gitalk]` 填写 GitHub OAuth App 的 `clientID` / `clientSecret`、评论仓库 `repo` / `owner` / `admin` 即可；
-文章页 frontmatter 写 `comment: false` 可单独关闭；整站关闭把 `enable` 设为 `false`（此时评论容器与加载提示都不输出）。
-gitalk 的 js/css 已随仓库放在 `static/gitalk/`，断网也可加载；若文件缺失会自动回落 unpkg CDN。
+本复刻不提供评论区（gitalk 相关模板、初始化脚本、本地静态资源均已移除；构建产物中不会出现评论区、去评论按钮，也不会有任何 gitalk 网络请求）。
 
 ### 站内搜索
 
@@ -262,7 +258,7 @@ gitalk 的 js/css 已随仓库放在 `static/gitalk/`，断网也可加载；若
 
 ## 与 VuePress 版的差异
 
-**已对齐**：导航（含外链）/ 侧边栏（含当前页标题子项、层级、折叠）/ 首页 banner 与文章列表（含富文本摘要、轮播）/ 文章页（面包屑、徽标、编辑链接四平台、上次更新、右侧大纲、上下篇、最近更新栏）/ 归档（渐进加载）/ 分类 / 标签（前端过滤 + 无 JS 降级）/ 目录页 / 404 运行时随机文案 / 代码块与自定义容器 / CodeGroup / demo 预览 / gitalk 评论（含本地依赖）/ 图片放大缩放拖拽手势 / 三套主题模式 / body 背景图 / 自定义 HTML 模块 / 百度统计 / 站内搜索（轻/重索引分离、小节定位、键盘导航）/ 平滑滚动开关 / 自定义 head 与样式注入 / 旧 VuePress 锚点深链兼容。
+**已对齐**：导航（含外链）/ 侧边栏（含当前页标题子项、层级、折叠）/ 首页 banner 与文章列表（含富文本摘要、轮播）/ 文章页（面包屑、徽标、编辑链接四平台、上次更新、右侧大纲、上下篇、最近更新栏）/ 归档（渐进加载）/ 分类 / 标签（前端过滤 + 无 JS 降级）/ 目录页 / 404 运行时随机文案 / 代码块与自定义容器 / CodeGroup / demo 预览 / 正文外链自动 target/rel + 外链图标 / 图片放大缩放拖拽手势 / 三套主题模式 / body 背景图 / 自定义 HTML 模块 / 百度统计 / 站内搜索（轻/重索引分离、小节定位、键盘导航）/ 原站 5 条第三方搜索外链（MDN / Runoob / Vue API / Bing / 百度站内）/ 平滑滚动开关 / 自定义 head 与样式注入 / 旧 VuePress 锚点深链兼容。
 
 **有意不同 / 已知限制**：
 
@@ -300,7 +296,7 @@ hugo --minify && python tools/check_links.py
 # 一键验收：构建 + 链接检查 + 关键页面截图（截图输出到 .tmp/verify-*.png）
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify.ps1
 
-# 与原版差距修复项的逐条断言（评论/上下篇/搜索/列表/侧边栏/外壳；-Toggles 验证配置开关）
+# 与原版差距修复项的逐条断言（上下篇/搜索/列表/侧边栏/外壳；-Toggles 验证配置开关）
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify_parity.ps1 -Toggles
 
 # 单个页面截图（本地静态服务 + Edge/Chrome headless）
@@ -310,7 +306,7 @@ tools\screenshot.cmd -BuildDir public -Page "/pages/8143cc480faf9a11/" -Port 889
 ```
 
 > 构建时如需并行/避免构建锁：`hugo --noBuildLock --cacheDir "<绝对路径>/.tmp/cache"`；
-> 无外网环境做截图验收时用 `tools/qa.toml` 覆盖配置关闭 gitalk / 百度统计：`--config hugo.toml,tools/qa.toml`。
+> 无外网环境做截图验收时用 `tools/qa.toml` 覆盖配置关闭百度统计：`--config hugo.toml,tools/qa.toml`。
 > 截图依赖本机 Edge/Chrome 与 Node（`tools/screenshot.cjs` 走 CDP，无需 npm 依赖）。
 > `docs/parity-plan.md` 记录了与 `legacy/vdoing` 逐组件的对齐方式、文件映射和宽屏布局/截图踩坑记录。
 

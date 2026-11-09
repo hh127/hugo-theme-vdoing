@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Acceptance checks for the fixes listed in docs/parity-gaps.md.
   Builds the site, inspects generated HTML/JSON/JS/SCSS and asserts each fixed item.
@@ -38,6 +38,8 @@ function Read-Page([string]$root, [string]$rel) {
 
 function Build-Site([string]$dest, [string[]]$configArgs) {
   $cacheDir = Join-Path (Get-Location) (".tmp/cache-" + ($dest -replace '[\\/]', '-'))
+  # 每次构建前清空目标目录, 避免 Hugo 不清理旧产物导致断言读到上一轮的陈旧文件
+  if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Recurse -Force }
   # no --minify: assertions rely on quoted attributes
   & hugo @configArgs --destination $dest --cacheDir $cacheDir --noBuildLock --logLevel warn 2>&1 | Out-Null
   return ($LASTEXITCODE -eq 0)
@@ -64,12 +66,8 @@ Check "internal links" ($LASTEXITCODE -eq 0) ($linkText.Trim() -split "`n" | Sel
 $pages = Count-HtmlPages $Destination
 Check "html pages" ($pages -gt 200) "pages=$pages"
 
-Write-Host "==> P0 gitalk / zooming config keys" -ForegroundColor Cyan
+Write-Host "==> P0 zooming config keys" -ForegroundColor Cyan
 $article = Read-Page $Destination "pages\8143cc480faf9a11\index.html"
-$gitalkJson = [regex]::Match($article, 'window\.__GITALK__\s*=\s*(\{.*?\});', 'Singleline').Groups[1].Value
-Check "gitalk clientID camelCase" ($gitalkJson -match '"clientID"') ($gitalkJson.Substring(0, [Math]::Min(80, $gitalkJson.Length)))
-Check "gitalk no lowercase clientid key" ($gitalkJson -cnotmatch '"clientid"\s*:')
-Check "gitalk clientSecret camelCase" ($gitalkJson -match '"clientSecret"')
 $zoomJson = [regex]::Match($article, 'window\.__ZOOMING__\s*=\s*(\{.*?\});', 'Singleline').Groups[1].Value
 Check "zooming bgColor camelCase" ($zoomJson -match '"bgColor"') $zoomJson
 Check "zooming no lowercase bgcolor key" ($zoomJson -cnotmatch '"bgcolor"\s*:')
@@ -89,16 +87,26 @@ Get-ChildItem -LiteralPath $Destination -Recurse -Filter *.html | ForEach-Object
 Check "prev != next everywhere" ($dupPages.Count -eq 0) "both=$navPages, dup=$($dupPages.Count) $(if($dupPages.Count){'e.g.'+$dupPages[0]})"
 Check "prev/next coverage" ($navPages -gt 100) "pages with both links=$navPages"
 
-Write-Host "==> P0 404 runtime random / gitalk local asset" -ForegroundColor Cyan
+Write-Host "==> P0 404 runtime random / 评论区已移除" -ForegroundColor Cyan
 $notFound = Read-Page $Destination "404.html"
 Check "404 data-msgs present" ($notFound -match 'data-msgs')
 Check "404 messages list" (([regex]::Matches($notFound, '\u3002|\uFF1F|Four-Oh-Four')).Count -ge 3) ""
-Check "gitalk local asset referenced" ($article -match '/gitalk/gitalk\.min\.js')
+Check "no comment container" ($article -notmatch 'vuepress-plugin-comment')
+Check "no gitalk script/css" (($article -notmatch '<script[^>]+gitalk') -and ($article -notmatch 'gitalk\.min\.js') -and ($article -notmatch 'unpkg\.com/gitalk'))
+Check "no go-to-comment button" ($article -notmatch 'go-to-comment')
+Check "gitalk assets removed" ((-not (Test-Path "static/gitalk")) -and (-not (Test-Path "themes/vdoing/assets/js/gitalk.js")) -and (-not (Test-Path "themes/vdoing/layouts/partials/comment.html")))
 
 Write-Host "==> P1 code-group content conversion" -ForegroundColor Cyan
 $cg = Read-Page $Destination "pages\8481d1\index.html"
 Check "code-group page no raw tags" ($cg -notmatch '<code-group|<code-block')
 Check "code-group page has tab DOM" ($cg -match 'code-group') ""
+
+Write-Host "==> 正文外链 / 第三方搜索" -ForegroundColor Cyan
+$extPage = Read-Page $Destination "pages\fac8b7\index.html"
+Check "external link target/rel" ($extPage -match '<a href="https://tempmail100\.com"[^>]*target="_blank"[^>]*rel="noopener noreferrer"')
+Check "external link outbound icon" ($extPage -match 'external-link-icon')
+$tp = [regex]::Match($extPage, 'window\.__THIRDPARTY_SEARCH__\s*=\s*(.*?);</script>', 'Singleline').Groups[1].Value
+Check "thirdparty config migrated" (($tp -match 'developer\.mozilla\.org') -and ($tp -match 'runoob\.com') -and ($tp -match 'cn\.bing\.com') -and ($tp -match 'site%3Axugaoyi\.com'))
 
 Write-Host "==> P1 search index (light list index + lazy full-text index)" -ForegroundColor Cyan
 $indexJson = Read-Page $Destination "index.json"
@@ -143,6 +151,9 @@ Check "catalogue page-edit block" ($catalogue -match 'class="page-edit"|class="l
 Check "catalogue has prev/next" ($catalogue -match 'page-nav')
 $demo = Read-Page $Destination "pages\40b4db2d38ba85f2\index.html"
 Check "demo preview/code toggle" ($demo -match 'demo-(toggle|tabs|preview)|\u9884\u89c8')
+Check "commented demo not rendered" (([regex]::Matches($demo, 'demo-block-head')).Count -eq 1) "heads=$(([regex]::Matches($demo, 'demo-block-head')).Count)"
+Check "posts orphan page not generated" (-not (Test-Path (Join-Path $Destination "posts\index.html")))
+Check "posts orphan not in sitemap" (-not ((Read-Page $Destination "sitemap.xml") -match '<loc>[^<]*/posts/</loc>'))
 
 Write-Host "==> source wiring assertions" -ForegroundColor Cyan
 $zoomJs = Get-Content -LiteralPath "themes/vdoing/assets/js/zoom.js" -Raw
@@ -170,11 +181,16 @@ $pageEdit = Get-Content -LiteralPath "themes/vdoing/layouts/partials/page-edit.h
 Check "page-edit Bitbucket" ($pageEdit -match 'bitbucket')
 Check "page-edit outbound icon" ($pageEdit -match 'outbound|icon-|svg')
 Check "page-edit last updated from git" ($pageEdit -match 'GitInfo')
+Check "page-edit docsRepo falls back to repo" ($pageEdit -match 'default site\.Params\.repo')
 $headHtml = Get-Content -LiteralPath "themes/vdoing/layouts/partials/head.html" -Raw
 Check "head custom injection points" (($headHtml -match 'customCss') -and ($headHtml -match 'Params.head|site.Params.head'))
 $migrate = Get-Content -LiteralPath "tools/migrate_content.py" -Raw
 Check "migrate script code-group rule" ($migrate -match 'code-group')
 Check "migrate script categoryText" ($migrate -match 'categoryText')
+
+Write-Host "==> regression: ?p=N 只劫持首页" -ForegroundColor Cyan
+$homeJs = Get-Content -LiteralPath "themes/vdoing/assets/js/home.js" -Raw
+Check "?p=N redirect guarded to home only" (($homeJs.Contains('__BASE__')) -and ($homeJs.Contains('location.pathname')) -and ($homeJs.Contains('path !== base')))
 
 # ---------------------------------------------------------------- toggle builds
 if ($Toggles) {
@@ -184,13 +200,18 @@ if ($Toggles) {
 # temporary override for acceptance: trigger every "config not wired" branch
 [params]
   search = false
+  docsRepo = ""
   prevLinks = false
   nextLinks = false
+  navbar = false
   pageStyle = "bogus"
   bodyBgImg = ["/img/logo.png"]
   bodyBgImgOpacity = 0
   head = '<meta name="parity-head" content="1">'
   customCss = '.parity-css{color:red}'
+[params.sidebar]
+  displayAllHeaders = true
+  collapsable = false
 [params.updateBar]
   showToArticle = false
 [[params.thirdpartySearch]]
@@ -204,12 +225,30 @@ if ($Toggles) {
   $tHome = Read-Page $ToggleDestination "index.html"
   Check "updateBar.showToArticle=false" ($tArticle -notmatch 'class="article-list"')
   Check "prevLinks=false" ($tArticle -notmatch 'page-nav-centre-prev')
+  Check "docsRepo falls back to repo" ($tArticle -match 'github\.com/hh127/hugo-theme-vdoing')
+  Check "displayAllHeaders expands all" (([regex]::Matches($tArticle, 'sidebar-sub-headers')).Count -gt 1) "count=$(([regex]::Matches($tArticle, 'sidebar-sub-headers')).Count)"
+  $tSidebar = [regex]::Match($tArticle, '(?s)<aside class="sidebar".*?</aside>').Value
+  $sidebarHeadings = [regex]::Matches($tSidebar, '<(?:a|p) class="sidebar-heading[^>]*>.*?</(?:a|p)>', 'Singleline')
+  $headingArrows = @($sidebarHeadings | Where-Object { $_.Value -match 'class="arrow' }).Count
+  Check "collapsable=false hides sidebar arrows" (($tSidebar.Length -gt 0) -and ($tArticle -notmatch 'sidebar-group[^"]*collapsable') -and ($headingArrows -eq 0)) "arrows=$headingArrows"
+  Check "navbar=false adds no-navbar" (($tArticle -match 'no-navbar') -and ($tArticle -notmatch 'class="navbar blur'))
   Check "pageStyle bogus falls back to card" ($tArticle -match 'theme-style-card' -and $tArticle -notmatch 'theme-style-bogus')
   Check "head injection works" ($tArticle -match 'parity-head')
   Check "customCss injection works" ($tArticle -match 'parity-css')
   Check "search=false hides box" (($tArticle -notmatch 'search-box') -and ($tArticle -notmatch '<input[^>]+search'))
-  Check "thirdpartySearch works" (($tArticle -match 'baidu\.com') -or ($tHome -match 'baidu\.com'))
+  Check "search=false hides thirdparty too" (($tArticle -notmatch '__THIRDPARTY_SEARCH__') -and ($tHome -notmatch '__THIRDPARTY_SEARCH__'))
   Check "bodyBgImgOpacity=0 works" (($tArticle -match 'opacity:\s*0(?![.\d])') -or ($tArticle -match '--body-bg-opacity:\s*0(?![.\d])'))
+
+  # ---- 最小内容树: only-sidebarItem / 页面级 search:false ----
+  $onlyContent = ".tmp/only-sidebar-content"
+  New-Item -ItemType Directory -Force -Path (Join-Path $onlyContent "zztest") | Out-Null
+  Set-Content -LiteralPath (Join-Path $onlyContent "zztest\_index.md") -Encoding ascii -Value "---`ntitle: zztest`n---`n"
+  Set-Content -LiteralPath (Join-Path $onlyContent "zztest\only.md") -Encoding ascii -Value "---`ntitle: only`nsearch: false`n---`n`nonly page`n"
+  $onlyDest = ".tmp/build-only"
+  Check "only-sidebarItem build" (Build-Site $onlyDest @("--contentDir", $onlyContent))
+  $onlyHtml = Read-Page $onlyDest "zztest\only\index.html"
+  Check "only-sidebarItem class" ($onlyHtml -match 'only-sidebarItem')
+  Check "page-level search:false hides box" (($onlyHtml.Length -gt 0) -and ($onlyHtml -notmatch 'search-box'))
 }
 
 Write-Host ""

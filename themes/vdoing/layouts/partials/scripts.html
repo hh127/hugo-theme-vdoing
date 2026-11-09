@@ -2,14 +2,6 @@
 {{- $parts := resources.Match "js/*.js" }}
 {{- if $parts }}
   {{- $bundle := $parts | resources.Concat "js/main.js" | minify | fingerprint }}
-  {{- /* gitalk 依赖: A11 已本地化到 static/gitalk/ 时优先本地文件, 没有则回落 unpkg CDN */}}
-  {{- if and site.Params.gitalk site.Params.gitalk.enable }}
-    {{- if os.FileExists "static/gitalk/gitalk.min.js" }}
-  <script src="{{ "gitalk/gitalk.min.js" | relURL }}" defer></script>
-    {{- else }}
-  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js" defer></script>
-    {{- end }}
-  {{- end }}
   <script src="{{ $bundle.RelPermalink }}" defer></script>
 {{- end }}
 {{- /* 百度自动推送 */}}

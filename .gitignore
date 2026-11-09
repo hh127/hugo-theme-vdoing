@@ -19,3 +19,7 @@ pnpm-lock.yaml
 Thumbs.db
 *.log
 urls.txt
+
+# Python
+__pycache__/
+*.pyc

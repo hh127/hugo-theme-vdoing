@@ -20,7 +20,6 @@ weight: 1
 # sidebarDepth: 2           # 本页侧边栏/大纲层级 (优先级: 本页 > 分组 > 站点)
 # sidebar: auto             # 本页左侧改为本页大纲 | sidebar: false 关闭左侧
 # article: false            # 自定义页: 不进列表/归档/搜索
-# comment: false            # 关闭本页 gitalk 评论
 # editLink: false           # 关闭本页「编辑」链接
 # prev: false               # 隐藏「上一篇」; 也可写 "/pages/xxxx/" 覆盖跳转目标
 # next: false               # 隐藏「下一篇」; 也可写 "/pages/xxxx/" 覆盖跳转目标

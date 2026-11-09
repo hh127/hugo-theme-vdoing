@@ -1,9 +1,8 @@
-{{- /* 右下角圆形按钮组 (对应原版 Buttons.vue): 返回顶部 / 去评论 / 主题模式选择 */ -}}
+{{- /* 右下角圆形按钮组 (对应原版 Buttons.vue): 返回顶部 / 主题模式选择 */ -}}
 {{- /* .can-fade: 由 shell.js 切 .show 做淡入淡出 (原版 <transition name="fade">), 初值隐藏 */ -}}
 {{- $defaultMode := site.Params.defaultMode | default "auto" -}}
 <div class="buttons">
   <div class="button blur go-to-top iconfont icon-fanhuidingbu can-fade" id="go-to-top" title="返回顶部"></div>
-  <div class="button blur go-to-comment iconfont icon-pinglun can-fade" id="go-to-comment" title="去评论"></div>
   <div class="button blur theme-mode-but iconfont icon-zhuti" id="theme-mode-but" title="主题模式">
     <ul class="select-box" id="mode-select-box">
       <li class="iconfont icon-zidong{{ if eq $defaultMode "auto" }} active{{ end }}" data-mode="auto">跟随系统</li>

@@ -7,7 +7,7 @@
 {{- $showEdit := site.Params.editLinks | default false -}}
 {{- if isset $page.Params "editlink" }}{{ $showEdit = $page.Params.editLink }}{{ end -}}
 {{- $editLink := "" -}}
-{{- $docsRepo := site.Params.docsRepo | default "" -}}
+{{- $docsRepo := site.Params.docsRepo | default site.Params.repo | default "" -}}
 {{- if and $showEdit $docsRepo -}}
   {{- with $page.File -}}
     {{- $docsDir := strings.TrimSuffix "/" (site.Params.docsDir | default "") -}}

@@ -8,12 +8,23 @@
    注: Hugo 会把配置 key 小写化, 所以子表里读到的是 appid/apikey/indexname。 */ -}}
 {{- $enabled := true -}}
 {{- if eq site.Params.search false }}{{ $enabled = false }}{{ end -}}
+{{- /* 页面级开关 (原 Navbar.vue: frontmatter.search === false 时隐藏) */ -}}
+{{- if eq .Params.search false }}{{ $enabled = false }}{{ end -}}
 {{- if $enabled -}}
 {{- $placeholder := site.Params.searchPlaceholder | default "搜索" -}}
 {{- $thirdparty := slice -}}
-{{- range site.Params.thirdpartySearch -}}
-  {{- $tpName := .name -}}
-  {{- $tpLink := .link -}}
+{{- range site.Params.thirdpartysearch -}}
+  {{- /* 兼容两种 schema: 新 {name, link({query})} 与原站 {title, frontUrl, behindUrl}。
+       Hugo 会把配置 key 统一小写化, 这里用 index 显式取小写键, 同时兜底原样大小写。 */ -}}
+  {{- $tpName := or (index . "name") (index . "title") -}}
+  {{- $tpLink := index . "link" -}}
+  {{- if not $tpLink -}}
+    {{- $front := or (index . "fronturl") (index . "frontUrl") -}}
+    {{- if $front -}}
+      {{- $behind := or (index . "behindurl") (index . "behindUrl") "" -}}
+      {{- $tpLink = printf "%s{query}%s" $front $behind -}}
+    {{- end -}}
+  {{- end -}}
   {{- if and $tpName $tpLink -}}
     {{- $thirdparty = $thirdparty | append (dict "name" $tpName "link" $tpLink) -}}
   {{- end -}}

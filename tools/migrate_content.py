@@ -98,12 +98,33 @@ def normalize_permalink(raw):
     return raw
 
 
+def mark_comment_lines(lines):
+    """返回逐行是否位于 HTML 注释内: 注释里的 ::: / <code-group> 不能转短代码
+    (否则 Hugo 仍会执行短代码, 被注释掉的 demo 会复活)。"""
+    flags = []
+    in_comment = False
+    for line in lines:
+        starts_here = '<!--' in line and '-->' not in line
+        flags.append(in_comment or starts_here)
+        if in_comment:
+            if '-->' in line:
+                in_comment = False
+        elif starts_here:
+            in_comment = True
+    return flags
+
+
 def convert_containers(body_lines):
     out = []
     in_fence = False
     fence_mark = ''
     stack = []  # 当前已打开的容器, 用于容忍原文档里未闭合/错位的 :::
-    for line in body_lines:
+    comment_flags = mark_comment_lines(body_lines)
+    for idx, line in enumerate(body_lines):
+        if comment_flags[idx]:
+            # HTML 注释内的内容保持原样, 也不参与容器栈配对
+            out.append(line)
+            continue
         m = FENCE_RE.match(line)
         if m:
             mark = m.group(1)
@@ -246,8 +267,13 @@ def convert_code_components(body_lines):
     fence_mark = ''
     i = 0
     n = len(body_lines)
+    comment_flags = mark_comment_lines(body_lines)
     while i < n:
         line = body_lines[i]
+        if comment_flags[i]:
+            out.append(line)
+            i += 1
+            continue
         m = FENCE_RE.match(line)
         if m and not in_fence:
             in_fence = True
