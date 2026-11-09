@@ -1,0 +1,23 @@
+{{- /* 解析 prevLinks / nextLinks / frontmatter prev/next 的字符串形式
+      (原 PageNav.vue resolvePage 的等价实现):
+        - 绝对路径 (/pages/xxx/) 直接按 RelPermalink 匹配
+        - 相对路径按当前页面目录解析 (如 "a/"、"../other/")
+        - 外部 URL 不处理
+      返回匹配到的 Page; 未匹配返回 false。 */ -}}
+{{- $cfg := .value -}}
+{{- $page := .page -}}
+{{- $res := false -}}
+{{- $want := strings.TrimSpace (printf "%v" $cfg) -}}
+{{- if $want -}}
+  {{- if not (or (hasPrefix $want "http://") (hasPrefix $want "https://") (hasPrefix $want "//")) -}}
+    {{- if not (hasPrefix $want "/") -}}
+      {{- $baseDir := path.Dir (strings.TrimSuffix "/" $page.RelPermalink) -}}
+      {{- $want = path.Join $baseDir $want -}}
+    {{- end -}}
+    {{- $want = strings.TrimSuffix "/" $want -}}
+    {{- range site.Pages -}}
+      {{- if eq (strings.TrimSuffix "/" .RelPermalink) $want -}}{{- $res = . -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $res -}}

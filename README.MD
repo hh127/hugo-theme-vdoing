@@ -153,8 +153,8 @@ sidebar: false                    # 可选：关闭左侧边栏
 sidebarDepth: 2                   # 可选：本页侧边栏/大纲层级（覆盖分组/站点）
 article: false                    # 可选：自定义页（不进列表 / 归档 / 搜索）
 search: false                     # 可选：本页隐藏顶部搜索框（页面级，原 Navbar 行为）
-prev: false                       # 可选：隐藏「上一篇」（也可写 "/pages/xxx/" 覆盖目标）
-next: false                       # 可选：隐藏「下一篇」（也可写 "/pages/xxx/" 覆盖目标）
+prev: false                       # 可选：隐藏「上一篇」；也可写路径覆盖（绝对 "/pages/xxx/" 或相对 "a/"）
+next: false                       # 可选：隐藏「下一篇」；同上
 ---
 ```
 
@@ -231,6 +231,7 @@ article: false
 | `[params.updateBar]` | 最近更新栏（`showToArticle` / `moreArticle`） |
 | `[params.baidu]` | 百度统计 / 自动推送 / 站长验证（留空即关闭） |
 | `[params.zooming]` | 图片放大（`enable` / `bgColor` / `selector`） |
+| `[params.oneclickcopy]` | 一键复制（`copyMessage` / `duration` / `showInMobile`） |
 
 自定义 HTML 模块放在 `data/htmlModules.yaml`，顶部导航在 `data/nav.yaml` 中维护（某个条目不写 `link` 即为纯分组标题；外链写完整 URL 即自动加 `target/rel` 与图标）。
 

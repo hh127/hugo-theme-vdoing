@@ -36,34 +36,26 @@
   {{- if lt $idx (sub (len $flat) 1) }}{{ $next = index $flat (add $idx 1) }}{{ end -}}
 {{- end -}}
 
-{{- /* ---------- 2. 覆盖配置: frontmatter prev/next 优先于 site.Params.prevLinks/nextLinks ---------- */ -}}
-{{- if isset $page.Params "prev" -}}
-  {{- $cfg := $page.Params.prev -}}
-  {{- if eq $cfg false -}}
+{{- /* ---------- 2. 覆盖配置 (原 PageNav.vue:121-147)
+      frontmatter prev/next 优先于 site.Params.prevLinks/nextLinks:
+        false = 隐藏; 字符串 = 解析目标页 (绝对或相对路径); true/未设置 = 沿用侧边栏顺序 ---------- */ -}}
+{{- $prevSet := isset $page.Params "prev" -}}
+{{- if or $prevSet (isset site.Params "prevlinks") -}}
+  {{- $prevCfg := cond $prevSet $page.Params.prev site.Params.prevLinks -}}
+  {{- if eq $prevCfg false -}}
     {{- $prev = false -}}
-  {{- else if ne $cfg nil -}}
-    {{- $want := strings.TrimSuffix "/" (printf "%v" $cfg) -}}
-    {{- $prev = false -}}
-    {{- range site.Pages -}}
-      {{- if eq (strings.TrimSuffix "/" .RelPermalink) $want }}{{ $prev = . }}{{ end -}}
-    {{- end -}}
+  {{- else if eq (printf "%T" $prevCfg) "string" -}}
+    {{- $prev = partial "func/resolve-link.html" (dict "value" $prevCfg "page" $page) -}}
   {{- end -}}
-{{- else if eq site.Params.prevLinks false -}}
-  {{- $prev = false -}}
 {{- end -}}
-{{- if isset $page.Params "next" -}}
-  {{- $cfg := $page.Params.next -}}
-  {{- if eq $cfg false -}}
+{{- $nextSet := isset $page.Params "next" -}}
+{{- if or $nextSet (isset site.Params "nextlinks") -}}
+  {{- $nextCfg := cond $nextSet $page.Params.next site.Params.nextLinks -}}
+  {{- if eq $nextCfg false -}}
     {{- $next = false -}}
-  {{- else if ne $cfg nil -}}
-    {{- $want := strings.TrimSuffix "/" (printf "%v" $cfg) -}}
-    {{- $next = false -}}
-    {{- range site.Pages -}}
-      {{- if eq (strings.TrimSuffix "/" .RelPermalink) $want }}{{ $next = . }}{{ end -}}
-    {{- end -}}
+  {{- else if eq (printf "%T" $nextCfg) "string" -}}
+    {{- $next = partial "func/resolve-link.html" (dict "value" $nextCfg "page" $page) -}}
   {{- end -}}
-{{- else if eq site.Params.nextLinks false -}}
-  {{- $next = false -}}
 {{- end -}}
 
 <div class="page-nav-wapper">

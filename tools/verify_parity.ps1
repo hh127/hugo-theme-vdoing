@@ -71,6 +71,7 @@ $article = Read-Page $Destination "pages\8143cc480faf9a11\index.html"
 $zoomJson = [regex]::Match($article, 'window\.__ZOOMING__\s*=\s*(\{.*?\});', 'Singleline').Groups[1].Value
 Check "zooming bgColor camelCase" ($zoomJson -match '"bgColor"') $zoomJson
 Check "zooming no lowercase bgcolor key" ($zoomJson -cnotmatch '"bgcolor"\s*:')
+Check "one-click-copy config injected" (($article -match 'window\.__COPY_CONFIG__') -and ($article -match '复制成功'))
 
 Write-Host "==> P1 prev/next page nav" -ForegroundColor Cyan
 $dupPages = New-Object System.Collections.Generic.List[string]
@@ -156,6 +157,7 @@ Check "demo preview/code toggle" ($demo -match 'demo-(toggle|tabs|preview)|\u988
 Check "demo outlink switch attrs" ($demo -match 'data-demo-codepen="true"')
 $codeJs = Get-Content -LiteralPath "themes/vdoing/assets/js/code.js" -Raw
 Check "demo codepen/jsfiddle wiring" (($codeJs -match 'codepen\.io/pen/define') -and ($codeJs -match 'jsfiddle\.net/api/post'))
+Check "copy config wiring" (($codeJs -match '__COPY_CONFIG__') -and ($codeJs -match 'COPY_MESSAGE'))
 Check "commented demo not rendered" (([regex]::Matches($demo, 'demo-block-head')).Count -eq 1) "heads=$(([regex]::Matches($demo, 'demo-block-head')).Count)"
 Check "posts orphan page not generated" (-not (Test-Path (Join-Path $Destination "posts\index.html")))
 Check "posts orphan not in sitemap" (-not ((Read-Page $Destination "sitemap.xml") -match '<loc>[^<]*/posts/</loc>'))
@@ -220,6 +222,10 @@ if ($Toggles) {
 [[params.sidebar.external]]
   text = "Vue"
   link = "https://cn.vuejs.org/"
+[params.oneclickcopy]
+  copyMessage = "Copied!"
+  duration = 1500
+  showInMobile = true
 [params.updateBar]
   showToArticle = false
 [[params.thirdpartySearch]]
@@ -240,6 +246,7 @@ if ($Toggles) {
   $headingArrows = @($sidebarHeadings | Where-Object { $_.Value -match 'class="arrow' }).Count
   Check "collapsable=false hides sidebar arrows" (($tSidebar.Length -gt 0) -and ($tArticle -notmatch 'sidebar-group[^"]*collapsable') -and ($headingArrows -eq 0)) "arrows=$headingArrows"
   Check "sidebar external links" (($tArticle -match 'sidebar-extra') -and ($tArticle -match 'cn\.vuejs\.org') -and ($tArticle -match 'rel="noopener noreferrer"'))
+  Check "copy config override" (($tArticle -match 'Copied!') -and ($tArticle -match '"duration":1500') -and ($tArticle -match '"showInMobile":true'))
   Check "navbar=false adds no-navbar" (($tArticle -match 'no-navbar') -and ($tArticle -notmatch 'class="navbar blur'))
   Check "pageStyle bogus falls back to card" ($tArticle -match 'theme-style-card' -and $tArticle -notmatch 'theme-style-bogus')
   Check "head injection works" ($tArticle -match 'parity-head')
@@ -258,6 +265,18 @@ if ($Toggles) {
   $onlyHtml = Read-Page $onlyDest "zztest\only\index.html"
   Check "only-sidebarItem class" ($onlyHtml -match 'only-sidebarItem')
   Check "page-level search:false hides box" (($onlyHtml.Length -gt 0) -and ($onlyHtml -notmatch 'search-box'))
+
+  # ---- prev/next 字符串覆盖 (相对路径解析) ----
+  $navContent = ".tmp/nav-content"
+  New-Item -ItemType Directory -Force -Path (Join-Path $navContent "zznav") | Out-Null
+  Set-Content -LiteralPath (Join-Path $navContent "zznav\_index.md") -Encoding ascii -Value @('---', 'title: zznav', '---')
+  Set-Content -LiteralPath (Join-Path $navContent "zznav\a.md") -Encoding ascii -Value @('---', 'title: A', 'weight: 1', '---', '', 'A')
+  Set-Content -LiteralPath (Join-Path $navContent "zznav\b.md") -Encoding ascii -Value @('---', 'title: B', 'weight: 2', '---', '', 'B')
+  Set-Content -LiteralPath (Join-Path $navContent "zznav\c.md") -Encoding ascii -Value @('---', 'title: C', 'weight: 3', 'prev: "a/"', '---', '', 'C')
+  $navDest = ".tmp/build-nav"
+  Check "prev/next override build" (Build-Site $navDest @("--contentDir", $navContent))
+  $navHtml = Read-Page $navDest "zznav\c\index.html"
+  Check "prev string relative resolves" (($navHtml -match 'page-nav-centre-prev" href="/zznav/a/"') -and ($navHtml -match '上一篇: A'))
 }
 
 Write-Host ""

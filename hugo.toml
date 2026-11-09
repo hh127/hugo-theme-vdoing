@@ -121,9 +121,9 @@ summaryLength = 80        # 列表摘要长度
   categoryText = "随笔"          # 碎片化文章的默认分类 (迁移脚本 tools/migrate_content.py 使用)
 
   # ---------- 上下篇 ----------
-  prevLinks = true              # false 隐藏「上一篇」链接 (原 themeConfig.prevLinks)
-  nextLinks = true              # false 隐藏「下一篇」链接
-  # 单页覆盖: frontmatter 写 prev: "/pages/xxx/" 或 prev: false (next 同理)
+  prevLinks = true              # false 隐藏「上一篇」; 字符串 = 指定目标页 (原 themeConfig.prevLinks)
+  nextLinks = true              # false 隐藏「下一篇」; 字符串 = 指定目标页
+  # 单页覆盖: frontmatter prev/next 支持 false 或路径字符串 (绝对 "/pages/xxx/" 或相对 "a/")
 
   # ---------- 注入点 (原 VuePress head / .vuepress/styles) ----------
   head = ""                     # 自定义 <head> HTML 片段, 例如 '<meta name="x" content="y">'
@@ -176,6 +176,12 @@ summaryLength = 80        # 列表摘要长度
   [params.demoblock]
     codepen = true
     jsfiddle = false
+
+  # ---------- 一键复制 (原 vuepress-plugin-one-click-copy) ----------
+  [params.oneclickcopy]
+    copyMessage = "复制成功"     # 复制成功后按钮文案
+    duration = 1000              # 文案停留毫秒数
+    showInMobile = false         # 移动端是否显示复制按钮
 
   # 第三方搜索跳转: 原站 5 条已迁移; 支持原版 schema (title + frontUrl + behindUrl)
   # 也兼容 name + link (link 中 {query} 为关键词占位符)

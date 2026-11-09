@@ -55,6 +55,17 @@
 <script>
 window.__BASE__ = '{{ "" | relURL }}';
 window.__SEARCH_MAX__ = {{ site.Params.searchMaxSuggestions | default 10 }};
+{{- /* 一键复制配置 (原 vuepress-plugin-one-click-copy): copyMessage / duration / showInMobile。
+      copySelector 固定为 Hugo 的 .theme-vdoing-content .highlight (VuePress 原选择器对应的是不同 DOM)。 */}}
+{{- $copyMsg := "复制成功" -}}
+{{- $copyDur := 1000 -}}
+{{- $copyMobile := false -}}
+{{- with site.Params.oneclickcopy -}}
+  {{- if isset . "copymessage" }}{{ $copyMsg = .copymessage }}{{ end -}}
+  {{- if isset . "duration" }}{{ $copyDur = .duration }}{{ end -}}
+  {{- if isset . "showinmobile" }}{{ $copyMobile = .showinmobile }}{{ end -}}
+{{- end -}}
+window.__COPY_CONFIG__ = {{ dict "copyMessage" $copyMsg "duration" $copyDur "showInMobile" $copyMobile | jsonify | safeJS }};
 {{- /* A2: 显式输出 camelCase 键。Hugo 会把 params/hugo.toml 的键统一小写,
       直接 jsonify 会输出 bgcolor/selector, 而 zoom.js 读 config.bgColor → 总是 undefined */}}
 {{- with site.Params.zooming }}

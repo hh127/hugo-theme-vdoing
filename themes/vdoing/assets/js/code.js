@@ -103,6 +103,11 @@
 
   // ---------- 2. 一键复制 ----------
   function initCopyButtons() {
+    // 配置来自 head.html 注入的 window.__COPY_CONFIG__ (原 vuepress-plugin-one-click-copy)
+    var COPY_CONFIG = window.__COPY_CONFIG__ || {};
+    var COPY_MESSAGE = COPY_CONFIG.copyMessage || '复制成功';
+    var COPY_DURATION = typeof COPY_CONFIG.duration === 'number' ? COPY_CONFIG.duration : 1000;
+    if (COPY_CONFIG.showInMobile) document.documentElement.classList.add('copy-in-mobile');
     var blocks = document.querySelectorAll('.theme-vdoing-content .highlight');
     for (var i = 0; i < blocks.length; i++) {
       (function (block) {
@@ -119,10 +124,10 @@
           e.preventDefault();
           e.stopPropagation();
           var done = function () {
-            btn.textContent = '复制成功';
+            btn.textContent = COPY_MESSAGE;
             window.setTimeout(function () {
               btn.textContent = '复制';
-            }, 1000);
+            }, COPY_DURATION);
           };
           copyText(stripLineNumbers(code)).then(done, done);
         });
