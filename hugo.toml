@@ -161,11 +161,21 @@ summaryLength = 80        # 列表摘要长度
     collapsable = true          # 分组是否可折叠 (原 collapsable: false)
     displayAllHeaders = false   # true: 所有页面都展开标题子项 (原 displayAllHeaders)
 
+  # 侧边栏外链项 (原 themeConfig.sidebar 自定义数组里的 {title, link} 外链, type: external)
+  # [[params.sidebar.external]]
+  #   text = "Vue 官网"
+  #   link = "https://cn.vuejs.org/"
+
   # ---------- Algolia 搜索 (可选; 留空则使用本地 index.json 搜索) ----------
   [params.algolia]
     appId = ""
     apiKey = ""
     indexName = ""
+
+  # ---------- demo 容器外链 (原 vuepress-plugin-demo-block settings) ----------
+  [params.demoblock]
+    codepen = true
+    jsfiddle = false
 
   # 第三方搜索跳转: 原站 5 条已迁移; 支持原版 schema (title + frontUrl + behindUrl)
   # 也兼容 name + link (link 中 {query} 为关键词占位符)

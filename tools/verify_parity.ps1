@@ -107,6 +107,8 @@ Check "external link target/rel" ($extPage -match '<a href="https://tempmail100\
 Check "external link outbound icon" ($extPage -match 'external-link-icon')
 $tp = [regex]::Match($extPage, 'window\.__THIRDPARTY_SEARCH__\s*=\s*(.*?);</script>', 'Singleline').Groups[1].Value
 Check "thirdparty config migrated" (($tp -match 'developer\.mozilla\.org') -and ($tp -match 'runoob\.com') -and ($tp -match 'cn\.bing\.com') -and ($tp -match 'site%3Axugaoyi\.com'))
+Check "nprogress js present" (Test-Path "themes/vdoing/assets/js/nprogress.js")
+Check "nprogress styles present" ((Get-Content -LiteralPath "themes/vdoing/assets/scss/_extras.scss" -Raw) -match '#nprogress')
 
 Write-Host "==> P1 search index (light list index + lazy full-text index)" -ForegroundColor Cyan
 $indexJson = Read-Page $Destination "index.json"
@@ -151,6 +153,9 @@ Check "catalogue page-edit block" ($catalogue -match 'class="page-edit"|class="l
 Check "catalogue has prev/next" ($catalogue -match 'page-nav')
 $demo = Read-Page $Destination "pages\40b4db2d38ba85f2\index.html"
 Check "demo preview/code toggle" ($demo -match 'demo-(toggle|tabs|preview)|\u9884\u89c8')
+Check "demo outlink switch attrs" ($demo -match 'data-demo-codepen="true"')
+$codeJs = Get-Content -LiteralPath "themes/vdoing/assets/js/code.js" -Raw
+Check "demo codepen/jsfiddle wiring" (($codeJs -match 'codepen\.io/pen/define') -and ($codeJs -match 'jsfiddle\.net/api/post'))
 Check "commented demo not rendered" (([regex]::Matches($demo, 'demo-block-head')).Count -eq 1) "heads=$(([regex]::Matches($demo, 'demo-block-head')).Count)"
 Check "posts orphan page not generated" (-not (Test-Path (Join-Path $Destination "posts\index.html")))
 Check "posts orphan not in sitemap" (-not ((Read-Page $Destination "sitemap.xml") -match '<loc>[^<]*/posts/</loc>'))
@@ -212,6 +217,9 @@ if ($Toggles) {
 [params.sidebar]
   displayAllHeaders = true
   collapsable = false
+[[params.sidebar.external]]
+  text = "Vue"
+  link = "https://cn.vuejs.org/"
 [params.updateBar]
   showToArticle = false
 [[params.thirdpartySearch]]
@@ -231,6 +239,7 @@ if ($Toggles) {
   $sidebarHeadings = [regex]::Matches($tSidebar, '<(?:a|p) class="sidebar-heading[^>]*>.*?</(?:a|p)>', 'Singleline')
   $headingArrows = @($sidebarHeadings | Where-Object { $_.Value -match 'class="arrow' }).Count
   Check "collapsable=false hides sidebar arrows" (($tSidebar.Length -gt 0) -and ($tArticle -notmatch 'sidebar-group[^"]*collapsable') -and ($headingArrows -eq 0)) "arrows=$headingArrows"
+  Check "sidebar external links" (($tArticle -match 'sidebar-extra') -and ($tArticle -match 'cn\.vuejs\.org') -and ($tArticle -match 'rel="noopener noreferrer"'))
   Check "navbar=false adds no-navbar" (($tArticle -match 'no-navbar') -and ($tArticle -notmatch 'class="navbar blur'))
   Check "pageStyle bogus falls back to card" ($tArticle -match 'theme-style-card' -and $tArticle -notmatch 'theme-style-bogus')
   Check "head injection works" ($tArticle -match 'parity-head')

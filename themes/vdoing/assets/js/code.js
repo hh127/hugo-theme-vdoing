@@ -194,7 +194,7 @@
   //   · horizontal 横向模式 -> 纯 CSS (data-demo-horizontal="true")
   //   · 纯 HTML demo -> 注入 sandbox iframe (srcdoc)
   //   · Vue <template> demo -> 静态站无运行时编译, 服务端已输出降级说明, 这里不注入 iframe
-  //   · CodePen / JSFiddle -> 纯静态无法可靠生成, 有意不实现 (不伪造)
+  //   · CodePen / JSFiddle -> 表单 POST 外链 (ensureDemoOutlinks, 开关见 [params.demoblock])
   var DEMO_DOC_STYLE =
     'body{margin:12px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#333;}';
 
@@ -266,6 +266,79 @@
     if (mode === 'preview') ensureDemoPreview(block);
   }
 
+  /* CodePen / JSFiddle: 纯静态站点用表单 POST 把 demo 代码带到外部编辑器 */
+  function submitExternalForm(action, fields) {
+    var form = document.createElement('form');
+    form.action = action;
+    form.method = 'POST';
+    form.target = '_blank';
+    form.style.display = 'none';
+    for (var key in fields) {
+      if (!Object.prototype.hasOwnProperty.call(fields, key)) continue;
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = fields[key];
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    form.submit();
+    window.setTimeout(function () {
+      if (form.parentNode) form.parentNode.removeChild(form);
+    }, 0);
+  }
+
+  function openCodePen(html) {
+    submitExternalForm('https://codepen.io/pen/define', {
+      data: JSON.stringify({ title: 'vdoing demo', html: html, css: '', js: '' })
+    });
+  }
+
+  function openJSFiddle(html) {
+    submitExternalForm('https://jsfiddle.net/api/post/library/pure/', {
+      title: 'vdoing demo',
+      html: html,
+      css: '',
+      js: ''
+    });
+  }
+
+  function ensureDemoOutlinks(block) {
+    if (!block || block.querySelector('.demo-block-outlinks')) return;
+    var wantCodePen = block.getAttribute('data-demo-codepen') === 'true';
+    var wantJSFiddle = block.getAttribute('data-demo-jsfiddle') === 'true';
+    if (!wantCodePen && !wantJSFiddle) return;
+    var html = demoCodeText(block);
+    if (html === null) return; // 只对纯 HTML demo 生成 (Vue SFC 需运行时编译, 无法直接外链)
+    var head = block.querySelector('.demo-block-head');
+    if (!head) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'demo-block-outlinks';
+    if (wantCodePen) {
+      var cp = document.createElement('a');
+      cp.className = 'demo-block-outlink';
+      cp.href = '#';
+      cp.textContent = 'CodePen';
+      cp.addEventListener('click', function (e) {
+        e.preventDefault();
+        openCodePen(html);
+      });
+      wrap.appendChild(cp);
+    }
+    if (wantJSFiddle) {
+      var jf = document.createElement('a');
+      jf.className = 'demo-block-outlink';
+      jf.href = '#';
+      jf.textContent = 'JSFiddle';
+      jf.addEventListener('click', function (e) {
+        e.preventDefault();
+        openJSFiddle(html);
+      });
+      wrap.appendChild(jf);
+    }
+    head.appendChild(wrap);
+  }
+
   function initDemoBlocks() {
     var demos = document.querySelectorAll('.theme-vdoing-content .demo-block');
     for (var i = 0; i < demos.length; i++) {
@@ -281,6 +354,7 @@
         }
         // 默认预览: 首次渲染时注入 iframe
         if (block.getAttribute('data-demo-mode') === 'preview') ensureDemoPreview(block);
+        ensureDemoOutlinks(block);
       })(demos[i]);
     }
   }

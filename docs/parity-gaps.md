@@ -10,7 +10,7 @@
 >
 > 规模：约 280 个功能点，其中约 8 成已实现或等价替代；**确认未实现 / 部分实现 60 余项**，下面按优先级列出。
 >
-> **2026-11-08 更新**：评论区已按需求整体移除（`comment.html` / `assets/js/gitalk.js` / `static/gitalk/` / `_comment.scss` 已删除，`[params.gitalk]` 配置与「去评论」按钮已移除）。本文 1.1 与 4.2 中与 gitalk 有关的条目不再适用。同日补齐：正文 Markdown 外链自动 target/rel + 外链图标、docsRepo 缺失时回落 repo、原站 5 条 thirdparty-search 外链迁移（兼容原版 title/frontUrl/behindUrl schema）、页面级 `frontmatter.search:false`、`/posts/` 段页不再生成、迁移脚本跳过 HTML 注释内语法（修复被注释掉的 demo 复活）。
+> **2026-11-08 更新**：评论区已按需求整体移除（`comment.html` / `assets/js/gitalk.js` / `static/gitalk/` / `_comment.scss` 已删除，`[params.gitalk]` 配置与「去评论」按钮已移除）。本文 1.1 与 4.2 中与 gitalk 有关的条目不再适用。同日补齐：正文 Markdown 外链自动 target/rel + 外链图标、docsRepo 缺失时回落 repo、原站 5 条 thirdparty-search 外链迁移（兼容原版 title/frontUrl/behindUrl schema）、页面级 `frontmatter.search:false`、`/posts/` 段页不再生成、迁移脚本跳过 HTML 注释内语法（修复被注释掉的 demo 复活）；另补 MPA 版 nprogress、侧边栏外链项、demo CodePen/JSFiddle 外链；Vue SFC 实时预览 / SPA 路由 / 多语言 locales 仍为架构边界。
 
 ---
 

@@ -127,7 +127,7 @@
          能力对照见 docs/parity-gaps.md 2.3:
            · 纯 HTML demo -> 前端注入 iframe 预览 (code.js)
            · Vue <template> demo -> 静态站无法运行时编译, 输出明确的降级说明
-           · CodePen / JSFiddle 外链 -> 纯静态下无法可靠生成, 有意替代 (不伪造) */ -}}
+           · CodePen / JSFiddle 外链 -> 由 code.js 生成表单 POST (开关见 [params.demoblock]) */ -}}
   {{- $inner := printf "%s" .Inner -}}
   {{- $isVue := in $inner "<template" -}}
   {{- $hasHtml := and (not $isVue) (gt (len (findRE `<[a-zA-Z!/]` $inner)) 0) -}}
@@ -137,8 +137,13 @@
     {{- $hv := lower (printf "%v" (.Get "horizontal")) -}}
     {{- if and (ne $hv "false") (ne $hv "0") (ne $hv "no") -}}{{- $horizontal = true -}}{{- end -}}
   {{- end -}}
-  <!-- demo 容器: CodePen / JSFiddle 外链在纯静态实现中不生成 (有意替代, 见 docs/parity-gaps.md 2.3) -->
-  <div class="custom-block demo-block" data-demo-mode="{{ if $hasPreview }}preview{{ else }}code{{ end }}" data-demo-has-preview="{{ if $hasPreview }}true{{ else }}false{{ end }}" data-demo-horizontal="{{ if $horizontal }}true{{ else }}false{{ end }}">
+  {{- /* demo 外链开关 (原 vuepress-plugin-demo-block settings): [params.demoblock] codepen / jsfiddle */ -}}
+  {{- $cp := true -}}{{- $jf := false -}}
+  {{- with site.Params.demoblock -}}
+    {{- if isset . "codepen" }}{{ $cp = .codepen }}{{ end -}}
+    {{- if isset . "jsfiddle" }}{{ $jf = .jsfiddle }}{{ end -}}
+  {{- end -}}
+  <div class="custom-block demo-block" data-demo-mode="{{ if $hasPreview }}preview{{ else }}code{{ end }}" data-demo-has-preview="{{ if $hasPreview }}true{{ else }}false{{ end }}" data-demo-horizontal="{{ if $horizontal }}true{{ else }}false{{ end }}" data-demo-codepen="{{ if $cp }}true{{ else }}false{{ end }}" data-demo-jsfiddle="{{ if $jf }}true{{ else }}false{{ end }}">
     <div class="demo-block-head">
       <p class="custom-block-title">示例{{ with $title }} · {{ . }}{{ end }}</p>
       {{- if $hasPreview }}
